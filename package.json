@@ -1,6 +1,6 @@
 {
   "name": "@lovebowls/leagueelements",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "League Elements package for LoveBowls",
   "type": "module",
   "source": "src/index.ts",
@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "build": "rollup -c && tsc --emitDeclarationOnly",
+    "build": "rollup -c rollup.browser.config.js && tsc --emitDeclarationOnly",
     "build:browser": "rollup -c rollup.browser.config.js",
     "build:all": "npm run build && npm run build:browser",
     "dev": "rollup -c -w",
@@ -64,7 +64,7 @@
     "typedoc": "^0.28.3",
     "typescript": "^5.8.3"
   },
-  "sideEffects": false,
+  "sideEffects": true,
   "engines": {
     "node": ">=18.0.0"
   },

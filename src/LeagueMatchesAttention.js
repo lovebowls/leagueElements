@@ -111,6 +111,7 @@ class LeagueMatchesAttention extends HTMLElement {
 
   static get TEMPLATE() {
     return `
+      <div class="panel-header">Requiring Attention</div>
       <div class="attention-matches">
         {{attentionMatches}}
       </div>

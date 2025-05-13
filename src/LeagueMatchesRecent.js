@@ -122,6 +122,7 @@ class LeagueMatchesRecent extends HTMLElement {
   // Template
   static get TEMPLATE() {
     return `
+      <div class="panel-header">Recent Results</div>
       <div class="recent-results">
         {{recentResults}}
       </div>

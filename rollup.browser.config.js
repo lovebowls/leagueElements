@@ -11,7 +11,8 @@ const __dirname = dirname(__filename);
 const elements = [
   'leagueElement',
   'LeagueMatchesRecent',
-  'leagueAdminElement'
+  'leagueAdminElement',
+  'leagueElement.bundle'
 ];
 
 export default elements.map(element => ({
