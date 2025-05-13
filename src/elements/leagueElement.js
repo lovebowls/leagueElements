@@ -10,9 +10,9 @@ class LeagueEvent extends CustomEvent {
 }
 
 // Import the new LeagueMatchesRecent component
-import '../LeagueMatchesRecent.js';
+import './LeagueMatchesRecent.js';
 // Import the new LeagueMatchesUpcoming component
-import '../LeagueMatchesUpcoming.js';
+import './LeagueMatchesUpcoming.js';
 // Import the new LeagueMatchesAttention component
 import './LeagueMatchesAttention.js';
 // Import the new LeagueMatch component
@@ -94,88 +94,6 @@ class LeagueElement extends HTMLElement {
         background-color: #fff0f0;
         border-radius: 4px;
       }
-      .calendar {
-        margin-bottom: 1rem;
-        font-size: 0.9em;
-      }
-      .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-      }
-      .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 2px;
-        text-align: center; /* Align day names (Su, Mo, etc.) */
-      }
-      .calendar-day {
-        text-align: center;
-        padding: 0.3rem;
-        cursor: pointer;
-        border-radius: 3px;
-        transition: background-color 0.2s;
-      }
-      .calendar-day:hover {
-        background-color: #f0f0f0;
-      }
-      .calendar-day.has-match {
-        background-color: #e3f2fd;
-        font-weight: bold;
-      }
-      .calendar-day.has-match:hover {
-        background-color: #bbdefb;
-      }
-      .calendar-day.selected {
-        background-color: #2196f3;
-        color: white;
-      }
-      .calendar-day.selected:hover {
-        background-color: #1976d2;
-      }
-      .calendar-day.other-month {
-        color: #ccc;
-      }
-      .calendar-day.today {
-        border: 1px solid #2196f3;
-      }
-      .calendar-day.has-result {
-        background-color: #c8e6c9 !important;
-        border: 2px solid #388e3c !important;
-        font-weight: bold;
-      }
-      .calendar-nav {
-        cursor: pointer;
-        padding: 0.2rem 0.5rem;
-        border-radius: 3px;
-        transition: background-color 0.2s;
-      }
-      .calendar-nav:hover {
-        background-color: #f0f0f0;
-      }
-      .calendar-filter {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .calendar-filter button {
-        background: none;
-        border: none;
-        color: #2196f3;
-        cursor: pointer;
-        padding: 0.2rem 0.5rem;
-        border-radius: 3px;
-        font-size: 0.9em;
-      }
-      .calendar-filter button:hover {
-        background-color: #e3f2fd;
-      }
-      .calendar-filter .active {
-        background-color: #e3f2fd;
-        font-weight: bold;
-      }
       .match-link {
         color: #2196f3;
         text-decoration: none;
@@ -201,12 +119,12 @@ class LeagueElement extends HTMLElement {
         margin-bottom: 0.2em; /* Add small vertical space below the date */
       }
       .filter-indicator {
-        background-color: #f1f8e9;
-        border-left: 3px solid #8bc34a;
-        padding: 0.3rem 0.5rem;
-        margin-bottom: 0.5rem;
-        font-size: 0.9em;
-        color: #388e3c;
+        background-color: #f1f8e9; /* This class is used by LeagueMatchesUpcoming for its date filter */
+        /* border-left: 3px solid #8bc34a; */ /* Original for league table filter */
+        /* padding: 0.3rem 0.5rem; */
+        /* margin-bottom: 0.5rem; */
+        /* font-size: 0.9em; */
+        /* color: #388e3c; */
       }
 
       /* Tab Styles */
@@ -753,20 +671,14 @@ class LeagueElement extends HTMLElement {
           </div>
         </div>
         <div class="panel">
-          <div class="panel-header">Upcoming Fixtures</div>
-          <league-matches-upcoming id="mobile-upcoming-fixtures"></league-matches-upcoming>
-          <div class="calendar">
-            {{calendar}}
-          </div>
-          <div class="calendar-filter">
-            {{calendarFilter}}
-          </div>
+          <league-matches-upcoming id="mobile-upcoming-fixtures" is-mobile="true"></league-matches-upcoming>
+          <!-- Calendar and its filter are now inside league-matches-upcoming -->
         </div>
         <div class="panel">
-          <league-matches-recent id="mobile-recent-matches"></league-matches-recent>
+          <league-matches-recent id="mobile-recent-matches" is-mobile="true"></league-matches-recent>
         </div>
         <div class="panel">
-          <league-matches-attention id="mobile-attention-matches"></league-matches-attention>
+          <league-matches-attention id="mobile-attention-matches" is-mobile="true"></league-matches-attention>
         </div>
       </div>
     `;
@@ -814,14 +726,8 @@ class LeagueElement extends HTMLElement {
         <div class="resizer"></div>
         <div class="right-panel">
           <div class="panel">
-            <div class="panel-header">Upcoming Fixtures</div>
             <league-matches-upcoming id="desktop-upcoming-fixtures"></league-matches-upcoming>
-            <div class="calendar">
-              {{calendar}}
-            </div>
-            <div class="calendar-filter">
-              {{calendarFilter}}
-            </div>
+            <!-- Calendar and its filter are now inside league-matches-upcoming -->
           </div>
           <div class="panel">
             <league-matches-recent id="desktop-recent-matches"></league-matches-recent>
@@ -838,11 +744,7 @@ class LeagueElement extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.data = null;
-    this.upcomingFixturesPage = 0;
-    this.attentionMatchesPage = 0;
-    this.calendarDate = new Date();
-    this.selectedDate = null;
-    this.selectedResultDate = null;
+    this.selectedResultDate = null; // Retained for LeagueMatchesRecent filtering if needed
     this.leftPanelFlexBasis = null;
     this.minRightPanelPixelWidth = null;
     this.activeView = 'table'; // Default to table view
@@ -958,24 +860,24 @@ class LeagueElement extends HTMLElement {
   // Helper method to replace placeholders in template
   _fillTemplate(template) {
     // Check if paging controls should be visible
-    const showFixturesPaging = this.upcomingFixturesPage > 0 || this._upcomingFixturesHasNext();
-    const showAttentionPaging = this.attentionMatchesPage > 0 || this._attentionMatchesHasNext();
+    // const showFixturesPaging = this.upcomingFixturesPage > 0 || this._upcomingFixturesHasNext(); // Moved to LeagueMatchesUpcoming
+    // const showAttentionPaging = this.attentionMatchesPage > 0 || this._attentionMatchesHasNext(); // Moved to LeagueMatchesAttention
     
     const currentTitle = (this.data && this.data.name ? this.data.name : 'League Table') || 'League Table';
 
     return template
-      .replace(/\{\{title\}\}/g, currentTitle) // Use currentTitle from this.data.name
+      .replace(/\{\{title\}\}/g, currentTitle)
       .replace('{{tableRows}}', this.tableRows)
-      .replace('{{upcomingFixtures}}', this.renderUpcomingFixtures())
-      .replace('{{fixturesPrevDisabled}}', this.upcomingFixturesPage === 0 ? 'disabled' : '')
-      .replace('{{fixturesNextDisabled}}', this._upcomingFixturesHasNext() ? '' : 'disabled')
-      .replace('{{showFixturesPaging}}', showFixturesPaging ? '' : 'style="display: none;"')
-      .replace('{{calendar}}', this.renderCalendar())
-      .replace('{{calendarFilter}}', this.renderCalendarFilter())
-      .replace('{{attentionMatches}}', this.renderMatchesRequiringAttention())
-      .replace('{{attentionPrevDisabled}}', this.attentionMatchesPage === 0 ? 'disabled' : '')
-      .replace('{{attentionNextDisabled}}', this._attentionMatchesHasNext() ? '' : 'disabled')
-      .replace('{{showAttentionPaging}}', showAttentionPaging ? '' : 'style="display: none;"')
+      // .replace('{{upcomingFixtures}}', this.renderUpcomingFixtures()) // Handled by LeagueMatchesUpcoming element
+      // .replace('{{fixturesPrevDisabled}}', this.upcomingFixturesPage === 0 ? 'disabled' : '')
+      // .replace('{{fixturesNextDisabled}}', this._upcomingFixturesHasNext() ? '' : 'disabled')
+      // .replace('{{showFixturesPaging}}', showFixturesPaging ? '' : 'style="display: none;"')
+      // .replace('{{calendar}}', this.renderCalendar()) // Moved to LeagueMatchesUpcoming
+      // .replace('{{calendarFilter}}', this.renderCalendarFilter()) // Moved to LeagueMatchesUpcoming
+      // .replace('{{attentionMatches}}', this.renderMatchesRequiringAttention()) // Handled by LeagueMatchesAttention element
+      // .replace('{{attentionPrevDisabled}}', this.attentionMatchesPage === 0 ? 'disabled' : '')
+      // .replace('{{attentionNextDisabled}}', this._attentionMatchesHasNext() ? '' : 'disabled')
+      // .replace('{{showAttentionPaging}}', showAttentionPaging ? '' : 'style="display: none;"')
       .replace('{{matrixView}}', this.activeView === 'matrix' ? this.renderMatrix() : '')
       .replace('{{trendsViewContent}}', this.activeView === 'trends' ? this.renderTrendsViewContent() : '')
       .replace('{{overallSelected}}', this.tableFilter === 'overall' ? 'selected' : '')
@@ -987,6 +889,7 @@ class LeagueElement extends HTMLElement {
     // Generate table rows based on data if available
     let tableRows = '';
     const isMobile = this.getAttribute('isMobile') === 'true';
+    console.log('[LeagueElement] render START. isMobile:', isMobile);
     
     if (this.data && this.data.table) {
       const processedLeagueData = this._getFilteredLeagueData();
@@ -1084,12 +987,29 @@ class LeagueElement extends HTMLElement {
         }
         this.setupResizer();
       }
-      this.setupPaging();
-      this.setupCalendar();
+      // this.setupPaging(); // Paging for sub-components is handled by them
+      // this.setupCalendar(); // Calendar is now in LeagueMatchesUpcoming
       this.setupTabs();
       this.setupTableFilterDropdown();
       if (this.activeView === 'trends') { // If trends tab is active by default (e.g. on reload/state persistence)
         this.setupTrendsViewInteractivity(); // Ensure interactivity is set up
+      }
+
+      console.log('[LeagueElement] render: Attempting to find upcomingFixturesElement');
+      // Configure the upcoming fixtures component
+      const upcomingFixturesElement = this.shadow.querySelector(isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
+      if (upcomingFixturesElement) {
+        console.log('[LeagueElement] render: upcomingFixturesElement FOUND.');
+        upcomingFixturesElement.setAttribute('is-mobile', isMobile.toString());
+        if (this.data && this.data.matches) {
+            console.log('[LeagueElement] render: Setting data attribute on upcomingFixturesElement with:', JSON.stringify(this.data.matches).substring(0,100) + '...');
+            upcomingFixturesElement.setAttribute('data', JSON.stringify(this.data.matches));
+            console.log('[LeagueElement] render: data attribute SET on upcomingFixturesElement.');
+        } else {
+            console.log('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
+        }
+        // Listen to date changes from the upcoming fixtures calendar
+        upcomingFixturesElement.addEventListener('league-matches-upcoming-date-change', this._handleUpcomingFixtureDateChange);
       }
     } else {
       // Show error if data is missing or invalid
@@ -1156,101 +1076,11 @@ class LeagueElement extends HTMLElement {
       };
     });
     
-    // Upcoming Fixtures
-    const prevFixtures = this.shadow.querySelector('#fixtures-prev');
-    const nextFixtures = this.shadow.querySelector('#fixtures-next');
-    if (prevFixtures) {
-      prevFixtures.onclick = () => {
-        if (this.upcomingFixturesPage > 0) {
-          this.upcomingFixturesPage--;
-          this.render();
-        }
-      };
-    }
-    if (nextFixtures) {
-      nextFixtures.onclick = () => {
-        if (this._upcomingFixturesHasNext()) {
-          this.upcomingFixturesPage++;
-          this.render();
-        }
-      };
-    }
+    // Upcoming Fixtures paging is now handled by LeagueMatchesUpcoming.js
+    // Attention Matches Paging is now handled by LeagueMatchesAttention.js
 
-    // Attention Matches Paging
-    const prevAttention = this.shadow.querySelector('#attention-prev');
-    const nextAttention = this.shadow.querySelector('#attention-next');
-    if (prevAttention) {
-      prevAttention.onclick = () => {
-        if (this.attentionMatchesPage > 0) {
-          this.attentionMatchesPage--;
-          this.render();
-        }
-      };
-    }
-    if (nextAttention) {
-      nextAttention.onclick = () => {
-        if (this._attentionMatchesHasNext()) {
-          this.attentionMatchesPage++;
-          this.render();
-        }
-      };
-    }
-
-    // Setup upcoming match links
-    const matchLinks = this.shadow.querySelectorAll('.upcoming-fixtures .match-link, .attention-matches .match-link');
-    matchLinks.forEach(link => {
-      link.onclick = (e) => {
-        e.preventDefault();
-        const matchKey = link.dataset.matchKey;
-        const match = this.data.matches.find(m => m.key === matchKey);
-        if (match) {
-          // Open the modal for editing this match
-          const teams = this.data.table && Array.isArray(this.data.table.leagueData)
-            ? this.data.table.leagueData.map(t => t.teamName)
-            : [];
-          this.openMatchModal(match, teams, 'edit');
-        }
-      };
-    });
-  }
-
-  _upcomingFixturesList() {
-    if (!this.data?.matches) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let fixtures = this.data.matches
-      .filter(match => {
-        const matchDate = new Date(match.date);
-        matchDate.setHours(0, 0, 0, 0);
-        return matchDate > today;
-      })
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // Apply date filter if selected
-    if (this.selectedDate) {
-      const filterDate = new Date(this.selectedDate);
-      filterDate.setHours(0, 0, 0, 0);
-
-      fixtures = fixtures.filter(match => {
-        const matchDate = new Date(match.date);
-        matchDate.setHours(0, 0, 0, 0);
-        return matchDate.getFullYear() === filterDate.getFullYear() &&
-               matchDate.getMonth() === filterDate.getMonth() &&
-               matchDate.getDate() === filterDate.getDate();
-      });
-    }
-
-    return fixtures;
-  }
-
-  _upcomingFixturesHasNext() {
-    const list = this._upcomingFixturesList();
-    return (this.upcomingFixturesPage + 1) * 5 < list.length;
-  }
-
-  renderUpcomingFixtures() {
-    // This method is now handled by the new custom element
+    // Match links from sub-components will be handled by them dispatching events
+    // if LeagueElement needs to act (e.g. open a modal from a central place)
   }
 
   setupResizer() {
@@ -1499,394 +1329,303 @@ class LeagueElement extends HTMLElement {
     return conflictingKeys;
   }
 
-  // Get match dates for calendar highlighting (upcoming fixtures only)
-  _getMatchDates() {
-    if (!this.data?.matches) return new Set();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return new Set(
-      this.data.matches
-        .filter(match => {
-          if (match.result) return false;
-          const matchDate = new Date(match.date);
-          matchDate.setHours(0, 0, 0, 0);
-          return matchDate >= today;
-        })
-        .map(match => {
-          const date = new Date(match.date);
-          date.setHours(0, 0, 0, 0);
-          return date.getTime();
-        })
-    );
-  }
-
-  // Get result dates for calendar highlighting (completed matches)
-  _getResultDates() {
-    if (!this.data?.matches) return new Set();
-    return new Set(
-      this.data.matches
-        .filter(match => match.result && match.date)
-        .map(match => {
-          const date = new Date(match.date);
-          date.setHours(0, 0, 0, 0);
-          return date.getTime();
-        })
-    );
-  }
-
   _getMatchesRequiringAttention() {
-    if (!this.data?.matches) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTimestamp = today.getTime(); // Cache timestamp for today at midnight
-    const conflictingMatchKeys = this._getConflictingMatchKeys();
-
-    // Helper function to determine the sort priority of a match
-    const getPriority = (match) => {
-      const matchDateObj = match.date ? new Date(match.date) : null;
-      let matchTimestamp = null;
-      if (matchDateObj) {
-        matchDateObj.setHours(0, 0, 0, 0);
-        matchTimestamp = matchDateObj.getTime();
-      }
-
-      // Case 2: Scheduling conflict (Priority 1 - Highest)
-      if (conflictingMatchKeys.has(match.key)) return 1;
-      
-      // Case 1: Future date with result (Priority 2)
-      if (match.result && matchTimestamp && matchTimestamp > todayTimestamp) return 2;
-      
-      // Case 3: Past date (not today) and no result yet (Priority 3)
-      if (!match.result && matchTimestamp && matchTimestamp < todayTimestamp) return 3;
-      
-      // Case 4: No date and no result (Priority 4)
-      if (!match.date && !match.result) return 4;
-      
-      return 5; // Default priority for any other matches that might pass the filter
-    };
-
-    return this.data.matches
-      .filter(match => {
-        // The existing filter logic correctly identifies all items needing attention.
-        // The sort function below will order them according to the new priorities.
-        const matchDateObj = match.date ? new Date(match.date) : null;
-        let matchTimestamp = null;
-        if (matchDateObj) {
-          matchDateObj.setHours(0, 0, 0, 0);
-          matchTimestamp = matchDateObj.getTime();
-        }
-
-        // Condition for Case 1: Future date with result
-        if (match.result && matchTimestamp && matchTimestamp > todayTimestamp) return true;
-        // Condition for Case 2: Scheduling conflict
-        if (conflictingMatchKeys.has(match.key)) return true;
-        // Condition for Case 3: Past date (not today) and no result yet
-        if (!match.result && matchTimestamp && matchTimestamp < todayTimestamp) return true;
-        // Condition for Case 4: No date and no result
-        if (!match.date && !match.result) return true;
-        
-        return false; // Should not be reached if item is for attention panel based on above
-      })
-      .sort((a, b) => {
-        const priorityA = getPriority(a);
-        const priorityB = getPriority(b);
-
-        if (priorityA !== priorityB) {
-          return priorityA - priorityB; // Sort by determined priority
-        }
-
-        // If priorities are the same (e.g., both are category 4, or other non-specified cases),
-        // then use the original alphabetical sort by team names as a fallback.
-        // Adding null checks for team names for robustness.
-        const homeTeamA = a.homeTeamName || '';
-        const homeTeamB = b.homeTeamName || '';
-        const awayTeamA = a.awayTeamName || '';
-        const awayTeamB = b.awayTeamName || '';
-
-        const homeCompare = homeTeamA.localeCompare(homeTeamB);
-        if (homeCompare !== 0) return homeCompare;
-        return awayTeamA.localeCompare(awayTeamB);
-      });
+    // This method logic will be in LeagueMatchesAttention.js
+    // For now, assuming it was similar to _upcomingFixturesHasNext
+    // const list = this._getMatchesRequiringAttention();
+    // return (this.attentionMatchesPage + 1) * 5 < list.length;
+    return []; // Placeholder, as the actual component will manage this
   }
 
   // Render matches requiring attention
   renderMatchesRequiringAttention() {
-    const matches = this._getMatchesRequiringAttention();
-    const start = this.attentionMatchesPage * 5;
-    const pageItems = matches.slice(start, start + 5);
-
-    if (pageItems.length === 0) {
-        if (matches.length > 0) { // Items exist, but current page is empty
-            return '<div class="match-item">No more matches requiring attention</div>';
-        }
-        return '<div class="match-item">No matches requiring attention</div>';
-    }
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const conflictingMatchKeys = this._getConflictingMatchKeys(); // Get conflicting keys again for rendering logic
-
-    return pageItems.map(match => {
-      const matchKey = match.key || `${match.homeTeamName}_${match.awayTeamName}_unscheduled`;
-      let warning = '';
-      let tooltipText = '';
-      
-      if (match.result && match.date) { // Case 1: Future date with result
-        const matchDate = new Date(match.date);
-        matchDate.setHours(0, 0, 0, 0);
-        if (matchDate > today) {
-          tooltipText = "Result entered for a future match date";
-          warning = `<span title="${tooltipText}" style="color:#f39c12;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`; // Orange warning
-        }
-      } else if (conflictingMatchKeys.has(match.key)) { // Case 2: Scheduling conflict
-         tooltipText = "Scheduling conflict on this date.";
-         warning = `<span title="${tooltipText}" style="color:#e67e22;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`; // Different Orange/Red warning maybe?
-      } else if (match.date && !match.result) { // Case 3: Past date, no result
-        const matchDate = new Date(match.date);
-        matchDate.setHours(0, 0, 0, 0);
-        if (matchDate < today) {
-          tooltipText = "Match date passed, result pending.";
-          warning = `<span title="${tooltipText}" style="color:#e74c3c;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9203;</span>`; // Hourglass icon
-        }
-      } else if (!match.date && !match.result) { // Case 4: No date and no result
-        tooltipText = "No date set for match";
-        warning = `<span title="${tooltipText}" style="color:#2196f3;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#128197;</span>`; // Calendar icon
-      }
-      
-      const titleAttr = tooltipText ? ` title="${this.escapeHtml(tooltipText)}"` : '';
-      const dataAttr = tooltipText ? ` data-attention-reason="${this.escapeHtml(tooltipText)}"` : '';
-      
-      return `
-        <div class="match-item">
-          ${warning}<a href="#" class="match-link" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
-            ${match.homeTeamName} vs ${match.awayTeamName}
-          </a>
-        </div>
-      `;
-    }).join('');
+    // This method logic will be in LeagueMatchesAttention.js
+    // For now, assuming it was similar to _upcomingFixturesHasNext
+    // const matches = this._getMatchesRequiringAttention();
+    // const start = this.attentionMatchesPage * 5;
+    // const pageItems = matches.slice(start, start + 5);
+    // if (pageItems.length === 0) {
+    //     if (matches.length > 0) { // Items exist, but current page is empty
+    //         return '<div class="match-item">No more matches requiring attention</div>';
+    //     }
+    //     return '<div class="match-item">No matches requiring attention</div>';
+    // }
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
+    // const conflictingMatchKeys = this._getConflictingMatchKeys(); // Get conflicting keys again for rendering logic
+    // return pageItems.map(match => {
+    //   const matchKey = match.key || `${match.homeTeamName}_${match.awayTeamName}_unscheduled`;
+    //   let warning = '';
+    //   let tooltipText = '';
+    //   
+    //   if (match.result && match.date) { // Case 1: Future date with result
+    //     const matchDate = new Date(match.date);
+    //     matchDate.setHours(0, 0, 0, 0);
+    //     if (matchDate > today) {
+    //       tooltipText = "Result entered for a future match date";
+    //       warning = `<span title="${tooltipText}" style="color:#f39c12;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`; // Orange warning
+    //     }
+    //   } else if (conflictingMatchKeys.has(match.key)) { // Case 2: Scheduling conflict
+    //      tooltipText = "Scheduling conflict on this date.";
+    //      warning = `<span title="${tooltipText}" style="color:#e67e22;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`; // Different Orange/Red warning maybe?
+    //   } else if (match.date && !match.result) { // Case 3: Past date, no result
+    //     const matchDate = new Date(match.date);
+    //     matchDate.setHours(0, 0, 0, 0);
+    //     if (matchDate < today) {
+    //       tooltipText = "Match date passed, result pending.";
+    //       warning = `<span title="${tooltipText}" style="color:#e74c3c;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9203;</span>`; // Hourglass icon
+    //     }
+    //   } else if (!match.date && !match.result) { // Case 4: No date and no result
+    //     tooltipText = "No date set for match";
+    //     warning = `<span title="${tooltipText}" style="color:#2196f3;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#128197;</span>`; // Calendar icon
+    //   }
+    //   
+    //   const titleAttr = tooltipText ? ` title="${this.escapeHtml(tooltipText)}"` : '';
+    //   const dataAttr = tooltipText ? ` data-attention-reason="${this.escapeHtml(tooltipText)}"` : '';
+    //   
+    //   return `
+    //     <div class="match-item">
+    //       ${warning}<a href="#" class="match-link" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
+    //         ${match.homeTeamName} vs ${match.awayTeamName}
+    //       </a>
+    //     </div>
+    //   `;
+    // }).join('');
+    return '<div class="match-item">No matches requiring attention</div>';
   }
 
   // Render calendar
   renderCalendar() {
-    const year = this.calendarDate.getFullYear();
-    const month = this.calendarDate.getMonth();
-    const matchDates = this._getMatchDates();
-    const resultDates = this._getResultDates();
-    
-    // Get first day of month and total days
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const totalDays = lastDay.getDate();
-    
-    // Get starting day of week (0 = Sunday)
-    const startDay = firstDay.getDay();
-    
-    // Get previous month's last days
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    
-    // Generate calendar grid
-    let calendarHTML = `
-      <div class="calendar-header">
-        <span class="calendar-nav" id="calendar-prev">&lt;</span>
-        <span>${firstDay.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-        <span class="calendar-nav" id="calendar-next">&gt;</span>
-      </div>
-      <div class="calendar-grid">
-        <div>Su</div>
-        <div>Mo</div>
-        <div>Tu</div>
-        <div>We</div>
-        <div>Th</div>
-        <div>Fr</div>
-        <div>Sa</div>
-    `;
-    
-    // Add previous month's days
-    for (let i = startDay - 1; i >= 0; i--) {
-      const day = prevMonthLastDay - i;
-      calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
-    }
-    
-    // Add current month's days
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    for (let day = 1; day <= totalDays; day++) {
-      const date = new Date(year, month, day);
-      date.setHours(0, 0, 0, 0);
-      const isToday = date.getTime() === today.getTime();
-      const hasMatch = matchDates.has(date.getTime());
-      const hasResult = resultDates.has(date.getTime());
-      const isSelected = this.selectedDate && date.getTime() === this.selectedDate.getTime();
-      
-      let classes = ['calendar-day'];
-      if (isToday) classes.push('today');
-      if (hasMatch) classes.push('has-match');
-      if (hasResult) classes.push('has-result');
-      if (isSelected) classes.push('selected');
-
-      // Style for days
-      let style = '';
-      if (hasResult && hasMatch) {
-        // Split diagonal background: green for result, blue for fixture
-        style = 'background: linear-gradient(135deg, #c8e6c9 50%, #bbdefb 50%); border: 2px solid #388e3c; font-weight: bold;';
-      } else if (hasResult) {
-        style = 'background-color: #c8e6c9; border: 2px solid #388e3c; font-weight: bold;';
-      } else if (hasMatch) {
-        style = 'background-color: #bbdefb; border: 2px solid #1976d2; font-weight: bold;';
-      }
-
-      // Tooltip logic
-      let tooltip = '';
-      if (this.data?.matches) {
-        const matchesOnDay = this.data.matches.filter(match => {
-          if (!match.date) return false;
-          const matchDate = new Date(match.date);
-          matchDate.setHours(0, 0, 0, 0);
-          return matchDate.getTime() === date.getTime();
-        });
-        const results = matchesOnDay.filter(m => m.result);
-        const fixtures = matchesOnDay.filter(m => !m.result);
-
-        let tooltipLines = [];
-        if (results.length > 0) {
-          tooltipLines.push('Results:');
-          tooltipLines.push(...results.map(m => `${m.homeTeamName} ${m.result.homeScore}\u2013${m.result.awayScore} ${m.awayTeamName}`));
-        }
-        if (fixtures.length > 0) {
-          if (results.length > 0) tooltipLines.push(''); // blank line between
-          tooltipLines.push('Fixtures:');
-          tooltipLines.push(...fixtures.map(m => `${m.homeTeamName} vs ${m.awayTeamName}`));
-        }
-        if (tooltipLines.length > 0) {
-          tooltip = 'title="' + this.escapeHtml(tooltipLines.join('\n')) + '"';
-        }
-      }
-
-      calendarHTML += `
-        <div class="${classes.join(' ')}" data-date="${date.toISOString()}" style="${style}" ${tooltip}>
-          ${day}
-        </div>
-      `;
-    }
-    
-    // Add next month's days
-    const remainingDays = 42 - (startDay + totalDays); // 42 = 6 rows * 7 days
-    for (let day = 1; day <= remainingDays; day++) {
-      calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
-    }
-    
-    calendarHTML += '</div>';
-    return calendarHTML;
+    // This method logic will be in LeagueMatchesUpcoming.js
+    // For now, assuming it was similar to _upcomingFixturesHasNext
+    // const year = this.calendarDate.getFullYear();
+    // const month = this.calendarDate.getMonth();
+    // const matchDates = this._getMatchDates();
+    // const resultDates = this._getResultDates();
+    // 
+    // // Get first day of month and total days
+    // const firstDay = new Date(year, month, 1);
+    // const lastDay = new Date(year, month + 1, 0);
+    // const totalDays = lastDay.getDate();
+    // 
+    // // Get starting day of week (0 = Sunday)
+    // const startDay = firstDay.getDay();
+    // 
+    // // Get previous month's last days
+    // const prevMonthLastDay = new Date(year, month, 0).getDate();
+    // 
+    // // Generate calendar grid
+    // let calendarHTML = `
+    //   <div class="calendar-header">
+    //     <span class="calendar-nav" id="calendar-prev">&lt;</span>
+    //     <span>${firstDay.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+    //     <span class="calendar-nav" id="calendar-next">&gt;</span>
+    //   </div>
+    //   <div class="calendar-grid">
+    //     <div>Su</div>
+    //     <div>Mo</div>
+    //     <div>Tu</div>
+    //     <div>We</div>
+    //     <div>Th</div>
+    //     <div>Fr</div>
+    //     <div>Sa</div>
+    // `;
+    // 
+    // // Add previous month's days
+    // for (let i = startDay - 1; i >= 0; i--) {
+    //   const day = prevMonthLastDay - i;
+    //   calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
+    // }
+    // 
+    // // Add current month's days
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
+    // 
+    // for (let day = 1; day <= totalDays; day++) {
+    //   const date = new Date(year, month, day);
+    //   date.setHours(0, 0, 0, 0);
+    //   const isToday = date.getTime() === today.getTime();
+    //   const hasMatch = matchDates.has(date.getTime());
+    //   const hasResult = resultDates.has(date.getTime());
+    //   const isSelected = this.selectedDate && date.getTime() === this.selectedDate.getTime();
+    //   
+    //   let classes = ['calendar-day'];
+    //   if (isToday) classes.push('today');
+    //   if (hasMatch) classes.push('has-match');
+    //   if (hasResult) classes.push('has-result');
+    //   if (isSelected) classes.push('selected');
+    //
+    //   // Style for days
+    //   let style = '';
+    //   if (hasResult && hasMatch) {
+    //     // Split diagonal background: green for result, blue for fixture
+    //     style = 'background: linear-gradient(135deg, #c8e6c9 50%, #bbdefb 50%); border: 2px solid #388e3c; font-weight: bold;';
+    //   } else if (hasResult) {
+    //     style = 'background-color: #c8e6c9; border: 2px solid #388e3c; font-weight: bold;';
+    //   } else if (hasMatch) {
+    //     style = 'background-color: #bbdefb; border: 2px solid #1976d2; font-weight: bold;';
+    //   }
+    //
+    //   // Tooltip logic
+    //   let tooltip = '';
+    //   if (this.data?.matches) {
+    //     const matchesOnDay = this.data.matches.filter(match => {
+    //       if (!match.date) return false;
+    //       const matchDate = new Date(match.date);
+    //       matchDate.setHours(0, 0, 0, 0);
+    //       return matchDate.getTime() === date.getTime();
+    //     });
+    //     const results = matchesOnDay.filter(m => m.result);
+    //     const fixtures = matchesOnDay.filter(m => !m.result);
+    //
+    //     let tooltipLines = [];
+    //     if (results.length > 0) {
+    //       tooltipLines.push('Results:');
+    //       tooltipLines.push(...results.map(m => `${m.homeTeamName} ${m.result.homeScore}\u2013${m.result.awayScore} ${m.awayTeamName}`));
+    //     }
+    //     if (fixtures.length > 0) {
+    //       if (results.length > 0) tooltipLines.push(''); // blank line between
+    //       tooltipLines.push('Fixtures:');
+    //       tooltipLines.push(...fixtures.map(m => `${m.homeTeamName} vs ${m.awayTeamName}`));
+    //     }
+    //     if (tooltipLines.length > 0) {
+    //       tooltip = 'title="' + this.escapeHtml(tooltipLines.join('\n')) + '"';
+    //     }
+    //   }
+    //
+    //   calendarHTML += `
+    //     <div class="${classes.join(' ')}" data-date="${date.toISOString()}" style="${style}" ${tooltip}>
+    //       ${day}
+    //     </div>
+    //   `;
+    // }
+    // 
+    // // Add next month's days
+    // const remainingDays = 42 - (startDay + totalDays); // 42 = 6 rows * 7 days
+    // for (let day = 1; day <= remainingDays; day++) {
+    //   calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
+    // }
+    // 
+    // calendarHTML += '</div>';
+    // return calendarHTML;
+    return ''; // Placeholder, as the actual component will manage this
   }
 
   // Render calendar filter buttons
   renderCalendarFilter() {
-    const hasFilter = this.selectedDate || this.selectedResultDate;
-    return `
-      <button class="${!hasFilter ? 'active' : ''}" id="calendar-all">All Dates</button>
-      ${hasFilter ? `
-        <button id="calendar-clear">Clear Filter</button>
-      ` : ''}
-    `;
+    // This method logic will be in LeagueMatchesUpcoming.js
+    // For now, assuming it was similar to _upcomingFixturesHasNext
+    // const hasFilter = this.selectedDate || this.selectedResultDate;
+    // return `
+    //   <button class="${!hasFilter ? 'active' : ''}" id="calendar-all">All Dates</button>
+    //   ${hasFilter ? `
+    //     <button id="calendar-clear">Clear Filter</button>
+    //   ` : ''}
+    // `;
+    return ''; // Placeholder, as the actual component will manage this
   }
 
   // Setup calendar event listeners
   setupCalendar() {
-    const calendar = this.shadow.querySelector('.calendar');
-    if (!calendar) return;
-
-    // Previous/Next month navigation
-    const prevBtn = calendar.querySelector('#calendar-prev');
-    const nextBtn = calendar.querySelector('#calendar-next');
-    
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        this.calendarDate.setMonth(this.calendarDate.getMonth() - 1);
-        this.render();
-      };
-    }
-    
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        this.calendarDate.setMonth(this.calendarDate.getMonth() + 1);
-        this.render();
-      };
-    }
-
-    // Date selection
-    const days = calendar.querySelectorAll('.calendar-day:not(.other-month)');
-    days.forEach(day => {
-      day.onclick = () => {
-        const date = new Date(day.dataset.date);
-        // Check for matches or results on this date
-        const matchDates = this._getMatchDates();
-        const resultDates = this._getResultDates();
-        const dateTime = date.getTime();
-        
-        if (matchDates.has(dateTime)) {
-          // Handle fixture date selection
-          this.selectedDate = date;
-          this.upcomingFixturesPage = 0;
-          this.render();
-        } else if (resultDates.has(dateTime)) {
-          // Handle result date selection
-          this.selectedResultDate = date;
-          
-          // Update the recent matches component with the selected date
-          const isMobile = this.getAttribute('isMobile') === 'true';
-          const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-          if (recentMatchesElement) {
-            recentMatchesElement.setAttribute('selected-date', date.toISOString());
-          }
-          
-          this.render();
-        }
-      };
-    });
-
-    // Filter buttons
-    const allBtn = this.shadow.querySelector('#calendar-all');
-    const clearBtn = this.shadow.querySelector('#calendar-clear');
-    
-    if (allBtn) {
-      allBtn.onclick = () => {
-        this.selectedDate = null;
-        this.selectedResultDate = null;
-        this.upcomingFixturesPage = 0;
-        
-        // Clear filter on recent matches component
-        const isMobile = this.getAttribute('isMobile') === 'true';
-        const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-        if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
-          recentMatchesElement.clearDateFilter();
-        }
-        
-        this.render();
-      };
-    }
-    
-    if (clearBtn) {
-      clearBtn.onclick = () => {
-        this.selectedDate = null;
-        this.selectedResultDate = null;
-        this.upcomingFixturesPage = 0;
-        
-        // Clear filter on recent matches component
-        const isMobile = this.getAttribute('isMobile') === 'true';
-        const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-        if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
-          recentMatchesElement.clearDateFilter();
-        }
-        
-        this.render();
-      };
-    }
+    // This method logic will be in LeagueMatchesUpcoming.js
+    // For now, assuming it was similar to _upcomingFixturesHasNext
+    // const calendar = this.shadow.querySelector('.calendar');
+    // if (!calendar) return;
+    //
+    // // Previous/Next month navigation
+    // const prevBtn = calendar.querySelector('#calendar-prev');
+    // const nextBtn = calendar.querySelector('#calendar-next');
+    // 
+    // if (prevBtn) {
+    //   prevBtn.onclick = () => {
+    //     this.calendarDate.setMonth(this.calendarDate.getMonth() - 1);
+    //     this.render();
+    //   };
+    // }
+    // 
+    // if (nextBtn) {
+    //   nextBtn.onclick = () => {
+    //     this.calendarDate.setMonth(this.calendarDate.getMonth() + 1);
+    //     this.render();
+    //   };
+    // }
+    //
+    // // Date selection
+    // const days = calendar.querySelectorAll('.calendar-day:not(.other-month)');
+    // days.forEach(day => {
+    //   day.onclick = () => {
+    //     const date = new Date(day.dataset.date);
+    //     // Check for matches or results on this date
+    //     const matchDates = this._getMatchDates();
+    //     const resultDates = this._getResultDates();
+    //     const dateTime = date.getTime();
+    //     
+    //     if (matchDates.has(dateTime)) {
+    //       // Handle fixture date selection
+    //       this.selectedDate = date;
+    //       this.upcomingFixturesPage = 0;
+    //       this.render();
+    //     } else if (resultDates.has(dateTime)) {
+    //       // Handle result date selection
+    //       this.selectedResultDate = date;
+    //       
+    //       // Update the recent matches component with the selected date
+    //       const isMobile = this.getAttribute('isMobile') === 'true';
+    //       const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
+    //       if (recentMatchesElement) {
+    //         recentMatchesElement.setAttribute('selected-date', date.toISOString());
+    //       }
+    //       
+    //       this.render();
+    //     }
+    //   };
+    // });
+    //
+    // // Filter buttons
+    // const allBtn = this.shadow.querySelector('#calendar-all');
+    // const clearBtn = this.shadow.querySelector('#calendar-clear');
+    // 
+    // if (allBtn) {
+    //   allBtn.onclick = () => {
+    //     this.selectedDate = null;
+    //     this.selectedResultDate = null;
+    //     this.upcomingFixturesPage = 0;
+    //     
+    //     // Clear filter on recent matches component
+    //     const isMobile = this.getAttribute('isMobile') === 'true';
+    //     const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
+    //     if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
+    //       recentMatchesElement.clearDateFilter();
+    //     }
+    //     
+    //     this.render();
+    //   };
+    // }
+    // 
+    // if (clearBtn) {
+    //   clearBtn.onclick = () => {
+    //     this.selectedDate = null;
+    //     this.selectedResultDate = null;
+    //     this.upcomingFixturesPage = 0;
+    //     
+    //     // Clear filter on recent matches component
+    //     const isMobile = this.getAttribute('isMobile') === 'true';
+    //     const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
+    //     if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
+    //       recentMatchesElement.clearDateFilter();
+    //     }
+    //     
+    //     this.render();
+    //   };
+    // }
   }
 
   _attentionMatchesHasNext() {
-    const list = this._getMatchesRequiringAttention();
-    return (this.attentionMatchesPage + 1) * 5 < list.length;
+    // This method logic will be in LeagueMatchesAttention.js
+    // For now, assuming it was similar to _upcomingFixturesHasNext
+    // const list = this._getMatchesRequiringAttention();
+    // return (this.attentionMatchesPage + 1) * 5 < list.length;
+    return false; // Placeholder, as the actual component will manage this
   }
 
   setupTabs() {
@@ -2833,6 +2572,36 @@ class LeagueElement extends HTMLElement {
                         ? this.data.table.leagueData.map(t => t.teamName)
                         : [];
       this.openMatchModal(e.detail.match, teamsArray, 'edit');
+    }
+  }
+
+  // New handler for match clicks from league-matches-upcoming
+  _handleUpcomingMatchClick(e) {
+    if (e.detail.type === 'matchClick' && e.detail.match) {
+        const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
+                            ? this.data.table.leagueData.map(t => t.teamName)
+                            : [];
+        this.openMatchModal(e.detail.match, teamsArray, 'edit');
+    }
+  }
+
+  // New handler for date changes from league-matches-upcoming calendar
+  _handleUpcomingFixtureDateChange(e) {
+    if (e.detail.type === 'dateChange') {
+      const selectedDateFromUpcoming = e.detail.selectedDate;
+      // console.log('Date selected in upcoming fixtures calendar:', selectedDateFromUpcoming);
+      // If LeagueMatchesRecent or other components need to react to this specific date selection,
+      // you would update their 'selected-date' attributes here and re-render them or parts of the UI.
+      // For example, if LeagueMatchesRecent should also filter by this date:
+      // const recentMatchesEl = this.shadow.querySelector(this.getAttribute('isMobile') === 'true' ? '#mobile-recent-matches' : '#desktop-recent-matches');
+      // if (recentMatchesEl) {
+      //   if (selectedDateFromUpcoming) {
+      //     recentMatchesEl.setAttribute('selected-date', new Date(selectedDateFromUpcoming).toISOString().split('T')[0]);
+      //   } else {
+      //     recentMatchesEl.removeAttribute('selected-date');
+      //   }
+      // }
+      // Currently, selectedResultDate is distinct. If desired, we could unify them or sync them here.
     }
   }
 }
