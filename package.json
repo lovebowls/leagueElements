@@ -1,0 +1,74 @@
+{
+  "name": "@lovebowls/leagueelements",
+  "version": "0.1.1",
+  "description": "League Elements package for LoveBowls",
+  "type": "module",
+  "source": "src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "build": "rollup -c && tsc --emitDeclarationOnly",
+    "build:browser": "rollup -c rollup.browser.config.js",
+    "build:all": "npm run build && npm run build:browser",
+    "dev": "rollup -c -w",
+    "prepublishOnly": "npm run build:all",
+    "docs": "typedoc --options typedoc.json",
+    "release": "node scripts/build.js",
+    "commit": "node scripts/commit.js",
+    "cli": "node scripts/cli.js"
+  },
+  "keywords": [
+    "league",
+    "elements",
+    "lovebowls"
+  ],
+  "author": "lovebowls.co.uk",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://helixteamhub.cloud/lovebowlscouk/projects/leaguejs/repositories/leagueJS/tree/main"
+  },
+  "bugs": {
+    "url": "https://helixteamhub.cloud/lovebowlscouk/projects/leaguejs/issues?layout=list"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.1",
+    "@babel/preset-env": "^7.22.4",
+    "@babel/preset-typescript": "^7.23.3",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.11.24",
+    "@typescript-eslint/eslint-plugin": "^7.1.0",
+    "@typescript-eslint/parser": "^7.1.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "rollup": "^3.29.5",
+    "ts-jest": "^29.1.2",
+    "typedoc": "^0.28.3",
+    "typescript": "^5.8.3"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test league-admin-element</title>
+</head>
+<body>
+  <h1>Test: &lt;league-admin-element&gt;</h1>
+  <league-admin-element id="test-admin" elementTitle="Admin Panel" data='{"_id":"league1","name":"Spring Bowls League","settings":{"pointsForWin":2,"pointsForDraw":1,"pointsForLoss":0,"promotionPositions":1,"relegationPositions":1,"timesTeamsPlayOther":2,"rinkPoints":{"pointsPerRinkWin":1,"pointsPerRinkDraw":0.5,"defaultRinks":4,"enabled":true}},"teams":[{"name":"Team A"},{"name":"Team B"},{"name":"Team C"}],"matches":[{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":"2-1"},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}],"createdAt":"2025-01-01T12:00:00Z","updatedAt":"2025-05-01T12:00:00Z"}'></league-admin-element>
+  <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc;"><b>Event Log:</b><br></div>
+  <script type="module">
+    import '../src/leagueAdminElement.js';
+    const el = document.getElementById('test-admin');
+    el.addEventListener('league-admin-element-event', e => {
+      const log = document.getElementById('event-log');
+      log.innerHTML += `<div>${JSON.stringify(e.detail)}</div>`;
+    });
+  </script>
+</body>
+</html> 
