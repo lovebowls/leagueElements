@@ -462,9 +462,49 @@ class LeagueAdminElement extends HTMLElement {
       ${LeagueAdminElement.BASE_STYLES}
       :host {
          /* Desktop specific host adjustments if any */
+         padding: 1rem;
+         height: 100%;
       }
-      .header {
-        font-size: 1.2rem;
+      .dashboard {
+        display: flex;
+        height: 100%;
+        gap: 1rem;
+      }
+      .left-panel {
+        flex: 0 0 70%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+      }
+      .right-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 0;
+      }
+      .panel {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        padding: 1rem;
+      }
+      .panel-header {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
+      .resizer {
+        width: 5px;
+        background: #ddd;
+        cursor: col-resize;
+        transition: background 0.2s;
+      }
+      .resizer:hover {
+        background: #999;
       }
     `;
   }
@@ -534,6 +574,7 @@ class LeagueAdminElement extends HTMLElement {
         <div class="resizer"></div>
         <div class="right-panel">
           <div class="panel" id="admin-attention-panel" style="display: none;">
+            <div class="panel-header">Requiring Attention</div>
             <league-matches-attention id="admin-attention-matches"></league-matches-attention>
           </div>
         </div>
