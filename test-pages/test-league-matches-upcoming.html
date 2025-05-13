@@ -9,7 +9,7 @@
   <league-matches-upcoming id="test-upcoming" data='[{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":"2-1"},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}]'></league-matches-upcoming>
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc;"><b>Event Log:</b><br></div>
   <script type="module">
-    import '../src/LeagueMatchesUpcoming.js';
+    import '../src/elements/LeagueMatchesUpcoming.js';
     const el = document.getElementById('test-upcoming');
     el.addEventListener('league-matches-upcoming-event', e => {
       const log = document.getElementById('event-log');

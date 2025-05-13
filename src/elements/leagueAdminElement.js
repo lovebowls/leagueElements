@@ -11,6 +11,7 @@ class LeagueAdminElementEvent extends CustomEvent {
 
 // Import the LeagueMatchesAttention component
 import './LeagueMatchesAttention.js';
+import './leagueMatch.js';
 
 class LeagueAdminElement extends HTMLElement {
   // Base styles shared between mobile and desktop layouts
@@ -543,31 +544,7 @@ class LeagueAdminElement extends HTMLElement {
                 </div>
               </div>
               
-              <!-- Teams Panel -->
-              <div class="teams-panel">
-                <div class="panel-header">
-                  <h4>Teams</h4>
-                  <button id="btnAddTeam">Add Team</button>
-                </div>
-                <div class="teams-list-container">
-                  <ul id="teamsList" class="teams-list">
-                    <!-- Teams will be populated here -->
-                  </ul>
-                </div>
-              </div>
-              
-              <!-- Matches Panel -->
-              <div class="matches-panel">
-                <div class="panel-header">
-                  <h4>Matches</h4>
-                  <button id="btnAddMatch">Add Match</button>
-                </div>
-                <div class="matches-list-container">
-                  <ul id="matchesList" class="matches-list">
-                    <!-- Matches will be populated here -->
-                  </ul>
-                </div>
-              </div>
+              <!-- Teams Panel and Matches Panel REMOVED FROM HERE -->
             </div>
           </div>
         </div>
@@ -575,6 +552,34 @@ class LeagueAdminElement extends HTMLElement {
         <div class="right-panel">
           <div class="panel" id="admin-attention-panel" style="display: none;">
             <league-matches-attention id="admin-attention-matches"></league-matches-attention>
+          </div>
+          <!-- Teams Panel MOVED HERE -->
+          <div class="panel" id="admin-teams-panel" style="display: none;">
+            <div class="teams-panel">
+              <div class="panel-header">
+                <h4>Teams</h4>
+                <button id="btnAddTeam">Add Team</button>
+              </div>
+              <div class="teams-list-container">
+                <ul id="teamsList" class="teams-list">
+                  <!-- Teams will be populated here -->
+                </ul>
+              </div>
+            </div>
+          </div>
+          <!-- Matches Panel MOVED HERE -->
+          <div class="panel" id="admin-matches-panel" style="display: none;">
+            <div class="matches-panel">
+              <div class="panel-header">
+                <h4>Matches</h4>
+                <button id="btnAddMatch">Add Match</button>
+              </div>
+              <div class="matches-list-container">
+                <ul id="matchesList" class="matches-list">
+                  <!-- Matches will be populated here -->
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -671,8 +676,10 @@ class LeagueAdminElement extends HTMLElement {
     this._teamBeingEdited = null; // Store the team being edited
     
     // New properties for match management
-    this._matchModalMode = null; // 'new' or 'edit'
-    this._matchBeingEdited = null; // Store the match being edited
+    this.matchModalOpen = false;
+    this.matchModalData = null;
+    this.matchModalTeams = [];
+    this.matchModalMode = 'new';
   }
 
   static get observedAttributes() {
@@ -766,6 +773,11 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   render() {
+    console.log('[Admin Render] _selectedLeagueId:', this._selectedLeagueId);
+    console.log('[Admin Render] Current _leagues before getSelectedLeague:', JSON.parse(JSON.stringify(this._leagues)));
+    const leagueForRender = this._getSelectedLeague(); // It's critical this reflects the update
+    console.log('[Admin Render] League object for render:', JSON.parse(JSON.stringify(leagueForRender)));
+
     const isMobile = this.getAttribute('isMobile') === 'true';
     
     this.shadow.innerHTML = `
@@ -785,11 +797,11 @@ class LeagueAdminElement extends HTMLElement {
     // If a league was selected, try to re-select it if it still exists
     if (this._selectedLeagueId) {
         const selectedElement = this.shadow.querySelector(`.league-list-item[data-id="${this._selectedLeagueId}"]`);
-        if (selectedElement) {
+        if (selectedElement && leagueForRender) { // check leagueForRender exists
             selectedElement.classList.add('selected');
-            this._showSelectedLeaguePanel(); // Show the selected league panel
+            this._showSelectedLeaguePanel(); // Show the selected league panel (uses _getSelectedLeague() internally)
         } else {
-            this._selectedLeagueId = null; // It no longer exists
+            this._selectedLeagueId = null; // It no longer exists or leagueForRender is null
             this._hideSelectedLeaguePanel(); // Hide the panel
             this._updateButtonStates();
         }
@@ -800,7 +812,71 @@ class LeagueAdminElement extends HTMLElement {
         if (attentionPanel) attentionPanel.style.display = 'none';
     }
     // Update attention panel with selected league's matches
-    this._updateAttentionPanel(isMobile);
+    this._updateAttentionPanel(isMobile, leagueForRender);
+
+    if (this.matchModalOpen) {
+      let modal = this.shadow.querySelector('league-match');
+      if (modal) modal.remove();
+      modal = document.createElement('league-match');
+      modal.match = this.matchModalData;
+      modal.teams = this.matchModalTeams;
+      modal.open = true;
+      modal.isMobile = this.getAttribute('isMobile') === 'true';
+      modal.mode = this.matchModalMode;
+      modal.addEventListener('match-save', (e) => {
+        // Save match to league
+        const match = e.detail.match;
+        console.log('[Admin Match Save] Received match from event:', JSON.parse(JSON.stringify(match)));
+
+        const selectedLeague = this._getSelectedLeague();
+        if (!selectedLeague) {
+            console.error('[Admin Match Save] No selected league found.');
+            return;
+        }
+        const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
+        
+        if (this.matchModalMode === 'edit' && match.key) {
+          const idx = updatedLeague.matches.findIndex(m => m.key === match.key);
+          if (idx >= 0) {
+            console.log('[Admin Match Save] Match in updatedLeague BEFORE update:', JSON.parse(JSON.stringify(updatedLeague.matches[idx])));
+            console.log('[Admin Match Save] Match from event to be assigned:', JSON.parse(JSON.stringify(match)));
+            // updatedLeague.matches[idx] = match; // Original problematic line
+            // Ensure a proper merge, especially of the result object
+            updatedLeague.matches[idx] = {
+                ...updatedLeague.matches[idx], // Keep existing properties like key, date, teams
+                ...match // Overwrite with incoming changes, including result
+            };
+            console.log('[Admin Match Save] Match in updatedLeague AFTER update:', JSON.parse(JSON.stringify(updatedLeague.matches[idx])));
+          } else {
+            console.warn('[Admin Match Save] Edit mode, but match key not found. Appending as new:', JSON.parse(JSON.stringify(match)));
+            updatedLeague.matches.push(match); 
+          }
+        } else {
+          console.log('[Admin Match Save] New match mode. Appending match:', JSON.parse(JSON.stringify(match)));
+          updatedLeague.matches.push(match);
+        }
+
+        // Update the internal _leagues array
+        const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === (selectedLeague._id || selectedLeague.name));
+        if (leagueIndex > -1) {
+          this._leagues[leagueIndex] = updatedLeague;
+          console.log('[Admin Match Save] Updated this._leagues:', JSON.parse(JSON.stringify(this._leagues)));
+          console.log('[Admin Match Save] Updated league in array:', JSON.parse(JSON.stringify(this._leagues[leagueIndex])));
+        } else {
+            console.error('[Admin Match Save] Selected league index not found in _leagues array.');
+        }
+
+        this.dispatchEvent(new LeagueAdminElementEvent('requestUpdateLeague', { leagueData: updatedLeague }));
+        this.closeMatchModal(); // This will call render() which now uses updated _leagues
+      });
+      modal.addEventListener('match-cancel', () => {
+        this.closeMatchModal();
+      });
+      this.shadow.appendChild(modal);
+    } else {
+      let modal = this.shadow.querySelector('league-match');
+      if (modal) modal.remove();
+    }
   }
   
   _renderLeagueList() {
@@ -874,7 +950,13 @@ class LeagueAdminElement extends HTMLElement {
     // Show and update attention panel
     const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
     if (attentionPanel) attentionPanel.style.display = '';
-    this._updateAttentionPanel(this.getAttribute('isMobile') === 'true');
+    this._updateAttentionPanel(this.getAttribute('isMobile') === 'true', selectedLeague);
+
+    // Show the new panels in the right column
+    const teamsPanelRight = this.shadow.querySelector('#admin-teams-panel');
+    const matchesPanelRight = this.shadow.querySelector('#admin-matches-panel');
+    if (teamsPanelRight) teamsPanelRight.style.display = 'block';
+    if (matchesPanelRight) matchesPanelRight.style.display = 'block';
   }
   
   _hideSelectedLeaguePanel() {
@@ -885,6 +967,12 @@ class LeagueAdminElement extends HTMLElement {
     // Hide attention panel
     const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
     if (attentionPanel) attentionPanel.style.display = 'none';
+
+    // Hide the new panels in the right column
+    const teamsPanelRight = this.shadow.querySelector('#admin-teams-panel');
+    const matchesPanelRight = this.shadow.querySelector('#admin-matches-panel');
+    if (teamsPanelRight) teamsPanelRight.style.display = 'none';
+    if (matchesPanelRight) matchesPanelRight.style.display = 'none';
   }
   
   _renderTeamsList() {
@@ -989,7 +1077,7 @@ class LeagueAdminElement extends HTMLElement {
       `;
       
       // Add click handler to edit match
-      li.addEventListener('click', () => this._handleEditMatch(match));
+      li.addEventListener('click', () => this._handleEditMatch({ key: match.key }));
       
       matchesList.appendChild(li);
     });
@@ -1061,15 +1149,6 @@ class LeagueAdminElement extends HTMLElement {
     if (btnAddMatch) {
       btnAddMatch.addEventListener('click', () => this._handleAddMatch());
     }
-    
-    // Match modal event listeners
-    const btnCloseMatchModal = this.shadow.querySelector('#btnCloseMatchModal');
-    const btnCancelMatchModal = this.shadow.querySelector('#btnCancelMatchModal');
-    const btnSaveMatchModal = this.shadow.querySelector('#btnSaveMatchModal');
-    
-    if (btnCloseMatchModal) btnCloseMatchModal.addEventListener('click', () => this._hideMatchModal());
-    if (btnCancelMatchModal) btnCancelMatchModal.addEventListener('click', () => this._hideMatchModal());
-    if (btnSaveMatchModal) btnSaveMatchModal.addEventListener('click', () => this._handleSaveMatchModal());
     
     // Close dropdown when clicking outside of it
     document.addEventListener('click', (e) => {
@@ -1485,231 +1564,48 @@ class LeagueAdminElement extends HTMLElement {
   // Match Management Methods
   _handleAddMatch() {
     if (!this._selectedLeagueId) return;
-    this._showMatchModal('new');
-  }
-  
-  _handleEditMatch(match) {
-    if (!match) return;
-    this._showMatchModal('edit', match);
-  }
-  
-  _showMatchModal(mode, matchData = null) {
-    this.clearError();
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
-    
-    const modal = this.shadow.querySelector('#matchModal');
-    const modalTitle = this.shadow.querySelector('#matchModalTitle');
-    
-    if (!modal || !modalTitle) return;
-    
-    let title = '';
-    let currentMatchData = {};
-    
-    switch (mode) {
-      case 'new':
-        title = 'Add Match';
-        currentMatchData = { 
-          date: new Date(),
-          homeTeamName: '',
-          awayTeamName: '',
-          result: null
-        };
-        break;
-      case 'edit':
-        title = 'Edit Match';
-        currentMatchData = JSON.parse(JSON.stringify(matchData)); // Deep copy
-        break;
-      default:
+    const teams = (selectedLeague.teams || []).map(t => t.name);
+    this.openMatchModal({ date: '', homeTeamName: '', awayTeamName: '', result: null }, teams, 'new');
+  }
+  
+  _handleEditMatch(matchKeyContainer) {
+    if (!matchKeyContainer || !matchKeyContainer.key) {
+        console.error("Match key not provided to _handleEditMatch");
+        return;
+    }
+    const matchKey = matchKeyContainer.key;
+    const selectedLeague = this._getSelectedLeague();
+    if (!selectedLeague || !selectedLeague.matches) {
+        console.error("Selected league or its matches not found when trying to edit match.");
         return;
     }
     
-    this._matchModalMode = mode;
-    this._matchBeingEdited = currentMatchData;
-    
-    modalTitle.textContent = title;
-    this._populateMatchModalForm(currentMatchData);
-    modal.style.display = 'block';
+    const currentMatchObject = selectedLeague.matches.find(m => m.key === matchKey);
+    if (!currentMatchObject) {
+        console.error(`Match with key ${matchKey} not found in selected league.`);
+        return;
+    }
+
+    const teams = (selectedLeague.teams || []).map(t => t.name);
+    this.openMatchModal(currentMatchObject, teams, 'edit');
   }
   
-  _hideMatchModal() {
-    const modal = this.shadow.querySelector('#matchModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
-    
-    this._matchModalMode = null;
-    this._matchBeingEdited = null;
+  openMatchModal(matchData, teams, mode = 'edit') {
+    this.matchModalOpen = true;
+    this.matchModalData = matchData;
+    this.matchModalTeams = teams;
+    this.matchModalMode = mode;
+    this.render();
   }
   
-  _populateMatchModalForm(matchData) {
-    const selectedLeague = this._getSelectedLeague();
-    if (!selectedLeague) return;
-    
-    const teams = selectedLeague.teams || [];
-    if (teams.length < 2) {
-      this.showError('You need at least two teams to create a match.');
-      this._hideMatchModal();
-      return;
-    }
-    
-    const matchDate = this.shadow.querySelector('#matchDate');
-    const matchHomeTeam = this.shadow.querySelector('#matchHomeTeam');
-    const matchAwayTeam = this.shadow.querySelector('#matchAwayTeam');
-    const matchShotsHome = this.shadow.querySelector('#matchShotsHome');
-    const matchShotsAway = this.shadow.querySelector('#matchShotsAway');
-    
-    if (!matchDate || !matchHomeTeam || !matchAwayTeam || !matchShotsHome || !matchShotsAway) return;
-    
-    // Set match date
-    if (matchData.date) {
-      const dateObj = new Date(matchData.date);
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(dateObj.getDate()).padStart(2, '0');
-      matchDate.value = `${year}-${month}-${day}`;
-    } else {
-      matchDate.value = '';
-    }
-    
-    // Populate team dropdowns
-    matchHomeTeam.innerHTML = '';
-    matchAwayTeam.innerHTML = '';
-    
-    // Add empty option as default
-    const emptyOption = document.createElement('option');
-    emptyOption.value = '';
-    emptyOption.textContent = '-- Select Team --';
-    
-    matchHomeTeam.appendChild(emptyOption.cloneNode(true));
-    matchAwayTeam.appendChild(emptyOption.cloneNode(true));
-    
-    // Add team options
-    teams.forEach(team => {
-      const teamName = team.name;
-      
-      const homeOption = document.createElement('option');
-      homeOption.value = teamName;
-      homeOption.textContent = teamName;
-      
-      const awayOption = document.createElement('option');
-      awayOption.value = teamName;
-      awayOption.textContent = teamName;
-      
-      matchHomeTeam.appendChild(homeOption);
-      matchAwayTeam.appendChild(awayOption);
-    });
-    
-    // Set selected teams
-    if (matchData.homeTeamName) {
-      matchHomeTeam.value = matchData.homeTeamName;
-    }
-    
-    if (matchData.awayTeamName) {
-      matchAwayTeam.value = matchData.awayTeamName;
-    }
-    
-    // Set scores if result exists
-    if (matchData.result) {
-      matchShotsHome.value = matchData.result.homeScore !== undefined ? matchData.result.homeScore : '';
-      matchShotsAway.value = matchData.result.awayScore !== undefined ? matchData.result.awayScore : '';
-    } else {
-      matchShotsHome.value = '';
-      matchShotsAway.value = '';
-    }
-    
-    // Add change handlers to prevent same team selection
-    matchHomeTeam.addEventListener('change', () => {
-      this._validateMatchTeamSelection(matchHomeTeam, matchAwayTeam);
-    });
-    
-    matchAwayTeam.addEventListener('change', () => {
-      this._validateMatchTeamSelection(matchAwayTeam, matchHomeTeam);
-    });
-  }
-  
-  _validateMatchTeamSelection(changedSelect, otherSelect) {
-    if (changedSelect.value && changedSelect.value === otherSelect.value) {
-      // If both dropdowns have the same team selected, set the other one to empty
-      otherSelect.value = '';
-    }
-  }
-  
-  _handleSaveMatchModal() {
-    const matchDate = this.shadow.querySelector('#matchDate');
-    const matchHomeTeam = this.shadow.querySelector('#matchHomeTeam');
-    const matchAwayTeam = this.shadow.querySelector('#matchAwayTeam');
-    const matchShotsHome = this.shadow.querySelector('#matchShotsHome');
-    const matchShotsAway = this.shadow.querySelector('#matchShotsAway');
-    
-    if (!matchHomeTeam.value) {
-      this.showError('Please select a home team.');
-      return;
-    }
-    
-    if (!matchAwayTeam.value) {
-      this.showError('Please select an away team.');
-      return;
-    }
-    
-    if (matchHomeTeam.value === matchAwayTeam.value) {
-      this.showError('Home team and away team cannot be the same.');
-      return;
-    }
-    
-    // Create match data object
-    const matchData = {
-      date: matchDate.value ? new Date(matchDate.value) : new Date(),
-      homeTeamName: matchHomeTeam.value,
-      awayTeamName: matchAwayTeam.value
-    };
-    
-    // Add result if scores are provided
-    const homeScore = matchShotsHome.value !== '' ? parseInt(matchShotsHome.value) : null;
-    const awayScore = matchShotsAway.value !== '' ? parseInt(matchShotsAway.value) : null;
-    
-    if (homeScore !== null && awayScore !== null) {
-      matchData.result = {
-        homeScore: homeScore,
-        awayScore: awayScore
-      };
-    }
-    
-    // If editing, preserve the original key
-    if (this._matchModalMode === 'edit' && this._matchBeingEdited && this._matchBeingEdited.key) {
-      matchData.key = this._matchBeingEdited.key;
-    }
-    
-    // Since all DB updates are handled via the league update events,
-    // we'll use requestUpdateLeague event to handle match changes too
-    const selectedLeague = this._getSelectedLeague();
-    if (!selectedLeague) return;
-    
-    // Create a deep copy of the league to modify
-    const updatedLeagueData = JSON.parse(JSON.stringify(selectedLeague));
-    
-    // Update or add the match in the league's matches array
-    if (this._matchModalMode === 'edit' && matchData.key) {
-      // For edit, find and update the existing match
-      const matchIndex = updatedLeagueData.matches.findIndex(m => m.key === matchData.key);
-      if (matchIndex >= 0) {
-        updatedLeagueData.matches[matchIndex] = matchData;
-      } else {
-        // If match with key not found, add as new
-        updatedLeagueData.matches.push(matchData);
-      }
-    } else {
-      // For new matches, just add to the array
-      updatedLeagueData.matches.push(matchData);
-    }
-    
-    // Dispatch the league update event
-    this.dispatchEvent(new LeagueAdminElementEvent('requestUpdateLeague', { 
-      leagueData: updatedLeagueData 
-    }));
-    
-    // Hide modal
-    this._hideMatchModal();
+  closeMatchModal() {
+    this.matchModalOpen = false;
+    this.matchModalData = null;
+    this.matchModalTeams = [];
+    this.matchModalMode = 'new';
+    this.render();
   }
 
   _setupResizer() {
@@ -1743,17 +1639,33 @@ class LeagueAdminElement extends HTMLElement {
     resizer.addEventListener('mousedown', mouseDownHandler);
   }
 
-  _updateAttentionPanel(isMobile) {
-    const selectedLeague = this._getSelectedLeague();
+  _updateAttentionPanel(isMobile, leagueToUse) {
+    const selectedLeague = leagueToUse || this._getSelectedLeague();
     const attentionMatchesElement = this.shadow.querySelector('#admin-attention-matches');
     const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
     if (!selectedLeague || !attentionMatchesElement || !attentionPanel) {
       if (attentionPanel) attentionPanel.style.display = 'none';
       return;
     }
-    attentionMatchesElement.setAttribute('is-mobile', isMobile);
+    attentionMatchesElement.setAttribute('is-mobile', String(isMobile)); // Ensure boolean is stringified
     attentionMatchesElement.setAttribute('data', JSON.stringify(selectedLeague.matches || []));
     attentionPanel.style.display = '';
+
+    // Ensure event listener is attached (and only once)
+    if (!this._handleAdminAttentionMatchClickBound) {
+        this._handleAdminAttentionMatchClickBound = this._handleAdminAttentionMatchClick.bind(this);
+    }
+    attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAdminAttentionMatchClickBound);
+    attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAdminAttentionMatchClickBound);
+  }
+
+  _handleAdminAttentionMatchClick(e) {
+    if (e.detail.type === 'matchClick' && e.detail.match) {
+        const selectedLeague = this._getSelectedLeague();
+        if (!selectedLeague) return;
+        const teams = (selectedLeague.teams || []).map(t => t.name);
+        this.openMatchModal(e.detail.match, teams, 'edit');
+    }
   }
 }
 

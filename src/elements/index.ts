@@ -24,4 +24,11 @@ export class BaseLeagueElement implements LeagueElement {
     Object.assign(this, data);
     this.updatedAt = new Date();
   }
-} 
+}
+
+export { default as LeagueMatch } from './leagueMatch.js';
+export { default as LeagueAdminElement } from './leagueAdminElement.js';
+export { default as LeagueElement } from './leagueElement.js';
+export { default as LeagueMatchesAttention } from './LeagueMatchesAttention.js';
+export { default as LeagueMatchesRecent } from './LeagueMatchesRecent.js';
+export { default as LeagueMatchesUpcoming } from './LeagueMatchesUpcoming.js'; 

@@ -10,11 +10,13 @@ class LeagueEvent extends CustomEvent {
 }
 
 // Import the new LeagueMatchesRecent component
-import './LeagueMatchesRecent.js';
+import '../LeagueMatchesRecent.js';
 // Import the new LeagueMatchesUpcoming component
-import './LeagueMatchesUpcoming.js';
+import '../LeagueMatchesUpcoming.js';
 // Import the new LeagueMatchesAttention component
 import './LeagueMatchesAttention.js';
+// Import the new LeagueMatch component
+import './leagueMatch.js';
 
 class LeagueElement extends HTMLElement {
   // Base styles shared between mobile and desktop layouts
@@ -849,6 +851,10 @@ class LeagueElement extends HTMLElement {
     this.teamColors = {};
     this.activeTrendGraphType = 'pointsOverTime';
     this.tableFilter = 'overall'; // Default filter state
+    this.matchModalOpen = false;
+    this.matchModalData = null;
+    this.matchModalTeams = [];
+    this.matchModalMode = 'new';
   }
 
   static get observedAttributes() {
@@ -876,13 +882,15 @@ class LeagueElement extends HTMLElement {
         this.dispatchEvent(new LeagueEvent({data: '',error: 'data is required'}));
       }
     } else if (name === 'selectedMatch') {
-      // Handle match selection for editing
       if (newValue) {
         try {
           const matchData = JSON.parse(newValue);
-          this.populateMatchPanel(matchData);
+          const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
+                            ? this.data.table.leagueData.map(t => t.teamName)
+                            : [];
+          this.openMatchModal(matchData, teamsArray, 'edit');
         } catch (error) {
-          console.error('Error parsing match data:', error);
+          console.error('Error parsing match data for selectedMatch attribute:', error);
         }
       }
     }
@@ -1053,16 +1061,9 @@ class LeagueElement extends HTMLElement {
           recentMatchesElement.setAttribute('selected-date', this.selectedResultDate);
         }
         
-        // Listen for match click events from the recent matches component
-        recentMatchesElement.addEventListener('league-matches-recent-event', (e) => {
-          if (e.detail.type === 'matchClick' && e.detail.match) {
-            // Forward the match click event to parent
-            this.dispatchEvent(new LeagueEvent({
-              type: 'matchClick',
-              match: e.detail.match
-            }));
-          }
-        });
+        recentMatchesElement.removeEventListener('league-matches-recent-event', this._handleRecentMatchClick);
+        this._handleRecentMatchClickBound = this._handleRecentMatchClick.bind(this);
+        recentMatchesElement.addEventListener('league-matches-recent-event', this._handleRecentMatchClickBound);
       }
       
       // Configure the attention matches components
@@ -1070,15 +1071,10 @@ class LeagueElement extends HTMLElement {
       if (attentionMatchesElement) {
         attentionMatchesElement.setAttribute('is-mobile', isMobile);
         attentionMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
-        // Listen for match click events from the attention matches component
-        attentionMatchesElement.addEventListener('league-matches-attention-event', (e) => {
-          if (e.detail.type === 'matchClick' && e.detail.match) {
-            this.dispatchEvent(new LeagueEvent({
-              type: 'matchClick',
-              match: e.detail.match
-            }));
-          }
-        });
+
+        attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAttentionMatchClick);
+        this._handleAttentionMatchClickBound = this._handleAttentionMatchClick.bind(this);
+        attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAttentionMatchClickBound);
       }
       
       if (!isMobile) {
@@ -1098,6 +1094,53 @@ class LeagueElement extends HTMLElement {
     } else {
       // Show error if data is missing or invalid
       this.shadow.innerHTML = `<div class="error">Invalid or missing league data</div>`;
+    }
+
+    // After main content rendering:
+    if (this.matchModalOpen) {
+      // Remove any existing modal first
+      let modal = this.shadow.querySelector('league-match');
+      if (modal) modal.remove();
+      modal = document.createElement('league-match');
+      modal.match = this.matchModalData;
+      modal.teams = (this.data && this.data.table && Array.isArray(this.data.table.leagueData)) ? this.data.table.leagueData.map(t => t.teamName) : [];
+      modal.open = true;
+      modal.isMobile = this.getAttribute('isMobile') === 'true';
+      modal.mode = this.matchModalMode;
+      modal.addEventListener('match-save', (e) => {
+        const savedMatch = e.detail.match;
+        if (!this.data || !this.data.matches) {
+          // Should not happen if modal was opened with data, but safety check
+          console.error('Cannot save match, league data or matches array is missing.');
+          this.closeMatchModal();
+          return;
+        }
+
+        const updatedLeagueData = JSON.parse(JSON.stringify(this.data));
+        const matchIndex = updatedLeagueData.matches.findIndex(m => m.key === savedMatch.key);
+
+        if (matchIndex > -1) {
+          // Existing match, update it
+          updatedLeagueData.matches[matchIndex] = savedMatch;
+        } else {
+          // New match (could be from matrix with a temp key, or a completely new match if UI allowed)
+          // The parent/handler of requestUpdateLeague will be responsible for assigning a final key if temp
+          updatedLeagueData.matches.push(savedMatch);
+        }
+        
+        this.data = updatedLeagueData; // Update internal state
+        this.dispatchEvent(new LeagueEvent({ type: 'requestUpdateLeague', league: this.data }));
+        this.loadLeagueData(this.data); // Reprocess and re-render
+        this.closeMatchModal();
+      });
+      modal.addEventListener('match-cancel', () => {
+        this.closeMatchModal();
+      });
+      this.shadow.appendChild(modal);
+    } else {
+      // Remove modal if not open
+      let modal = this.shadow.querySelector('league-match');
+      if (modal) modal.remove();
     }
   }
 
@@ -1161,19 +1204,11 @@ class LeagueElement extends HTMLElement {
         const matchKey = link.dataset.matchKey;
         const match = this.data.matches.find(m => m.key === matchKey);
         if (match) {
-          // Prepare event detail
-          const eventDetail = {
-            type: 'matchClick',
-            match: match
-          };
-          
-          // Add attention reason if the link has the data attribute
-          if (link.dataset.attentionReason) {
-            eventDetail.attentionReason = link.dataset.attentionReason;
-          }
-          
-          // Dispatch custom event with potentially augmented detail
-          this.dispatchEvent(new LeagueEvent(eventDetail));
+          // Open the modal for editing this match
+          const teams = this.data.table && Array.isArray(this.data.table.leagueData)
+            ? this.data.table.leagueData.map(t => t.teamName)
+            : [];
+          this.openMatchModal(match, teams, 'edit');
         }
       };
     });
@@ -1849,25 +1884,6 @@ class LeagueElement extends HTMLElement {
     }
   }
 
-  /**
-   * Populates the match panel with existing match data for editing
-   * @param {Object} matchData - The match data to populate the panel with
-   */
-  populateMatchPanel(matchData) {
-    // Dispatch event to show the match panel
-    this.dispatchEvent(new LeagueEvent({
-      type: 'showMatchPanel',
-      match: matchData
-    }));
-
-    // The panel should be populated with match data by the parent component
-    // This includes:
-    // - Home team selection
-    // - Away team selection
-    // - Date/time
-    // - Any other match-specific fields
-  }
-
   _attentionMatchesHasNext() {
     const list = this._getMatchesRequiringAttention();
     return (this.attentionMatchesPage + 1) * 5 < list.length;
@@ -2031,31 +2047,22 @@ class LeagueElement extends HTMLElement {
       cell.onclick = () => {
         const homeTeamName = cell.dataset.homeTeam;
         const awayTeamName = cell.dataset.awayTeam;
-        
-        if (homeTeamName === awayTeamName) return; // Ignore clicks on "same team" cells for events
-
-        const matrixData = this._prepareMatrixData(); // Re-fetch to get the match object
+        if (homeTeamName === awayTeamName) return;
+        const matrixData = this._prepareMatrixData();
         if (!matrixData || !matrixData.matrix[homeTeamName] || !matrixData.matrix[homeTeamName][awayTeamName]) return;
-
         let matchObject = matrixData.matrix[homeTeamName][awayTeamName].match;
-
         if (!matchObject) {
-          // Create a new match object if one doesn't exist
           matchObject = {
             homeTeamName: homeTeamName,
             awayTeamName: awayTeamName,
-            date: null, // Or some default date, or leave it to be set in the form
+            date: null,
             result: null,
-            // Generate a temporary key or leave it for the parent to handle
-            key: `temp_${homeTeamName}_vs_${awayTeamName}_${Date.now()}` 
+            key: `temp_${homeTeamName}_vs_${awayTeamName}_${Date.now()}`
           };
         }
-        
-        this.dispatchEvent(new LeagueEvent({
-          type: 'matchClick', // Consistent with existing event type
-          match: matchObject,
-          source: 'matrix' // Add source to distinguish from other match clicks
-        }));
+        // Use openMatchModal instead of event
+        const teams = matrixData.teams;
+        this.openMatchModal(matchObject, teams, matchObject.key && !matchObject.key.startsWith('temp_') ? 'edit' : 'new');
       };
     });
   }
@@ -2784,6 +2791,49 @@ class LeagueElement extends HTMLElement {
     });
     
     return rankMap;
+  }
+
+  /**
+   * Open the match modal dialog.
+   * @param {Object} matchData
+   * @param {Array<string>} teams
+   * @param {'edit'|'new'} mode
+   */
+  openMatchModal(matchData, teams, mode = 'edit') {
+    this.matchModalOpen = true;
+    this.matchModalData = matchData;
+    this.matchModalTeams = teams;
+    this.matchModalMode = mode;
+    this.render();
+  }
+
+  /**
+   * Close the match modal dialog.
+   */
+  closeMatchModal() {
+    this.matchModalOpen = false;
+    this.matchModalData = null;
+    this.matchModalTeams = [];
+    this.matchModalMode = 'new';
+    this.render();
+  }
+
+  _handleRecentMatchClick(e) {
+    if (e.detail.type === 'matchClick' && e.detail.match) {
+      const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
+                        ? this.data.table.leagueData.map(t => t.teamName)
+                        : [];
+      this.openMatchModal(e.detail.match, teamsArray, 'edit');
+    }
+  }
+
+  _handleAttentionMatchClick(e) {
+    if (e.detail.type === 'matchClick' && e.detail.match) {
+      const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
+                        ? this.data.table.leagueData.map(t => t.teamName)
+                        : [];
+      this.openMatchModal(e.detail.match, teamsArray, 'edit');
+    }
   }
 }
 
