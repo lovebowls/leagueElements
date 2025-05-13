@@ -574,7 +574,6 @@ class LeagueAdminElement extends HTMLElement {
         <div class="resizer"></div>
         <div class="right-panel">
           <div class="panel" id="admin-attention-panel" style="display: none;">
-            <div class="panel-header">Requiring Attention</div>
             <league-matches-attention id="admin-attention-matches"></league-matches-attention>
           </div>
         </div>
