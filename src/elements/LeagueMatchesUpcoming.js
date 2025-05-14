@@ -34,12 +34,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
         color: #333;
       }
       .match-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-        font-size: 1.3em;
-      }
-      .match-item:last-child {
-        border-bottom: none;
+        /* padding, border-bottom, font-size inherited */
       }
       .match-date {
         color: #666;
@@ -76,12 +71,12 @@ class LeagueMatchesUpcoming extends HTMLElement {
         cursor: not-allowed;
       }
       .filter-indicator {
-        background-color: #e3f2fd;
-        border-left: 3px solid #2196f3;
+        background-color: #e3f2fd; /* Blue background */
+        border-left: 3px solid #2196f3; /* Blue border */
         padding: 0.3rem 0.5rem;
         margin-bottom: 0.5rem;
         font-size: 0.9em;
-        color: #1976d2;
+        color: #1976d2; /* Blue text */
       }
       .error {
         color: #ff0000;
@@ -192,9 +187,6 @@ class LeagueMatchesUpcoming extends HTMLElement {
       .panel-header {
         font-size: 1rem;
         margin-bottom: 0.3rem;
-      }
-      .match-item {
-        padding: 0.3rem 0.2rem;
       }
       .paging-btn {
         padding: 0.2rem 0.7rem;
@@ -374,7 +366,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
     const pageItems = list.slice(start, start + this.itemsPerPage);
     
     if (this.selectedDate && list.length === 0) {
-      return '<div class="match-item">No upcoming fixtures for selected date</div>';
+      return '<div class="match-item">None for selected date</div>';
     }
     if (pageItems.length === 0) {
       // if (list.length > 0) { // This condition means there are fixtures, just not on this page
@@ -389,18 +381,28 @@ class LeagueMatchesUpcoming extends HTMLElement {
       // This case should ideally be prevented by disabling next button.
       // For robustness:
       if (list.length > 0) {
-        return '<div class="match-item">No more upcoming fixtures on this page</div>';
+        return '<div class="match-item">None</div>';
       }
-      return '<div class="match-item">No upcoming fixtures</div>';
+      return '<div class="match-item">None</div>';
     }
-    return pageItems.map(match => `
+    let lastDate = null; // Keep track of the last rendered date
+    return pageItems.map(match => {
+      const currentDateObj = new Date(match.date);
+      currentDateObj.setHours(0, 0, 0, 0); // Normalize to midnight
+      const matchDateStr = currentDateObj.toLocaleDateString();
+      let dateDisplay = '';
+      if (matchDateStr !== lastDate) {
+        dateDisplay = `<div class="match-date">${matchDateStr}</div>`;
+        lastDate = matchDateStr;
+      }
+      return `
       <div class="match-item">
-        <div class="match-date">${new Date(match.date).toLocaleDateString()}</div>
+        ${dateDisplay}
         <a href="#" class="match-link" data-match-key="${match.key}">
           ${match.homeTeamName} vs ${match.awayTeamName}
         </a>
       </div>
-    `).join('');
+    `}).join('');
   }
 
   _fillTemplate(template) {

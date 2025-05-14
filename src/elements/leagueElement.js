@@ -85,9 +85,9 @@ class LeagueElement extends HTMLElement {
       .form-d { background-color: #FFC107; /* Amber for Draw */ }
       .form-l { background-color: #F44336; }
       /* New styles for recent result scores */
-      .score-w { color: #4CAF50; background-color: transparent; }
-      .score-d { color: #FFC107; background-color: transparent; } /* Amber text */
-      .score-l { color: #F44336; background-color: transparent; }
+      /* .score-w { color: #4CAF50; background-color: transparent; } */
+      /* .score-d { color: #FFC107; background-color: transparent; } */ /* Amber text */
+      /* .score-l { color: #F44336; background-color: transparent; } */
       .error {
         color: #ff0000;
         padding: 0.5rem;
@@ -103,30 +103,19 @@ class LeagueElement extends HTMLElement {
         color: #1976d2;
         text-decoration: underline;
       }
-      .attention-matches .match-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-      }
-      .attention-matches .match-item:last-child {
-        border-bottom: none;
-      }
       .match-item {
+        padding: 0.5rem; /* Default/Desktop padding */
+        border-bottom: 1px solid #eee;
         font-size: var(--main-content-font-size); /* Apply constant font size */
+      }
+      .match-item:last-child {
+        border-bottom: none;
       }
       .match-date {
         color: #666; /* Centralized color */
         font-size: 0.7em; /* Relative to parent (now 1.3em for match-items) */
         margin-bottom: 0.2em; /* Add small vertical space below the date */
       }
-      .filter-indicator {
-        background-color: #f1f8e9; /* This class is used by LeagueMatchesUpcoming for its date filter */
-        /* border-left: 3px solid #8bc34a; */ /* Original for league table filter */
-        /* padding: 0.3rem 0.5rem; */
-        /* margin-bottom: 0.5rem; */
-        /* font-size: 0.9em; */
-        /* color: #388e3c; */
-      }
-
       /* Tab Styles */
       .tab-bar {
         display: flex;
@@ -258,17 +247,17 @@ class LeagueElement extends HTMLElement {
         gap: 1rem; /* Space between toggles, graph, and legend */
         min-height: 0; /* Important for flex children that scroll */
       }
-      .trends-team-toggles {
-        padding: 0.5rem;
-        border: 1px solid #eee;
-        border-radius: 3px;
-        max-height: 150px; /* Limit height and allow scroll if many teams */
-        overflow-y: auto;
-      }
-      .trends-team-toggles label {
-        display: block; /* Each team on a new line */
-        margin-bottom: 0.3rem;
-      }
+      /* .trends-team-toggles { */
+      /*   padding: 0.5rem; */
+      /*   border: 1px solid #eee; */
+      /*   border-radius: 3px; */
+      /*   max-height: 150px; */ /* Limit height and allow scroll if many teams */
+      /*   overflow-y: auto; */
+      /* } */
+      /* .trends-team-toggles label { */
+      /*   display: block; */ /* Each team on a new line */
+      /*   margin-bottom: 0.3rem; */
+      /* } */
       .trends-graph-area {
         flex: 1; /* Graph takes most of the space */
         border: 1px solid #ddd;
@@ -428,37 +417,13 @@ class LeagueElement extends HTMLElement {
         color: #333;
       }
       .match-item {
-        padding: 0.3rem 0.2rem;
-        border-bottom: 1px solid #eee;
+        padding: 0.3rem 0.2rem; /* Mobile specific padding */
+        /* border-bottom is inherited from BASE_STYLES */
         /* font-size is now inherited from BASE_STYLES */
-      }
-      /* .match-date rule removed, handled by BASE_STYLES */
-      .match-teams {
-        font-weight: bold;
       }
       .match-score {
         color: #4CAF50;
         font-weight: bold;
-      }
-      .paging-controls {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 0.3rem;
-      }
-      .paging-btn {
-        background: #f5f5f5;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 0.2rem 0.7rem;
-        font-size: 1em;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .paging-btn:disabled {
-        background: #eee;
-        color: #aaa;
-        cursor: not-allowed;
       }
       .matrix-container { /* Mobile specific matrix container scroll */
         overflow-x: auto;
@@ -574,38 +539,10 @@ class LeagueElement extends HTMLElement {
         background-color: #f9f9f9;
       }
       /* Ensure .form-icon is not defined here, it should inherit from BASE_STYLES */
-      .match-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-        /* font-size is now inherited from BASE_STYLES */
-      }
-      /* .match-date rule removed, handled by BASE_STYLES */
-      .match-teams {
-        font-weight: bold;
-      }
+      /* .match-item block to be removed from DESKTOP_STYLES */
       .match-score {
         color: #4CAF50;
         font-weight: bold;
-      }
-      .paging-controls {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-      }
-      .paging-btn {
-        background: #f5f5f5;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 0.2rem 0.7rem;
-        font-size: 1em;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .paging-btn:disabled {
-        background: #eee;
-        color: #aaa;
-        cursor: not-allowed;
       }
     `;
   }
@@ -1009,7 +946,14 @@ class LeagueElement extends HTMLElement {
             console.log('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
         }
         // Listen to date changes from the upcoming fixtures calendar
-        upcomingFixturesElement.addEventListener('league-matches-upcoming-date-change', this._handleUpcomingFixtureDateChange);
+        upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Remove if it was mistakenly added for date changes before
+        upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Keep for date changes
+        
+        // Add listener for match clicks
+        this._handleUpcomingMatchClickBound = this._handleUpcomingMatchClick.bind(this);
+        upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Remove previous if any
+        upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Listen for general events
+
       }
     } else {
       // Show error if data is missing or invalid
@@ -2577,6 +2521,7 @@ class LeagueElement extends HTMLElement {
 
   // New handler for match clicks from league-matches-upcoming
   _handleUpcomingMatchClick(e) {
+    // Check if the event is specifically a matchClick event
     if (e.detail.type === 'matchClick' && e.detail.match) {
         const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
                             ? this.data.table.leagueData.map(t => t.teamName)
@@ -2587,6 +2532,7 @@ class LeagueElement extends HTMLElement {
 
   // New handler for date changes from league-matches-upcoming calendar
   _handleUpcomingFixtureDateChange(e) {
+    // Check if the event is specifically a dateChange event
     if (e.detail.type === 'dateChange') {
       const selectedDateFromUpcoming = e.detail.selectedDate;
       // console.log('Date selected in upcoming fixtures calendar:', selectedDateFromUpcoming);

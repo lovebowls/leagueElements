@@ -25,12 +25,8 @@ class LeagueMatchesRecent extends HTMLElement {
         color: #333;
       }
       .match-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-        font-size: 1.3em; /* Using the --main-content-font-size from LeagueElement */
-      }
-      .match-item:last-child {
-        border-bottom: none;
+        /* padding, border-bottom, font-size inherited */
+        /* Original comment: font-size: 1.0em; Using the --main-content-font-size from LeagueElement */
       }
       .match-date {
         color: #666;
@@ -99,9 +95,7 @@ class LeagueMatchesRecent extends HTMLElement {
         font-size: 1rem;
         margin-bottom: 0.3rem;
       }
-      .match-item {
-        padding: 0.3rem 0.2rem;
-      }
+      /* .match-item rule removed as it's identical to leagueElement's mobile style */
       .paging-btn {
         padding: 0.2rem 0.7rem;
       }
@@ -244,7 +238,7 @@ class LeagueMatchesRecent extends HTMLElement {
       return '<div class="match-item">No results for selected date</div>';
     }
     
-    if (pageItems.length === 0) return '<div class="match-item">No recent matches</div>';
+    if (pageItems.length === 0) return '<div class="match-item">None</div>';
     
     // Add filter indicator if filtering by date
     let header = '';
@@ -253,6 +247,7 @@ class LeagueMatchesRecent extends HTMLElement {
       header = `<div class="filter-indicator">Showing results for ${dateStr}</div>`;
     }
     
+    let lastDate = null; // Keep track of the last rendered date
     return header + pageItems.map(match => {
       // Defensive: check for result and scores
       const result = match.result || {};
@@ -268,9 +263,19 @@ class LeagueMatchesRecent extends HTMLElement {
           awayScoreClass = 'score-w';
         } // else keep as score-d
       }
+      
+      const currentDateObj = new Date(match.date);
+      currentDateObj.setHours(0, 0, 0, 0); // Normalize to midnight
+      const matchDateStr = currentDateObj.toLocaleDateString();
+      let dateDisplay = '';
+      if (matchDateStr !== lastDate) {
+        dateDisplay = `<div class="match-date">${matchDateStr}</div>`;
+        lastDate = matchDateStr;
+      }
+
       return `
         <div class="match-item">
-          <div class="match-date">${new Date(match.date).toLocaleDateString()}</div>
+          ${dateDisplay}
           <a href="#" class="match-link" data-match-key="${match.key}">
             ${match.homeTeamName} vs ${match.awayTeamName}
           </a>

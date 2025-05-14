@@ -33,12 +33,7 @@ class LeagueMatchesAttention extends HTMLElement {
         color: #333;
       }
       .match-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-        font-size: 1.3em;
-      }
-      .match-item:last-child {
-        border-bottom: none;
+        /* padding, border-bottom, font-size inherited */
       }
       .match-date {
         color: #666;
@@ -89,9 +84,6 @@ class LeagueMatchesAttention extends HTMLElement {
       .panel-header {
         font-size: 1rem;
         margin-bottom: 0.3rem;
-      }
-      .match-item {
-        padding: 0.3rem 0.2rem;
       }
       .paging-btn {
         padding: 0.2rem 0.7rem;
@@ -291,9 +283,9 @@ class LeagueMatchesAttention extends HTMLElement {
     const pageItems = matches.slice(start, start + this.itemsPerPage);
     if (pageItems.length === 0) {
       if (matches.length > 0) {
-        return '<div class="match-item">No more matches requiring attention</div>';
+        return '<div class="match-item">None</div>';
       }
-      return '<div class="match-item">No matches requiring attention</div>';
+      return '<div class="match-item">None</div>';
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
