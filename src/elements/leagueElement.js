@@ -41,6 +41,7 @@ class LeagueElement extends HTMLElement {
         margin-left: auto;
         padding: 0.75rem 1rem;
         transition: color 0.2s;
+        font-size: 1.2rem; /* Match desktop title size */
       }
       .settings-icon:hover {
         color: #2196f3;
@@ -428,6 +429,9 @@ class LeagueElement extends HTMLElement {
       .matrix-container { /* Mobile specific matrix container scroll */
         overflow-x: auto;
         overflow-y: hidden;
+      }
+      .settings-icon {
+        font-size: 1.1rem; /* Match mobile title size */
       }
     `;
   }
