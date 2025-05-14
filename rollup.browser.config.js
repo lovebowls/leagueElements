@@ -12,11 +12,13 @@ const elements = [
   'leagueElement',
   'LeagueMatchesRecent',
   'leagueAdminElement',
-  'leagueElement.bundle'
+  'LeagueMatchesAttention',
+  'LeagueMatchesUpcoming',
+  'leagueMatch'
 ];
 
 export default elements.map(element => ({
-  input: `src/${element}.js`,
+  input: `src/elements/${element}.js`,
   output: {
     file: `dist/browser/${element}.js`,
     format: 'iife',
