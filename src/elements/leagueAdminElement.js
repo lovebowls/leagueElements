@@ -1578,7 +1578,7 @@ class LeagueAdminElement extends HTMLElement {
         eventType = 'requestUpdateLeague';
         break;
       case 'copy':
-        eventType = 'requestCopyLeague'; // This will also be a "new" league but based on an existing one
+        eventType = 'requestNewLeague'; // This will also be a "new" league but based on an existing one
         break;
     }
 

@@ -929,7 +929,6 @@ class LeagueElement extends HTMLElement {
         this.setupResizer();
       }
       this.setupPaging(); // Paging for sub-components is handled by them
-      // this.setupCalendar(); // Calendar is now in LeagueMatchesUpcoming
       this.setupTabs();
       this.setupTableFilterDropdown();
       if (this.activeView === 'trends') { // If trends tab is active by default (e.g. on reload/state persistence)
