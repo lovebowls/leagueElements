@@ -928,7 +928,7 @@ class LeagueElement extends HTMLElement {
         }
         this.setupResizer();
       }
-      // this.setupPaging(); // Paging for sub-components is handled by them
+      this.setupPaging(); // Paging for sub-components is handled by them
       // this.setupCalendar(); // Calendar is now in LeagueMatchesUpcoming
       this.setupTabs();
       this.setupTableFilterDropdown();
