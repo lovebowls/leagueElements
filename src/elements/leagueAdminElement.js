@@ -23,6 +23,7 @@ class LeagueAdminElement extends HTMLElement {
         font-family: 'Open Sans', Helvetica, Arial, sans-serif;
         box-sizing: border-box;
         color: #333; /* Default text color */
+        --main-content-font-size: 1em; /* Define the CSS variable */
       }
       .sr-only { /* Screen-reader only */
         position: absolute;
@@ -286,12 +287,9 @@ class LeagueAdminElement extends HTMLElement {
         margin: 0;
       }
       .match-item {
-        padding: 0.75rem 0.5rem;
-        border-bottom: 1px solid #f0f0f0;
-        cursor: pointer;
-      }
-      .match-item:hover {
-        background-color: #f5f5f5;
+        padding: 0.5rem;
+        border-bottom: 1px solid #eee;
+        font-size: var(--main-content-font-size);
       }
       .match-item:last-child {
         border-bottom: none;
@@ -540,6 +538,7 @@ class LeagueAdminElement extends HTMLElement {
                   <button id="btnActions" class="dropdown-button">Actions</button>
                   <div id="actionsDropdown" class="dropdown-content">
                     <a href="#" id="btnResetLeague">Reset</a>
+                    <a href="#" id="btnViewLeagueTable">View League Table</a>
                   </div>
                 </div>
               </div>
@@ -667,6 +666,7 @@ class LeagueAdminElement extends HTMLElement {
     this._elementTitle = this.getAttribute('elementTitle') || 'League Administration';
     this._leagues = [];
     this._selectedLeagueId = null; // Store ID of the selected league
+    this._currentLeagueId = null; // Store ID of the league to be pre-selected
     this._isModalVisible = false;
     this._modalMode = 'new'; // 'new', 'edit', 'copy'
     this._data = null; // To store the raw data from attribute
@@ -680,23 +680,29 @@ class LeagueAdminElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
+
+    // Bind the document click handler for the actions dropdown
+    this._boundHandleDocumentClickForActionsDropdown = this._handleDocumentClickForActionsDropdown.bind(this);
   }
 
   static get observedAttributes() {
-    return ['elementTitle', 'data', 'isMobile'];
+    return ['elementTitle', 'data', 'isMobile', 'currentLeagueId'];
   }
 
   connectedCallback() {
     this._elementTitle = this.getAttribute('elementTitle') || this._elementTitle;
+    this._currentLeagueId = this.getAttribute('currentLeagueId') || null;
     const rawData = this.getAttribute('data');
     if (rawData) {
         this._parseAndLoadData(rawData);
     }
+    document.addEventListener('click', this._boundHandleDocumentClickForActionsDropdown);
     this.render();
   }
 
   disconnectedCallback() {
     // Cleanup event listeners if any were added directly to document or window
+    document.removeEventListener('click', this._boundHandleDocumentClickForActionsDropdown);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -711,6 +717,12 @@ class LeagueAdminElement extends HTMLElement {
       needsRender = true; // Data change always triggers a full re-render of the list
     } else if (name === 'isMobile') {
       needsRender = true;
+    } else if (name === 'currentLeagueId') {
+      this._currentLeagueId = newValue || null;
+      // Apply selection only if we have leagues loaded already
+      if (this._leagues && this._leagues.length > 0) {
+        needsRender = this._applyCurrentLeagueIdSelection();
+      }
     }
 
     if (needsRender) {
@@ -736,6 +748,9 @@ class LeagueAdminElement extends HTMLElement {
         this._leagues = parsedData;
         this._data = parsedData; // Store the raw parsed data
         this.dispatchEvent(new LeagueAdminElementEvent('dataLoaded', { leagues: this._leagues }));
+        
+        // Apply currentLeagueId selection if we have one
+        this._applyCurrentLeagueIdSelection();
       } else {
         this.showError('Invalid data format: Expected an array of leagues.');
         this._leagues = [];
@@ -748,6 +763,35 @@ class LeagueAdminElement extends HTMLElement {
       this._data = null;
       this.dispatchEvent(new LeagueAdminElementEvent('dataError', { message: `Failed to parse league data: ${error.message}`, errorObj: error }));
     }
+  }
+
+  // Helper method to apply currentLeagueId selection
+  _applyCurrentLeagueIdSelection() {
+    if (!this._currentLeagueId || !this._leagues || this._leagues.length === 0) {
+      // If no current ID to apply or no leagues, no selection change occurred
+      return false;
+    }
+
+    // Check if the currentLeagueId exists in leagues
+    const leagueExists = this._leagues.some(l => (l._id || l.name) === this._currentLeagueId);
+    
+    if (leagueExists) {
+      // If league exists and it's different from current selection, update selection
+      if (this._selectedLeagueId !== this._currentLeagueId) {
+        this._selectedLeagueId = this._currentLeagueId;
+        this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId: this._selectedLeagueId }));
+        this._updateButtonStates();
+        return true; // Selection changed, need to render
+      }
+    } else if (this._selectedLeagueId === this._currentLeagueId) {
+      // League doesn't exist but was selected, clear selection
+      this._selectedLeagueId = null;
+      this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId: null }));
+      this._updateButtonStates();
+      return true; // Selection changed, need to render
+    }
+    
+    return false; // No selection change occurred
   }
 
   showError(message) {
@@ -1116,7 +1160,13 @@ class LeagueAdminElement extends HTMLElement {
     // Actions dropdown event listeners
     const btnActions = this.shadow.querySelector('#btnActions');
     if (btnActions) {
-      btnActions.addEventListener('click', () => this._toggleActionsDropdown());
+      console.log('[LeagueAdmin] Attaching click listener to #btnActions:', btnActions); // DEBUG
+      btnActions.addEventListener('click', (event) => {
+        console.log('[LeagueAdmin] #btnActions clicked!', event); // DEBUG
+        this._toggleActionsDropdown();
+      });
+    } else {
+      console.error('[LeagueAdmin] #btnActions button not found during listener attachment.'); // DEBUG
     }
     
     // Reset league action
@@ -1125,6 +1175,16 @@ class LeagueAdminElement extends HTMLElement {
       btnResetLeague.addEventListener('click', (e) => {
         e.preventDefault();
         this._handleResetLeague();
+        this._toggleActionsDropdown(false); // Close dropdown after action
+      });
+    }
+    
+    // View League Table action
+    const btnViewLeagueTable = this.shadow.querySelector('#btnViewLeagueTable');
+    if (btnViewLeagueTable) {
+      btnViewLeagueTable.addEventListener('click', (e) => {
+        e.preventDefault();
+        this._handleViewLeagueTable();
         this._toggleActionsDropdown(false); // Close dropdown after action
       });
     }
@@ -1149,24 +1209,24 @@ class LeagueAdminElement extends HTMLElement {
     if (btnAddMatch) {
       btnAddMatch.addEventListener('click', () => this._handleAddMatch());
     }
-    
-    // Close dropdown when clicking outside of it
-    document.addEventListener('click', (e) => {
-      const dropdown = this.shadow.querySelector('.dropdown');
-      if (dropdown && !dropdown.contains(e.target)) {
-        this._toggleActionsDropdown(false);
-      }
-    });
   }
   
   _toggleActionsDropdown(force = null) {
+    console.log('[LeagueAdmin] _toggleActionsDropdown called with force:', force); // DEBUG
     const dropdown = this.shadow.querySelector('.dropdown');
     if (dropdown) {
+      console.log('[LeagueAdmin] Found .dropdown element:', dropdown); // DEBUG
+      let shouldShow;
       if (force !== null) {
-        dropdown.classList.toggle('show', force);
+        shouldShow = force;
       } else {
-        dropdown.classList.toggle('show');
+        shouldShow = !dropdown.classList.contains('show');
       }
+      console.log('[LeagueAdmin] Toggling "show" class on .dropdown to:', shouldShow); // DEBUG
+      dropdown.classList.toggle('show', shouldShow);
+      console.log('[LeagueAdmin] .dropdown classList after toggle:', dropdown.classList); // DEBUG
+    } else {
+      console.error("[LeagueAdmin] Actions dropdown container (.dropdown) not found in _toggleActionsDropdown"); // DEBUG
     }
   }
   
@@ -1187,6 +1247,17 @@ class LeagueAdminElement extends HTMLElement {
         leagueName: selectedLeague.name
       }));
     }
+  }
+  
+  // New handler for View League Table
+  _handleViewLeagueTable() {
+    const selectedLeague = this._getSelectedLeague();
+    if (!selectedLeague) return;
+
+    this.dispatchEvent(new LeagueAdminElementEvent('requestViewLeagueTable', {
+      leagueId: this._selectedLeagueId,
+      leagueName: selectedLeague.name
+    }));
   }
   
   // Team Management Methods
@@ -1666,6 +1737,35 @@ class LeagueAdminElement extends HTMLElement {
         const teams = (selectedLeague.teams || []).map(t => t.name);
         this.openMatchModal(e.detail.match, teams, 'edit');
     }
+  }
+
+  // New method to handle document clicks for closing the actions dropdown
+  _handleDocumentClickForActionsDropdown(event) {
+    const actionsButton = this.shadow.querySelector('#btnActions');
+    // If the button itself doesn't exist (e.g., panel is hidden), or its parent .dropdown isn't there, bail.
+    if (!actionsButton) return;
+
+    const dropdownContainer = actionsButton.closest('.dropdown');
+    if (!dropdownContainer) return;
+
+    // If the dropdown is not currently shown, there's nothing to do for an outside click.
+    if (!dropdownContainer.classList.contains('show')) {
+      return;
+    }
+
+    // Use event.composedPath()[0] to get the actual target of the click,
+    // even if it crossed a Shadow DOM boundary.
+    const clickedElement = event.composedPath && event.composedPath()[0];
+
+    // Check if the click originated inside the dropdown container (button or content).
+    // If so, let other event handlers (button toggle, link click) manage it.
+    if (clickedElement && dropdownContainer.contains(clickedElement)) {
+      return;
+    }
+
+    // If the click was outside the open dropdown, close it.
+    console.log('[LeagueAdmin] Click detected outside dropdown. Closing dropdown.', event); // DEBUG
+    this._toggleActionsDropdown(false);
   }
 }
 
