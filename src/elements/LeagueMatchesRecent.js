@@ -9,80 +9,73 @@ class LeagueMatchesRecentEvent extends CustomEvent {
   }
 }
 
+import { panelStyles, buttonStyles, listItemStyles } from './shared-styles.js';
+
 class LeagueMatchesRecent extends HTMLElement {
   // Base styles shared between mobile and desktop layouts
   static get BASE_STYLES() {
     return `
+      ${panelStyles}
+      ${buttonStyles}
+      ${listItemStyles}
       :host {
         display: block;
-        font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
         box-sizing: border-box;
-        color: #333;
+        color: var(--le-text-color-primary, #333);
+        font-size: var(--le-font-size-base, 1em);
       }
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
+      .matches-container {
+        max-height: 300px;
+        overflow-y: auto;
       }
       .match-item {
-        /* padding, border-bottom, font-size inherited */
-        /* Original comment: font-size: 1.0em; Using the --main-content-font-size from LeagueElement */
       }
       .match-date {
-        color: #666;
-        font-size: 0.7em;
-        margin-bottom: 0.2em;
+        color: var(--le-text-color-secondary, #666);
+        font-size: 0.85em;
+        margin-bottom: var(--le-padding-xs, 0.2em);
       }
-      .match-link {
-        color: #2196f3;
-        text-decoration: none;
-        transition: color 0.2s;
+      .match-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-      .match-link:hover {
-        color: #1976d2;
-        text-decoration: underline;
+      .match-teams {
+        flex-grow: 1;
+      }
+      .team-name {
       }
       .match-score {
-        color: #4CAF50;
         font-weight: bold;
+        margin: 0 var(--le-padding-s, 0.5rem);
+        color: var(--le-text-color-primary, #333);
       }
-      /* Score styles */
-      .score-w { color: #4CAF50; background-color: transparent; }
-      .score-d { color: #FFC107; background-color: transparent; }
-      .score-l { color: #F44336; background-color: transparent; }
-      .paging-controls {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
+      .match-result-indicator {
+        padding: var(--le-padding-xs, 0.1em) var(--le-padding-s, 0.3em);
+        border-radius: var(--le-border-radius-small, 3px);
+        color: var(--le-text-color-on-primary, #fff);
+        font-size: 0.8em;
+        font-weight: bold;
+        margin-left: var(--le-padding-s, 0.5rem);
       }
-      .paging-btn {
-        background: #f5f5f5;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 0.2rem 0.7rem;
-        font-size: 1em;
-        cursor: pointer;
-        transition: background 0.2s;
+      .result-w {
+        background-color: var(--le-form-color-w, #4CAF50);
       }
-      .paging-btn:disabled {
-        background: #eee;
-        color: #aaa;
-        cursor: not-allowed;
+      .result-d {
+        background-color: var(--le-form-color-d, #FFC107);
       }
-      .filter-indicator {
-        background-color: #f1f8e9;
-        border-left: 3px solid #8bc34a;
-        padding: 0.3rem 0.5rem;
-        margin-bottom: 0.5rem;
-        font-size: 0.9em;
-        color: #388e3c;
+      .result-l {
+        background-color: var(--le-form-color-l, #F44336);
+      }
+      .no-matches {
+        padding: var(--le-padding-m, 1rem);
+        text-align: center;
+        color: var(--le-text-color-secondary, #666);
       }
       .error {
-        color: #ff0000;
-        padding: 0.5rem;
-        background-color: #fff0f0;
-        border-radius: 4px;
+        color: var(--le-text-color-error, #ff0000);
+        padding: var(--le-padding-s, 0.5rem);
       }
     `;
   }
@@ -91,13 +84,10 @@ class LeagueMatchesRecent extends HTMLElement {
   static get MOBILE_STYLES() {
     return `
       ${LeagueMatchesRecent.BASE_STYLES}
-      .panel-header {
-        font-size: 1rem;
-        margin-bottom: 0.3rem;
+      :host {
       }
-      /* .match-item rule removed as it's identical to leagueElement's mobile style */
-      .paging-btn {
-        padding: 0.2rem 0.7rem;
+      .match-item {
+        font-size: 1em;
       }
     `;
   }
@@ -106,9 +96,10 @@ class LeagueMatchesRecent extends HTMLElement {
   static get DESKTOP_STYLES() {
     return `
       ${LeagueMatchesRecent.BASE_STYLES}
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+      :host {
+      }
+      .match-item {
+        font-size: 1em;
       }
     `;
   }
@@ -116,13 +107,12 @@ class LeagueMatchesRecent extends HTMLElement {
   // Template
   static get TEMPLATE() {
     return `
-      <div class="panel-header">Recent Results</div>
       <div class="recent-results">
         {{recentResults}}
       </div>
       <div class="paging-controls" id="recent-paging" {{showPaging}}>
-        <button class="paging-btn" id="recent-prev" {{prevDisabled}}>&lt; Prev</button>
-        <button class="paging-btn" id="recent-next" {{nextDisabled}}>Next &gt;</button>
+        <button class="paging-btn button-shared button-sm" id="recent-prev" {{prevDisabled}}>&lt; Prev</button>
+        <button class="paging-btn button-shared button-sm" id="recent-next" {{nextDisabled}}>Next &gt;</button>
       </div>
     `;
   }
@@ -133,14 +123,17 @@ class LeagueMatchesRecent extends HTMLElement {
     this.matches = [];
     this.currentPage = 0;
     this.itemsPerPage = 5;
-    this.selectedResultDate = null;
+    this._filterDate = null;
   }
 
   static get observedAttributes() {
-    return ['data', 'selected-date', 'is-mobile'];
+    return ['data', 'is-mobile', 'filter-date'];
   }
 
   connectedCallback() {
+    if (this.hasAttribute('filter-date')) {
+      this._setFilterDate(this.getAttribute('filter-date'));
+    }
     this.render();
   }
 
@@ -149,13 +142,27 @@ class LeagueMatchesRecent extends HTMLElement {
 
     if (name === 'data') {
       this.loadData(newValue);
-    } else if (name === 'selected-date') {
-      this.selectedResultDate = newValue ? new Date(newValue) : null;
-      this.currentPage = 0; // Reset to first page when date changes
-      this.render();
     } else if (name === 'is-mobile') {
       this.render();
+    } else if (name === 'filter-date') {
+      this._setFilterDate(newValue);
     }
+  }
+
+  _setFilterDate(dateString) {
+    if (dateString && dateString !== 'null' && dateString !== 'undefined') {
+      const parsed = new Date(dateString);
+      if (!isNaN(parsed.getTime())) {
+        this._filterDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      } else {
+        console.warn('[LeagueMatchesRecent] Invalid date string received for filter-date:', dateString);
+        this._filterDate = null;
+      }
+    } else {
+      this._filterDate = null;
+    }
+    this.currentPage = 0;
+    this.render();
   }
 
   async loadData(data) {
@@ -201,26 +208,22 @@ class LeagueMatchesRecent extends HTMLElement {
     
     let results = this.matches
       .filter(match => {
-        if (!match.result) return false;
+        if (!match.result || !match.date) return false;
         const matchDate = new Date(match.date);
         matchDate.setHours(0, 0, 0, 0);
         return matchDate <= today;
-      })
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+      });
       
-    // Filter by selected date if one is specified
-    if (this.selectedResultDate) {
-      const filterDate = new Date(this.selectedResultDate);
-      filterDate.setHours(0, 0, 0, 0);
-      
+    if (this._filterDate) {
+      const filterDateTime = this._filterDate.getTime();
       results = results.filter(match => {
         const matchDate = new Date(match.date);
         matchDate.setHours(0, 0, 0, 0);
-        return matchDate.getTime() === filterDate.getTime();
+        return matchDate.getTime() === filterDateTime;
       });
     }
     
-    return results;
+    return results.sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
   _hasNextPage() {
@@ -228,65 +231,60 @@ class LeagueMatchesRecent extends HTMLElement {
     return (this.currentPage + 1) * this.itemsPerPage < list.length;
   }
 
+  _hasPrevPage() {
+    return this.currentPage > 0;
+  }
+
   renderRecentResults() {
     const list = this._recentResultsList();
-    const start = this.currentPage * this.itemsPerPage;
-    const pageItems = list.slice(start, start + this.itemsPerPage);
-    
-    // Show message when filtered
-    if (this.selectedResultDate && list.length === 0) {
-      return '<div class="match-item">No results for selected date</div>';
+    const startIndex = this.currentPage * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    const pageItems = list.slice(startIndex, endIndex);
+
+    if (pageItems.length === 0) {
+      if (this._filterDate) {
+        return '<div class="no-matches">No results for selected date.</div>';
+      }
+      return '<div class="no-matches">No recent match results found.</div>';
     }
-    
-    if (pageItems.length === 0) return '<div class="match-item">None</div>';
-    
-    // Add filter indicator if filtering by date
-    let header = '';
-    if (this.selectedResultDate) {
-      const dateStr = new Date(this.selectedResultDate).toLocaleDateString();
-      header = `<div class="filter-indicator">Showing results for ${dateStr}</div>`;
-    }
-    
-    let lastDate = null; // Keep track of the last rendered date
-    return header + pageItems.map(match => {
-      // Defensive: check for result and scores
+
+    let html = '<div class="matches-container">';
+    let lastDate = null;
+    pageItems.forEach(match => {
       const result = match.result || {};
       const homeScore = typeof result.homeScore === 'number' ? result.homeScore : '';
       const awayScore = typeof result.awayScore === 'number' ? result.awayScore : '';
       let homeScoreClass = 'score-d', awayScoreClass = 'score-d';
       if (typeof homeScore === 'number' && typeof awayScore === 'number') {
-        if (homeScore > awayScore) {
-          homeScoreClass = 'score-w';
-          awayScoreClass = 'score-l';
-        } else if (homeScore < awayScore) {
-          homeScoreClass = 'score-l';
-          awayScoreClass = 'score-w';
-        } // else keep as score-d
+        if (homeScore > awayScore) { homeScoreClass = 'score-w'; awayScoreClass = 'score-l'; }
+        else if (homeScore < awayScore) { homeScoreClass = 'score-l'; awayScoreClass = 'score-w'; }
       }
       
       const currentDateObj = new Date(match.date);
-      currentDateObj.setHours(0, 0, 0, 0); // Normalize to midnight
+      currentDateObj.setHours(0, 0, 0, 0); 
       const matchDateStr = currentDateObj.toLocaleDateString();
-      let dateDisplay = '';
+      let dateDisplayHtml = '';
       if (matchDateStr !== lastDate) {
-        dateDisplay = `<div class="match-date">${matchDateStr}</div>`;
+        dateDisplayHtml = `<div class="match-date">${matchDateStr}</div>`;
         lastDate = matchDateStr;
       }
 
-      return `
-        <div class="match-item">
-          ${dateDisplay}
-          <a href="#" class="match-link" data-match-key="${match.key}">
+      html += `
+        ${dateDisplayHtml}
+        <div class="match-item list-item-shared" data-match-key="${match.key}">
+          <a href="#" class="match-link list-item-text-primary">
             ${match.homeTeamName} vs ${match.awayTeamName}
           </a>
-          <div class="match-score">
-            <span class="${homeScoreClass}">${homeScore}</span>
-            <span class="content"> - </span>
-            <span class="${awayScoreClass}">${awayScore}</span>
+          <div class="list-item-actions match-score-container">
+            <span class="match-score ${homeScoreClass}">${homeScore}</span>
+            <span class="match-score"> - </span>
+            <span class="match-score ${awayScoreClass}">${awayScore}</span>
           </div>
         </div>
       `;
-    }).join('');
+    });
+    html += '</div>';
+    return html;
   }
 
   _fillTemplate(template) {
@@ -294,88 +292,64 @@ class LeagueMatchesRecent extends HTMLElement {
     
     return template
       .replace('{{recentResults}}', this.renderRecentResults())
-      .replace('{{prevDisabled}}', this.currentPage === 0 ? 'disabled' : '')
+      .replace('{{prevDisabled}}', this._hasPrevPage() ? '' : 'disabled')
       .replace('{{nextDisabled}}', this._hasNextPage() ? '' : 'disabled')
       .replace('{{showPaging}}', showPaging ? '' : 'style="display: none;"');
   }
 
   render() {
-    const isMobile = this.getAttribute('is-mobile') === 'true';
-    
+    const isMobile = this.hasAttribute('is-mobile') === 'true';
     this.shadow.innerHTML = `
       <style>${isMobile ? LeagueMatchesRecent.MOBILE_STYLES : LeagueMatchesRecent.DESKTOP_STYLES}</style>
       ${this._fillTemplate(LeagueMatchesRecent.TEMPLATE)}
     `;
-    
     this.setupEventListeners();
   }
 
   setupEventListeners() {
-    // Setup paging buttons
-    const prevBtn = this.shadow.querySelector('#recent-prev');
-    const nextBtn = this.shadow.querySelector('#recent-next');
-    
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        if (this.currentPage > 0) {
-          this.currentPage--;
-          this.render();
+    const prevButton = this.shadow.getElementById('recent-prev');
+    const nextButton = this.shadow.getElementById('recent-next');
+
+    if (prevButton) {
+      prevButton.addEventListener('click', () => {
+        if (this._hasPrevPage()) {
+          this.setPage(this.currentPage - 1);
         }
-      };
+      });
     }
-    
-    if (nextBtn) {
-      nextBtn.onclick = () => {
+
+    if (nextButton) {
+      nextButton.addEventListener('click', () => {
         if (this._hasNextPage()) {
-          this.currentPage++;
-          this.render();
+          this.setPage(this.currentPage + 1);
         }
-      };
+      });
     }
-    
+
     // Setup match click handlers
     const matchLinks = this.shadow.querySelectorAll('.match-link');
     matchLinks.forEach(link => {
-      link.onclick = (e) => {
-        e.preventDefault();
-        const matchKey = link.dataset.matchKey;
-        const match = this.matches.find(m => m.key === matchKey);
-        if (match) {
-          this.dispatchEvent(new LeagueMatchesRecentEvent({
-            type: 'matchClick',
-            match: match
-          }));
-        }
-      };
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const matchKey = event.currentTarget.closest('.match-item').dataset.matchKey;
+        // Dispatch custom event with match key
+        this.dispatchEvent(new LeagueMatchesRecentEvent({
+          type: 'matchSelect',
+          matchKey: matchKey,
+        }));
+      });
     });
   }
 
-  // Public API methods
   setPage(pageNumber) {
-    if (pageNumber >= 0 && pageNumber !== this.currentPage) {
-      this.currentPage = pageNumber;
-      this.render();
-    }
-  }
-
-  setSelectedDate(date) {
-    this.selectedResultDate = date ? new Date(date) : null;
-    this.currentPage = 0; // Reset to first page
+    this.currentPage = pageNumber;
     this.render();
-    
-    // Dispatch date change event
-    this.dispatchEvent(new LeagueMatchesRecentEvent({
-      type: 'dateChange',
-      selectedDate: this.selectedResultDate
-    }));
   }
 
-  clearDateFilter() {
-    this.setSelectedDate(null);
-  }
-
-  // Helper method for HTML escaping
   escapeHtml(unsafe = '') {
+    if (unsafe === null || typeof unsafe === 'undefined') {
+      return '';
+    }
     const str = String(unsafe);
     return str
          .replace(/&/g, "&amp;")

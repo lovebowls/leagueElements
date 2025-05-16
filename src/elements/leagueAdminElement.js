@@ -12,20 +12,112 @@ class LeagueAdminElementEvent extends CustomEvent {
 // Import the LeagueMatchesAttention component
 import './LeagueMatchesAttention.js';
 import './leagueMatch.js';
+// ADDED IMPORTS for shared modal and form styles
+import { utilityStyles, panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles } from './shared-styles.js';
+// Import Temporal API utilities
+import { Temporal, TemporalUtils } from '../utils/temporalUtils.js';
 
 class LeagueAdminElement extends HTMLElement {
   // Base styles shared between mobile and desktop layouts
   static get BASE_STYLES() {
     return `
+      ${utilityStyles} /* ADDED SHARED STYLE */
+      ${panelStyles}   /* ADDED SHARED STYLE */
+      ${buttonStyles}  /* ADDED SHARED STYLE */
+      ${modalStyles}   /* ADDED SHARED MODAL STYLE */
+      ${formStyles}    /* ADDED SHARED FORM STYLE */
+      ${listItemStyles} /* ADDED SHARED LIST ITEM STYLE */
       :host {
         display: block;
-        border: 1px solid #ccc;
-        font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        border: 1px solid var(--lae-border-color-medium, #ccc); 
+        font-family: var(--lae-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif); 
         box-sizing: border-box;
-        color: #333; /* Default text color */
-        --main-content-font-size: 1em; /* Define the CSS variable */
+        color: var(--lae-text-color-primary, #333); 
+
+        /* ADMIN THEME VARIABLES (lae prefix for LeagueAdminElement) */
+        --lae-font-family-main: 'Open Sans', Helvetica, Arial, sans-serif;
+        --lae-font-size-base-desktop: 1em;
+        --lae-font-size-base-mobile: 2em; 
+
+        --lae-font-size-small: 0.85em; 
+        --lae-font-size-medium: 1em;   
+        --lae-font-size-large: 1.2em;  
+        --lae-font-size-xlarge: 1.5em; 
+
+        --lae-text-color-primary: #333;
+        --lae-text-color-secondary: #666;
+        --lae-text-color-accent: #007bff; 
+        --lae-text-color-accent-hover: #0056b3;
+        --lae-text-color-error: #D8000C;
+        --lae-text-color-success: #4CAF50;
+        --lae-text-color-on-primary: #fff;
+
+        /* LAE Status Colors - Mapped from LE or defined if different */
+        --lae-color-status-warning: var(--le-color-status-warning, #f39c12);
+        --lae-color-status-conflict: var(--le-color-status-conflict, #e67e22);
+        --lae-color-status-pending: var(--le-color-status-pending, #e74c3c);
+        --lae-color-status-info: var(--le-color-status-info, #2196f3);
+        --lae-color-status-success: var(--le-color-status-success, #4CAF50);
+
+        --lae-background-color-host-desktop: #f8f9fa; 
+        --lae-background-color-host-mobile: #f5f5f5;
+        --lae-background-color-panel: #fff;
+        --lae-background-color-header: #f5f5f5;
+        --lae-background-color-button: #f0f0f0;
+        --lae-background-color-button-hover: #e0e0e0;
+        --lae-background-color-button-disabled: #eee;
+        --lae-background-color-selected-item: #e9eff7; 
+        --lae-background-color-modal-header: #f5f5f5;
+        --lae-background-color-error: #FFD2D2;
+        --lae-background-color-rink-settings: #f9f9f9;
+
+        --lae-border-color-light: #f0f0f0;
+        --lae-border-color-medium: #ddd;
+        --lae-border-color-dark: #ccc;
+        --lae-border-color-error: #D8000C;
+        --lae-border-color-rink-settings: #ccc; 
+
+        --lae-border-radius-standard: 4px;
+        --lae-border-radius-large: 8px; 
+        --lae-border-radius-mobile-panel: 12px;
+
+        --lae-shadow-mobile-panel: 0 2px 8px rgba(0,0,0,0.06);
+
+        --lae-spacing-unit: 0.25rem;
+        --lae-padding-xs: calc(1 * var(--lae-spacing-unit));
+        --lae-padding-s: calc(2 * var(--lae-spacing-unit));
+        --lae-padding-m: calc(4 * var(--lae-spacing-unit));
+        --lae-padding-l: calc(6 * var(--lae-spacing-unit));
+
+        /* --- Mappings for shared-styles.js --- */
+        /* These ensure shared components adopt the admin theme */
+        --le-padding-xs: var(--lae-padding-xs);
+        --le-padding-s: var(--lae-padding-s);
+        --le-padding-m: var(--lae-padding-m);
+        
+        --le-border-color-light: var(--lae-border-color-light);
+        --le-border-color-medium: var(--lae-border-color-medium);
+        --le-border-color-dark: var(--lae-border-color-dark);
+
+        --le-text-color-primary: var(--lae-text-color-primary);
+        --le-text-color-secondary: var(--lae-text-color-secondary);
+        --le-text-color-on-primary: var(--lae-text-color-on-primary);
+
+        --le-background-color-header: var(--lae-background-color-header);
+        --le-background-color-panel: var(--lae-background-color-panel);
+        --le-background-color-button: var(--lae-background-color-button);
+        --le-background-color-button-hover: var(--lae-background-color-button-hover);
+        --le-background-color-button-disabled: var(--lae-background-color-button-disabled);
+
+        --le-border-radius-standard: var(--lae-border-radius-standard);
+        
+        --le-font-size-medium: var(--lae-font-size-medium);
+        --le-font-size-small: var(--lae-font-size-small);
+        /* --- End Mappings --- */
+
+        --main-content-font-size: var(--lae-font-size-base-desktop); 
       }
-      .sr-only { /* Screen-reader only */
+      /* .sr-only {  REMOVED as it is now in utilityStyles
         position: absolute;
         width: 1px;
         height: 1px;
@@ -35,110 +127,154 @@ class LeagueAdminElement extends HTMLElement {
         clip: rect(0, 0, 0, 0);
         white-space: nowrap;
         border-width: 0;
-      }
-      .header {
+      } */
+      .header { /* Main header for "League Administration" title. May not use panel-header-shared directly if it has very unique structure */
         font-weight: bold;
-        background: #f5f5f5;
-        padding: 0.5rem;
-        border-bottom: 1px solid #ddd;
+        background: var(--lae-background-color-header);
+        padding: var(--lae-padding-s);
+        border-bottom: 1px solid var(--lae-border-color-medium);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        font-size: var(--lae-font-size-large); /* Specific to this main header */
       }
       .content-area {
-        padding: 0.5rem;
+        padding: var(--lae-padding-s) var(--lae-padding-xs);
       }
       .league-list-container {
-        margin-bottom: 1rem;
-        border: 1px solid #eee;
-        min-height: 100px; /* Placeholder height */
-        padding: 0.5rem;
+          border-radius: var(--lae-border-radius-mobile-panel);
+          box-shadow: var(--lae-shadow-mobile-panel);
+          padding: var(--lae-padding-xs);
       }
-      .league-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+      .column-leagues .panel-header-shared .action-buttons { /* For New/Copy buttons in Leagues header */
+        display: flex; /* Ensure buttons are in a row */
+        align-items: center; /* ADDED for vertical alignment of buttons */
+        justify-content: flex-end; /* Align these buttons to the right */
+        gap: var(--lae-padding-s); /* Space between New/Copy */
+        margin-left: auto; /* Push this container to the right of "Leagues" text */
       }
       .league-list-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #f0f0f0;
-        cursor: pointer;
+        padding: var(--lae-padding-s) var(--lae-padding-xs); 
+        /* flex-wrap: wrap; REMOVE - we want items on one line if possible */
+        display: flex; /* ADDED */
+        flex-direction: row; /* ADDED */
+        justify-content: space-between; /* ADDED */
+        align-items: center; /* ADDED */
+        border-bottom: 1px solid var(--lae-border-color-light); /* Keep border */
       }
       .league-list-item:last-child {
         border-bottom: none;
       }
-      .league-list-item.selected {
-        background-color: #e0e0e0;
+      .league-name-text {
+        font-size: var(--lae-font-size-medium); 
+        /* margin-bottom: var(--lae-padding-xs); REMOVE - no longer needed if side-by-side */
+        /* flex-basis: 100%; REMOVE - allow it to size naturally / grow */
+        flex-grow: 1; /* Allow name to take available space */
+        margin-right: var(--lae-padding-s); /* Space before buttons */
+        pointer-events: none; /* ADDED: Allow clicks to pass through to parent li */
+      }
+      .league-item-actions-container { /* For View Table/Actions on selected league */
+        /* flex-basis: 100%; REMOVE - not needed if side-by-side */
+        display: flex;
+        justify-content: flex-end; 
+        gap: var(--lae-padding-s); 
+        /* margin-top: var(--lae-padding-xs); REMOVE - not needed if side-by-side */
+        flex-shrink: 0; /* Prevent button container from shrinking */
+      }
+      .league-list-item.selected { /* ADDED for mobile selection highlight */
+        background-color: var(--lae-background-color-selected-item, #e9eff7); 
         font-weight: bold;
       }
-      .action-buttons {
-        display: flex;
-        gap: 0.5rem; /* Space between buttons */
-        flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-        margin-bottom: 1rem;
+      .league-list-item.selected .league-name-text {
+         pointer-events: auto; /* Re-enable pointer events for selected text if needed, though likely not */
       }
-      .action-buttons button {
-        padding: 0.5rem 1rem;
-        border: 1px solid #ddd;
-        background-color: #f9f9f9;
+      .league-action-button { /* These are small icon-like buttons, potentially keep specific styles or create a new shared variant */
+        padding: var(--lae-padding-xs) var(--lae-padding-s); 
+        border: 1px solid var(--lae-border-color-dark);
+        background-color: var(--lae-background-color-button);
         cursor: pointer;
-        border-radius: 4px;
+        border-radius: var(--lae-border-radius-standard);
+        font-size: var(--lae-font-size-small); 
       }
-      .action-buttons button:disabled {
-        background-color: #eee;
-        color: #aaa;
+      .league-action-button:hover {
+        background-color: var(--lae-background-color-button-hover);
+      }
+      .league-action-dropdown .dropdown-content {
+         min-width: 120px; 
+      }
+      .action-buttons { /* Container for main action buttons */
+        display: flex;
+        gap: var(--lae-padding-s); 
+        flex-wrap: wrap; 
+        margin-bottom: var(--lae-padding-m);
+      }
+      /* .action-buttons button styles are covered by .button-shared class in template */
+      /* .action-buttons button {
+        padding: var(--lae-padding-s) var(--lae-padding-m);
+        border: 1px solid var(--lae-border-color-medium);
+        background-color: var(--lae-background-color-button);
+        cursor: pointer;
+        border-radius: var(--lae-border-radius-standard);
+        font-size: var(--lae-font-size-medium);
+      } */
+      /* .action-buttons button:disabled {
+        background-color: var(--lae-background-color-button-disabled);
+        color: var(--lae-text-color-secondary);
         cursor: not-allowed;
-      }
-      .action-buttons button:hover:not(:disabled) {
-        background-color: #e9e9e9;
-      }
+      } */
+      /* .action-buttons button:hover:not(:disabled) {
+        background-color: var(--lae-background-color-button-hover);
+      } */
       .modal {
-        display: none; /* Hidden by default */
-        position: fixed; /* Stay in place */
-        z-index: 1000; /* Sit on top */
+        display: none; 
+        position: fixed; 
+        z-index: 1000; 
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        overflow: auto; /* Enable scroll if needed */
-        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        overflow: auto; 
+        background-color: rgba(0,0,0,0.4); 
       }
       .modal-content {
-        background-color: #fefefe;
-        margin: 10% auto; /* 10% from the top and centered */
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%; /* Could be more or less, depending on screen size */
-        max-width: 600px; /* Maximum width */
-        border-radius: 8px;
+        background-color: var(--lae-background-color-panel);
+        margin: 10% auto; 
+        padding: var(--lae-padding-l);
+        border: 1px solid var(--lae-border-color-dark);
+        width: 80%; 
+        max-width: 600px; 
+        border-radius: var(--lae-border-radius-large);
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
       }
-      .modal-header {
-        padding: 0.5rem 1rem;
-        background-color: #f5f5f5;
-        border-bottom: 1px solid #ddd;
-        font-weight: bold;
+      .modal-header { /* Uses .panel-header-shared in template but has overrides */
+        /* padding, border-bottom, font-weight potentially from .panel-header-shared */
+        background-color: var(--lae-background-color-modal-header); /* MODAL SPECIFIC background */
         display: flex;
         justify-content: space-between;
         align-items: center;
+        font-size: var(--lae-font-size-large); /* MODAL SPECIFIC font size */
+         /* Ensure shared padding is applied if not overridden by specificity */
+        padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
+        border-bottom: 1px solid var(--le-border-color-medium, #eee);
+        font-weight: bold;
       }
       .modal-body {
-        padding: 1rem;
+        padding: var(--lae-padding-m);
       }
       .modal-footer {
-        padding: 0.5rem 1rem;
+        padding: var(--lae-padding-s) var(--lae-padding-m);
         text-align: right;
-        border-top: 1px solid #ddd;
+        border-top: 1px solid var(--lae-border-color-medium);
       }
-      .modal-footer button {
-         margin-left: 0.5rem;
+      .modal-footer button { /* Buttons inside use .button-shared from template */
+         margin-left: var(--lae-padding-s); /* Keep specific margin */
       }
       .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: var(--lae-padding-m);
       }
       .form-group label {
         display: block;
-        margin-bottom: 0.25rem;
+        margin-bottom: var(--lae-padding-xs);
         font-weight: bold;
       }
       .form-group input[type="text"],
@@ -146,250 +282,159 @@ class LeagueAdminElement extends HTMLElement {
       .form-group input[type="date"],
       .form-group select {
         width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        padding: var(--lae-padding-s);
+        border: 1px solid var(--lae-border-color-dark);
+        border-radius: var(--lae-border-radius-standard);
         box-sizing: border-box;
+        font-size: var(--lae-font-size-medium);
       }
       .form-group input[type="checkbox"] {
-        margin-right: 0.5rem;
+        margin-right: var(--lae-padding-s);
       }
       .rink-points-settings {
-        border: 1px dashed #ccc;
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-        background-color: #f9f9f9;
+        border: 1px dashed var(--lae-border-color-rink-settings);
+        padding: var(--lae-padding-s);
+        margin-top: var(--lae-padding-s);
+        background-color: var(--lae-background-color-rink-settings);
       }
       .error {
-        color: #D8000C; /* Red for errors */
-        background-color: #FFD2D2; /* Light red background */
-        padding: 0.5rem;
-        border: 1px solid #D8000C;
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
+        color: var(--lae-text-color-error);
+        background-color: var(--lae-background-color-error);
+        padding: var(--lae-padding-s);
+        border: 1px solid var(--lae-border-color-error);
+        border-radius: var(--lae-border-radius-standard);
+        margin-bottom: var(--lae-padding-m); 
       }
-      
-      /* Selected League Panel Styles */
-      .selected-league-panel {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-top: 1rem;
-        background-color: #f9f9f9;
+      /* Original column, resizer, panel styles from previous file state */
+      /* These might need review after shared styles are fully integrated */
+      .column {
+        padding: var(--lae-padding-s);
+        box-sizing: border-box;
       }
-      .panel-header {
+      .columns {
         display: flex;
+      }
+      .column-leagues {
+        width: 30%; 
+        min-width: 250px; 
+        border-right: 1px solid var(--lae-border-color-medium);
+        padding-right: var(--lae-padding-s); 
+      }
+      .column-details {
+        flex-grow: 1; 
+        padding-left: var(--lae-padding-s); 
+      }
+      .resizer {
+        width: 10px;
+        cursor: col-resize;
+        background-color: var(--lae-background-color-header);
+        border-left: 1px solid var(--lae-border-color-light);
+        border-right: 1px solid var(--lae-border-color-light);
+        z-index: 10;
+      }
+      .panel { /* This class is used on #teams-panel and #matches-panel */
+        margin-bottom: var(--lae-padding-m);
+        border: 1px solid var(--lae-border-color-light);
+        border-radius: var(--lae-border-radius-standard);
+      }
+      .panel .panel-header { /* Styles for panel headers that have .panel-header-shared in template */
+         /* Shared properties from .panel-header-shared apply */
+         /* Overrides or additional styles for these specific panel headers: */
+         font-size: var(--lae-font-size-medium); 
+         display: flex; /* Ensure these are flex for button alignment */
         justify-content: space-between;
         align-items: center;
-        padding: 0.5rem;
-        background-color: #f0f0f0;
-        border-bottom: 1px solid #ddd;
+         background-color: var(--lae-background-color-header); /* Ensure admin context bg */
       }
-      .panel-header h3,
-      .panel-header h4 {
+      /* .panel .panel-content is covered by .panel-content-shared in template */
+
+      .teams-list, .matches-list { /* These are direct children of panel-content-shared divs */
+        list-style: none;
+        padding: 0;
         margin: 0;
-        font-size: 1.1rem;
       }
-      
-      /* Dropdown Styles */
+      .teams-list li, .matches-list li {
+        padding: var(--lae-padding-xs);
+        border-bottom: 1px solid var(--lae-border-color-light);
+      }
+      .teams-list li:last-child, .matches-list li:last-child {
+        border-bottom: none;
+      }
+      .close-button {
+        color: var(--lae-text-color-secondary, #aaa);
+        float: right;
+        font-size: 1.5em; 
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close-button:hover,
+      .close-button:focus {
+        color: var(--lae-text-color-primary, #000);
+        text-decoration: none;
+      }
+      .hidden {
+        display: none !important;
+      }
       .dropdown {
         position: relative;
         display: inline-block;
-      }
-      .dropdown-button {
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
+        z-index: 2; /* ADDED */
       }
       .dropdown-content {
         display: none;
         position: absolute;
-        right: 0;
-        background-color: #f9f9f9;
-        min-width: 160px;
+        background-color: var(--lae-background-color-panel, #f9f9f9);
+        /* min-width: 160px; REMOVED */
+        min-width: auto; /* ADDED */
+        width: fit-content; /* ADDED */
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        z-index: 100; 
+        border-radius: var(--lae-border-radius-standard);
+        border: 1px solid var(--lae-border-color-medium);
+        top: 100%; /* ADDED */
+        right: 0;  /* ADDED */
       }
-      .dropdown-content a {
-        color: black;
-        padding: 12px 16px;
+      .dropdown-content button { /* Assuming these are also to be styled as shared buttons or a variant */
+        color: var(--lae-text-color-primary, black);
+        padding: var(--lae-padding-s) var(--lae-padding-m);
         text-decoration: none;
         display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
         cursor: pointer;
+        font-size: var(--lae-font-size-small);
       }
-      .dropdown-content a:hover {
-        background-color: #f1f1f1;
+      .dropdown-content button:hover {
+        background-color: var(--lae-background-color-button-hover, #f1f1f1);
       }
-      .dropdown.show .dropdown-content {
+      .dropdown.show .dropdown-content { /* MODIFIED: Changed .active to .show */
         display: block;
       }
-      
-      /* Teams Panel Styles */
-      .teams-panel {
-        margin-top: 1rem;
-        border-top: 1px solid #ddd;
+      #admin-matches-attention-container league-matches-attention {
+          font-size: var(--lae-font-size-small); /* Adjust font size for attention component within admin panel */
       }
-      .teams-list-container {
-        padding: 0.5rem;
-        max-height: 300px;
-        overflow-y: auto;
+      #main-title {
+        font-size: var(--lae-font-size-xlarge);
       }
-      .teams-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+      .header-actions {
+        /* Styles for the container of header actions if needed */
       }
-      .team-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem;
-        border-bottom: 1px solid #f0f0f0;
+      .header-actions button svg {
+        vertical-align: middle; /* Align icon better with text if any */
+        margin-right: var(--lae-padding-xs); /* Space between icon and text if text is shown */
       }
-      .team-item:last-child {
-        border-bottom: none;
+
+      /* Ensuring specificity for panel headers within the specific columns if needed */
+      .column-leagues .panel-header,
+      .column-details .panel-header {
+          /* These already have .panel-header-shared in template, so shared styles apply. */
+          /* Add specific overrides here if .panel-header-shared is not enough */
+          /* For example, to ensure they use the correct background for admin context: */
+          background-color: var(--lae-background-color-header);
       }
-      .team-name {
-        flex-grow: 1;
-      }
-      .team-actions {
-        display: flex;
-        gap: 0.5rem;
-      }
-      .team-actions button {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.85rem;
-        border: 1px solid #ddd;
-        background-color: #f9f9f9;
-        cursor: pointer;
-        border-radius: 3px;
-      }
-      .team-actions button:hover {
-        background-color: #e9e9e9;
-      }
-      
-      /* Matches Panel Styles */
-      .matches-panel {
-        margin-top: 1rem;
-        border-top: 1px solid #ddd;
-      }
-      .matches-list-container {
-        padding: 0.5rem;
-        max-height: 400px;
-        overflow-y: auto;
-      }
-      .matches-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .match-item {
-        padding: 0.5rem;
-        border-bottom: 1px solid #eee;
-        font-size: var(--main-content-font-size);
-      }
-      .match-item:last-child {
-        border-bottom: none;
-      }
-      .match-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.25rem;
-      }
-      .match-date {
-        font-size: 0.85rem;
-        color: #666;
-      }
-      .match-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .match-teams {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        gap: 1rem;
-      }
-      .match-team {
-        width: 50%;
-      }
-      .match-team.home {
-        text-align: left;
-      }
-      .match-team.away {
-        text-align: right;
-      }
-      .match-score {
-        font-weight: bold;
-        padding: 0 0.5rem;
-      }
-      .match-result {
-        display: flex;
-        align-items: center;
-      }
-      .match-status {
-        font-size: 0.85rem;
-        font-style: italic;
-        color: #777;
-      }
-      .match-completed .match-status {
-        color: #4CAF50;
-      }
-      
-      /* Match Modal Styles */
-      #matchModalBody .match-teams {
-        display: flex;
-        gap: 1.5rem;
-      }
-      #matchModalBody .match-team {
-        flex: 1;
-      }
-      .dashboard {
-        display: flex;
-        height: 100%;
-        gap: 1rem;
-      }
-      .left-panel {
-        flex: 0 0 70%;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
-      }
-      .right-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        min-width: 0;
-      }
-      .resizer {
-        width: 5px;
-        background: #ddd;
-        cursor: col-resize;
-        transition: background 0.2s;
-      }
-      .resizer:hover {
-        background: #999;
-      }
-      .panel {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
-        padding: 1rem;
-      }
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
-      }
+
     `;
   }
 
@@ -397,60 +442,183 @@ class LeagueAdminElement extends HTMLElement {
   static get MOBILE_STYLES() {
     return `
       ${LeagueAdminElement.BASE_STYLES}
+
       :host {
-        /* Mobile specific host adjustments if any */
+        background: var(--lae-background-color-host-mobile, #f5f5f5);
+        border: none;
+        border-radius: 0;
+        padding: var(--lae-padding-s);
+        min-height: 100vh;
+        font-size: var(--lae-font-size-base-mobile, 2em); /* Use mobile base font size */
+        --main-content-font-size: var(--lae-font-size-base-mobile, 2em); /* For children expecting this */
       }
-      .header {
-        font-size: 1.1rem;
-        padding: 0.4rem;
-      }
-       .content-area {
-        padding: 0.4rem;
-      }
-      .action-buttons button {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.9rem;
-      }
-      .modal-content {
-        margin: 5% auto;
-        width: 90%;
-      }
-      
-      /* Mobile adjustments for new panels */
-      .panel-header {
+      .columns { /* Main container for left/right columns */
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        gap: var(--lae-padding-m); /* Add gap between stacked columns */
       }
-      .panel-header h3,
+      .column-leagues,
+      .column-details {
+        width: 100%; /* Make columns full width */
+        min-width: 0;
+        border: none; /* Remove borders specific to desktop layout */
+        padding: 0; /* Reset padding, let panels handle their own */
+      }
+      .dashboard { /* Mobile dashboard layout - This class seems unused, .columns is the primary */
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+      }
+      .left-panel,
+      .right-panel {
+        width: 100%;
+        min-width: 0;
+        border: none;
+        border-radius: 0;
+        background: none;
+        padding: 0;
+        margin: 0;
+        display: block;
+      }
+      .resizer {
+        display: none !important;
+      }
+      .content-area {
+        padding: var(--lae-padding-s) var(--lae-padding-xs);
+      }
+      .league-list-container {
+          border-radius: var(--lae-border-radius-mobile-panel);
+          box-shadow: var(--lae-shadow-mobile-panel);
+          padding: var(--lae-padding-xs);
+      }
+      .league-list-item {
+        padding: var(--lae-padding-s) var(--lae-padding-xs); /* Adjusted padding */
+        flex-wrap: wrap; 
+      }
+      .league-name-text {
+        font-size: var(--lae-font-size-medium); /* Relative to host (now 2em based) */
+        margin-bottom: var(--lae-padding-xs);
+      }
+      .league-item-actions-container {
+        flex-basis: 100%; 
+        justify-content: flex-end; 
+        margin-top: var(--lae-padding-xs);
+      }
+      .league-action-button { /* Smaller buttons in league list items */
+        padding: var(--lae-padding-xs) var(--lae-padding-s);
+        font-size: var(--lae-font-size-small); /* Relative to host */
+        min-height: 38px;
+      }
+      .league-action-dropdown .dropdown-content {
+        min-width: 140px;
+      }
+      .header { /* "League Administration" title in mobile */
+        font-size: var(--lae-font-size-large); /* Relative to host */
+        font-weight: bold;
+        padding: var(--lae-padding-s) var(--lae-padding-xs);
+        background: none;
+        border: none;
+        margin-bottom: var(--lae-padding-s);
+      }
+      .action-buttons { /* New, Copy etc. buttons container */
+        margin-bottom: var(--lae-padding-s);
+        gap: var(--lae-padding-s);
+      }
+      .action-buttons button { /* New, Copy etc. buttons */
+        min-height: 44px;
+        font-size: var(--lae-font-size-medium); /* Relative to host */
+        padding: var(--lae-padding-s) var(--lae-padding-m);
+        border-radius: var(--lae-border-radius-standard);
+        margin-bottom: var(--lae-padding-xs);
+      }
+      .panel, /* Applies to Teams, Matches, Attention panels in mobile */
+      #admin-teams-panel,
+      #admin-matches-panel,
+      #admin-attention-panel {
+        border: none;
+        border-radius: var(--lae-border-radius-mobile-panel);
+        background: var(--lae-background-color-panel);
+        box-shadow: var(--lae-shadow-mobile-panel);
+        padding: var(--lae-padding-s) var(--lae-padding-m);
+        margin: 0 0 var(--lae-padding-m) 0;
+        width: 100%;
+        box-sizing: border-box;
+        display: block;
+      }
+      .panel-header { /* Mobile panel headers for Teams panel */
+        display: flex; /* Ensure it's flex */
+        flex-direction: row; /* Align items in a row */
+        justify-content: space-between; /* Space between title and button */
+        align-items: center; /* Vertically align items */
+        font-size: var(--lae-font-size-medium); /* Relative to host */
+        font-weight: bold;
+        margin-bottom: var(--lae-padding-s);
+        background: none; /* Keep transparent background */
+        border: none; /* Keep no border */
+        padding: var(--lae-padding-xs) 0;
+      }
       .panel-header h4 {
-        margin-bottom: 0.5rem;
+          margin-bottom: 0;
+          margin-right: auto; /* Push button to the right if h4 is used */
       }
-      .dropdown {
-        align-self: flex-end;
-      }
-      .team-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .team-actions {
-        margin-top: 0.5rem;
-        align-self: flex-end;
+      .panel-header button { /* Add Team button */
+        font-size: var(--lae-font-size-medium); /* Relative to host */
+        padding: var(--lae-padding-s) var(--lae-padding-m); /* Keep existing padding */
+        margin-top: 0; /* Remove top margin */
+        margin-left: var(--lae-padding-s); /* Add some left margin if needed, or rely on space-between */
       }
       
-      /* Mobile adjustments for match panel and modal */
-      .match-content {
-        flex-direction: column;
+      /* Team list item styling for mobile */
+      #teams-list li.team-item {
+        list-style-type: none; 
+        display: flex;
+        flex-direction: column; 
+        padding: var(--lae-padding-s) 0; 
+        border-bottom: 1px solid var(--lae-border-color-light);
       }
-      .match-result {
-        width: 100%;
-        margin-top: 0.25rem;
+      #teams-list li.team-item:last-child {
+        border-bottom: none;
       }
-      #matchModalBody .match-teams {
-        flex-direction: column;
-        gap: 1rem;
+      #teams-list li.team-item .team-name {
+        margin-bottom: var(--lae-padding-s); 
+        font-size: var(--lae-font-size-medium); 
       }
-      #matchModalBody .match-team {
-        width: 100%;
+      #teams-list li.team-item .team-actions {
+        display: flex;
+        justify-content: flex-end; 
+        gap: var(--lae-padding-s);
+      }
+      /* End of Team list item styling for mobile */
+
+      .team-name { /* General .team-name, may be overridden by more specific above */
+        font-size: var(--lae-font-size-medium); /* Relative to host */
+      }
+      .team-actions button { /* General .team-actions button, may be overridden */
+        font-size: var(--lae-font-size-small); /* Relative to host */
+      }
+
+      .match-item { /* For items within Matches panel in mobile */
+        font-size: var(--lae-font-size-medium); /* Relative to host */
+        padding: var(--lae-padding-s) var(--lae-padding-xs);
+      }
+      .match-date {
+        font-size: var(--lae-font-size-small); /* Relative to host */
+      }
+      .match-team { 
+        font-size: var(--lae-font-size-medium);   /* Relative to host */
+      }
+      .match-score {
+        font-size: var(--lae-font-size-medium);   /* Relative to host */
+        padding: 0 var(--lae-padding-xs);
+      }
+      .match-status {
+        font-size: var(--lae-font-size-small); /* Relative to host */
+        align-self: center; 
+      }
+      .team-item.selected-team { /* ADDED for mobile selection highlight */
+        background-color: var(--lae-background-color-selected-item, #e9eff7); 
+        /* font-weight: bold; */
       }
     `;
   }
@@ -458,52 +626,87 @@ class LeagueAdminElement extends HTMLElement {
   // Desktop-specific styles
   static get DESKTOP_STYLES() {
     return `
-      ${LeagueAdminElement.BASE_STYLES}
+      ${LeagueAdminElement.BASE_STYLES} /* Includes :host variables */
       :host {
-         /* Desktop specific host adjustments if any */
-         padding: 1rem;
+         padding: var(--lae-padding-m);
          height: 100%;
+         font-size: var(--lae-font-size-base-desktop); /* Set desktop base font size */
+         background-color: var(--lae-background-color-host-desktop);
+         --main-content-font-size: var(--lae-font-size-base-desktop); /* For children */
       }
-      .dashboard {
+      /* .dashboard, .left-panel, .right-panel, .resizer use variables defined in BASE_STYLES */
+      /* .panel and .panel-header in desktop will use variables from BASE_STYLES */
+      /* Specific overrides for desktop panel headers: */
+      .panel-header { 
+        font-size: var(--lae-font-size-large); /* Larger for desktop panel titles */
+        flex-direction: row; 
+        align-items: center; 
+        background: var(--lae-background-color-header); 
+        border-bottom: 1px solid var(--lae-border-color-medium); 
+        padding: var(--lae-padding-s); 
+      }
+      .panel-header h4 {
+          margin-bottom: 0;
+      }
+      .panel-header button { /* Add Team/Match on Desktop */
+        font-size: var(--lae-font-size-small); /* Smaller than main action buttons */
+        padding: var(--lae-padding-xs) var(--lae-padding-s);
+        margin-left: auto; /* Push to the right */
+      }
+
+      /* Team list item styling for desktop */
+      #teams-list li.team-item {  /* Using ID selector */
+        list-style-type: none; /* Remove bullets */
         display: flex;
-        height: 100%;
-        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--lae-padding-xs) 0; /* Vertical padding, horizontal handled by parent */
+        border-bottom: 1px solid var(--lae-border-color-light); /* Add a separator line if desired */
       }
-      .left-panel {
-        flex: 0 0 70%;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
+      #teams-list li.team-item:last-child { /* Using ID selector */
+        border-bottom: none; /* Remove border for the last item */
       }
-      .right-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        min-width: 0;
+      #teams-list li.team-item .team-name {  /* Using ID selector */
+        flex-grow: 1; 
+        margin-right: var(--lae-padding-s); 
       }
-      .panel {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
-        padding: 1rem;
+      #teams-list li.team-item .team-actions {  /* Using ID selector */
+        display: flex; /* Ensure buttons inside actions are also in a row */
+        gap: var(--lae-padding-s); 
+        flex-shrink: 0; 
       }
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
+      /* .team-actions button styles are covered by .button-shared.button-sm */
+      
+      .league-list-container {
+        flex-shrink: 0; 
+        /* REMOVED max-height: 40%; */
+        /* REMOVED overflow-y: auto; */
       }
-      .resizer {
-        width: 5px;
-        background: #ddd;
-        cursor: col-resize;
-        transition: background 0.2s;
+      .league-list-item.selected {
+        background-color: var(--lae-background-color-selected-item); 
       }
-      .resizer:hover {
-        background: #999;
+      .league-item-actions-container {
+        flex-shrink: 0; 
+      }
+      .league-action-button { /* View Table, Actions buttons in league list for desktop */
+        font-size: var(--lae-font-size-small); /* Uses base style, already small */
+        padding: var(--lae-padding-xs) var(--lae-padding-s);
+      }
+      /* REMOVED: Override for desktop dropdown to open upwards */
+      /* .league-list-item .dropdown-content {
+        bottom: 100%; 
+        top: auto; 
+        right: 0; 
+      } */
+      
+      .teams-list-container, .matches-list-container {
+        flex-grow: 1; 
+        overflow-y: auto; 
+        min-height: 100px; 
+      }
+      .team-item.selected-team { /* ADDED for desktop selection highlight */
+        background-color: var(--lae-background-color-selected-item, #e9eff7); 
+        /* font-weight: bold; /* Optionally make text bold */
       }
     `;
   }
@@ -511,154 +714,122 @@ class LeagueAdminElement extends HTMLElement {
   // Base HTML template (placeholders will be filled by render logic)
   static get TEMPLATE_CONTENT() {
     return `
-      <div class="dashboard">
-        <div class="left-panel">
           <div class="header">
-            <span id="elementTitle">{{title}}</span>
+      <div id="main-title">League Administration</div>
+      <div class="header-actions">
+        <button id="reset-league-button" class="button-shared" title="Reset to No League Selected" aria-label="Reset to No League Selected" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
+                <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
+            </svg>
+            <span class="sr-only">Reset League Selection</span>
+        </button>
           </div>
-          <div class="content-area">
-            <div id="errorContainer"></div>
-            <div class="action-buttons">
-              <button id="btnNew">New</button>
-              <button id="btnCopy" disabled>Copy</button>
-              <button id="btnUpdate" disabled>Update</button>
-              <button id="btnDelete" disabled>Delete</button>
-            </div>
-            <div class="league-list-container">
-              <ul class="league-list" id="leagueList">
-                <!-- League items will be populated here -->
-              </ul>
             </div>
             
-            <!-- Selected League Panel - Hidden by default -->
-            <div id="selectedLeaguePanel" class="selected-league-panel" style="display: none;">
-              <div class="panel-header">
-                <h3 id="selectedLeagueName">League Name</h3>
-                <div class="dropdown">
-                  <button id="btnActions" class="dropdown-button">Actions</button>
-                  <div id="actionsDropdown" class="dropdown-content">
-                    <a href="#" id="btnResetLeague">Reset</a>
-                    <a href="#" id="btnViewLeagueTable">View League Table</a>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Teams Panel and Matches Panel REMOVED FROM HERE -->
+    <div id="error-message" class="error" style="display: none;"></div>
+
+    <div class="content-area">
+      <div class="columns">
+        <div class="column column-leagues">
+          <div class="panel">
+            <div class="panel-header panel-header-shared"> <!-- MODIFIED: ADDED .panel-header-shared -->
+              <span>Leagues</span>
+              <div class="action-buttons"> 
+                <button id="new-league-button" class="button-shared">New</button> <!-- MODIFIED: ADDED .button-shared -->
+                <button id="copy-league-button" class="button-shared" disabled>Copy</button> <!-- MODIFIED: ADDED .button-shared -->
             </div>
           </div>
-        </div>
-        <div class="resizer"></div>
-        <div class="right-panel">
-          <div class="panel" id="admin-attention-panel" style="display: none;">
-            <league-matches-attention id="admin-attention-matches"></league-matches-attention>
-          </div>
-          <!-- Teams Panel MOVED HERE -->
-          <div class="panel" id="admin-teams-panel" style="display: none;">
-            <div class="teams-panel">
-              <div class="panel-header">
-                <h4>Teams</h4>
-                <button id="btnAddTeam">Add Team</button>
-              </div>
-              <div class="teams-list-container">
-                <ul id="teamsList" class="teams-list">
-                  <!-- Teams will be populated here -->
-                </ul>
-              </div>
+            <div class="league-list-container panel-content panel-content-shared"> <!-- MODIFIED: ADDED .panel-content-shared -->
+              <ul class="league-list" id="league-list-ul"></ul>
             </div>
           </div>
-          <!-- Matches Panel MOVED HERE -->
-          <div class="panel" id="admin-matches-panel" style="display: none;">
-            <div class="matches-panel">
-              <div class="panel-header">
-                <h4>Matches</h4>
-                <button id="btnAddMatch">Add Match</button>
-              </div>
-              <div class="matches-list-container">
-                <ul id="matchesList" class="matches-list">
-                  <!-- Matches will be populated here -->
-                </ul>
-              </div>
+          <div class="action-buttons"> 
+             <!-- REMOVED update-league-button -->
+             <!-- REMOVED delete-league-button -->
+             <!-- REMOVED view-table-button -->
             </div>
+            </div>
+
+        <div class="resizer" id="resizer"></div>
+
+        <div class="column column-details">
+          <div id="teams-panel" class="panel" style="display:none;">
+            <div class="panel-header panel-header-shared"> 
+              <span>Teams</span>
+              <button id="add-team-button" class="button-shared">Add Team</button>
           </div>
+            <div id="teams-list" class="panel-content panel-content-shared"></div> 
+              </div>
+
+          <!-- LeagueMatchesAttention moved here, directly under Teams panel -->
+          <div id="admin-matches-attention-container" class="panel" style="margin-bottom: var(--lae-padding-m);">
+              <div class="panel-header panel-header-shared">
+                <span>Requiring Attention</span>
+              </div>
+              <div class="panel-content panel-content-shared">
+                <league-matches-attention id="admin-attention-matches" data-league-id=""></league-matches-attention>
+              </div>
+          </div>
+
+          <!-- REMOVED The entire matches-panel div -->
+          <!-- 
+          <div id="matches-panel" class="panel" style="display:none;">
+            <div class="panel-header panel-header-shared"> 
+              <span>Matches</span>
+              <button id="add-match-button" class="button-shared">Add Match</button>
+            </div>
+            <div id="matches-list" class="panel-content panel-content-shared"></div> 
+          </div>
+          -->
+
         </div>
       </div>
-      <div id="leagueModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <span id="modalTitle">League Details</span>
-            <button id="btnCloseModal" aria-label="Close modal">&times;</button>
           </div>
-          <div class="modal-body" id="modalBody">
-            <!-- Form fields will be populated here -->
+      
+    <!-- Global League Actions Menu -->
+    <div id="league-actions-global-menu" class="dropdown-content" style="display: none; position: fixed; z-index: 1001;">
+        <!-- Content will be populated by JS -->
+      </div>
+      
+    <!-- Modal for New/Edit League -->
+    <div id="league-modal" class="modal-shared-overlay"> <!-- MODIFIED CLASS -->
+        <div class="modal-shared-content"> <!-- MODIFIED CLASS -->
+        <div class="modal-shared-header"> <!-- MODIFIED CLASS - panel-header-shared might be redundant or combined -->
+          <span id="league-modal-title">New League</span>
+          <span class="close-button close-button-shared" id="close-league-modal">&times;</span> <!-- ADDED close-button-shared -->
           </div>
-          <div class="modal-footer">
-            <button id="btnCancelModal">Cancel</button>
-            <button id="btnSaveModal">Save</button>
+        <div class="modal-shared-body" id="league-modal-body"> <!-- MODIFIED CLASS -->
+          <!-- Form content will be injected here by JS -->
+          </div>
+          <div class="modal-shared-footer"> <!-- MODIFIED CLASS -->
+          <button id="save-league-button" class="button-shared">Save</button>
+          <button id="cancel-league-button" class="button-shared">Cancel</button>
           </div>
         </div>
       </div>
       
-      <!-- Team Modal -->
-      <div id="teamModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <span id="teamModalTitle">Team Details</span>
-            <button id="btnCloseTeamModal" aria-label="Close modal">&times;</button>
+    <!-- Modal for New/Edit Team -->
+    <div id="team-modal" class="modal-shared-overlay"> <!-- MODIFIED CLASS -->
+        <div class="modal-shared-content"> <!-- MODIFIED CLASS -->
+            <div class="modal-shared-header"> <!-- MODIFIED CLASS -->
+                <span id="team-modal-title">Add Team</span>
+                <span class="close-button close-button-shared" id="close-team-modal">&times;</span> <!-- ADDED close-button-shared -->
           </div>
-          <div class="modal-body" id="teamModalBody">
-            <!-- Team form fields will be populated here -->
+            <div class="modal-shared-body" id="team-modal-body"> <!-- MODIFIED CLASS -->
+                <!-- Form content will be injected by JS -->
           </div>
-          <div class="modal-footer">
-            <button id="btnCancelTeamModal">Cancel</button>
-            <button id="btnSaveTeamModal">Save</button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Match Modal -->
-      <div id="matchModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <span id="matchModalTitle">Match Details</span>
-            <button id="btnCloseMatchModal" aria-label="Close modal">&times;</button>
-          </div>
-          <div class="modal-body" id="matchModalBody">
-            <div class="form-group">
-              <label for="matchDate">Date</label>
-              <input type="date" id="matchDate">
-            </div>
-            <div class="match-teams">
-              <div class="match-team home">
-                <div class="form-group">
-                  <label for="matchHomeTeam">Home Team</label>
-                  <select id="matchHomeTeam"></select>
-                </div>
-                <div class="form-group">
-                  <label for="matchShotsHome">Shots</label>
-                  <input type="number" id="matchShotsHome" min="0">
-                </div>
-              </div>
-              <div class="match-team away">
-                <div class="form-group">
-                  <label for="matchAwayTeam">Away Team</label>
-                  <select id="matchAwayTeam"></select>
-                </div>
-                <div class="form-group">
-                  <label for="matchShotsAway">Shots</label>
-                  <input type="number" id="matchShotsAway" min="0">
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button id="btnCancelMatchModal">Cancel</button>
-            <button id="btnSaveMatchModal">Save</button>
+          <div class="modal-shared-footer"> <!-- MODIFIED CLASS -->
+                <button id="save-team-button" class="button-shared">Save</button>
+                <button id="cancel-team-button" class="button-shared">Cancel</button>
           </div>
         </div>
       </div>
+
+    <!-- Modal for Add/Edit Match -->
+    <league-match id="match-modal-instance" is-admin-context="true"></league-match>
     `;
   }
-
 
   constructor() {
     super();
@@ -667,6 +838,7 @@ class LeagueAdminElement extends HTMLElement {
     this._leagues = [];
     this._selectedLeagueId = null; // Store ID of the selected league
     this._currentLeagueId = null; // Store ID of the league to be pre-selected
+    this._selectedTeamName = null; // ADDED: To track selected team
     this._isModalVisible = false;
     this._modalMode = 'new'; // 'new', 'edit', 'copy'
     this._data = null; // To store the raw data from attribute
@@ -683,26 +855,33 @@ class LeagueAdminElement extends HTMLElement {
 
     // Bind the document click handler for the actions dropdown
     this._boundHandleDocumentClickForActionsDropdown = this._handleDocumentClickForActionsDropdown.bind(this);
+    this._boundHandleDocumentClickForGlobalMenu = null; // ADDED: For global menu closing
   }
 
   static get observedAttributes() {
-    return ['elementTitle', 'data', 'isMobile', 'currentLeagueId'];
+    return ['elementTitle', 'data', 'is-mobile', 'current-league-id'];
   }
 
   connectedCallback() {
     this._elementTitle = this.getAttribute('elementTitle') || this._elementTitle;
-    this._currentLeagueId = this.getAttribute('currentLeagueId') || null;
+    this._currentLeagueId = this.getAttribute('current-league-id') || null;
     const rawData = this.getAttribute('data');
+    console.log('[LeagueAdminElement] connectedCallback: is-mobile attribute:', this.getAttribute('is-mobile'));
     if (rawData) {
         this._parseAndLoadData(rawData);
     }
-    document.addEventListener('click', this._boundHandleDocumentClickForActionsDropdown);
+    // document.addEventListener('click', this._boundHandleDocumentClickForActionsDropdown); // REMOVED old handler
     this.render();
   }
 
   disconnectedCallback() {
     // Cleanup event listeners if any were added directly to document or window
-    document.removeEventListener('click', this._boundHandleDocumentClickForActionsDropdown);
+    // document.removeEventListener('click', this._boundHandleDocumentClickForActionsDropdown); // REMOVED old handler
+    // Ensure global menu handler is also cleaned up if active
+    if (this._boundHandleDocumentClickForGlobalMenu) {
+        document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
+        this._boundHandleDocumentClickForGlobalMenu = null;
+    }
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -715,9 +894,9 @@ class LeagueAdminElement extends HTMLElement {
     } else if (name === 'data') {
       this._parseAndLoadData(newValue);
       needsRender = true; // Data change always triggers a full re-render of the list
-    } else if (name === 'isMobile') {
+    } else if (name === 'is-mobile') {
       needsRender = true;
-    } else if (name === 'currentLeagueId') {
+    } else if (name === 'current-league-id') {
       this._currentLeagueId = newValue || null;
       // Apply selection only if we have leagues loaded already
       if (this._leagues && this._leagues.length > 0) {
@@ -817,13 +996,13 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   render() {
+    const isMobile = this.getAttribute('is-mobile') === 'true';
+    console.log('[LeagueAdminElement] render called. is-mobile attribute:', this.getAttribute('is-mobile'), 'computed isMobile:', isMobile);
     console.log('[Admin Render] _selectedLeagueId:', this._selectedLeagueId);
     console.log('[Admin Render] Current _leagues before getSelectedLeague:', JSON.parse(JSON.stringify(this._leagues)));
     const leagueForRender = this._getSelectedLeague(); // It's critical this reflects the update
     console.log('[Admin Render] League object for render:', JSON.parse(JSON.stringify(leagueForRender)));
 
-    const isMobile = this.getAttribute('isMobile') === 'true';
-    
     this.shadow.innerHTML = `
       <style>
         ${isMobile ? LeagueAdminElement.MOBILE_STYLES : LeagueAdminElement.DESKTOP_STYLES}
@@ -843,14 +1022,14 @@ class LeagueAdminElement extends HTMLElement {
         const selectedElement = this.shadow.querySelector(`.league-list-item[data-id="${this._selectedLeagueId}"]`);
         if (selectedElement && leagueForRender) { // check leagueForRender exists
             selectedElement.classList.add('selected');
-            this._showSelectedLeaguePanel(); // Show the selected league panel (uses _getSelectedLeague() internally)
+            this._showLeagueSpecificPanels(); // Show the selected league panel (uses _getSelectedLeague() internally)
         } else {
             this._selectedLeagueId = null; // It no longer exists or leagueForRender is null
-            this._hideSelectedLeaguePanel(); // Hide the panel
+            this._hideLeagueSpecificPanels(); // Hide the panel
             this._updateButtonStates();
         }
     } else {
-        this._hideSelectedLeaguePanel(); // Make sure panel is hidden when no league is selected
+        this._hideLeagueSpecificPanels(); // Make sure panel is hidden when no league is selected
         // Hide attention panel if no league selected
         const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
         if (attentionPanel) attentionPanel.style.display = 'none';
@@ -865,7 +1044,7 @@ class LeagueAdminElement extends HTMLElement {
       modal.match = this.matchModalData;
       modal.teams = this.matchModalTeams;
       modal.open = true;
-      modal.isMobile = this.getAttribute('isMobile') === 'true';
+      modal.isMobile = this.getAttribute('is-mobile') === 'true';
       modal.mode = this.matchModalMode;
       modal.addEventListener('match-save', (e) => {
         // Save match to league
@@ -924,7 +1103,7 @@ class LeagueAdminElement extends HTMLElement {
   }
   
   _renderLeagueList() {
-    const listElement = this.shadow.querySelector('#leagueList');
+    const listElement = this.shadow.querySelector('#league-list-ul');
     if (!listElement) return;
 
     listElement.innerHTML = ''; // Clear existing items
@@ -939,10 +1118,18 @@ class LeagueAdminElement extends HTMLElement {
 
     this._leagues.forEach(league => {
       const li = document.createElement('li');
-      li.classList.add('league-list-item');
-      li.textContent = league.name || 'Unnamed League'; // Display league name
-      // Use league._id or another unique identifier if available
-      // For now, we'll use the name as a temporary ID, but this needs to be robust
+      li.classList.add('league-list-item', 'list-item-shared'); // MODIFIED: ADDED .list-item-shared
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.classList.add('league-name-text', 'list-item-text-primary'); // MODIFIED: ADDED .list-item-text-primary
+      nameSpan.textContent = league.name || 'Unnamed League';
+      li.appendChild(nameSpan);
+
+      const actionsContainer = document.createElement('div');
+      // MODIFIED: ADDED .list-item-actions - specific styling in leagueAdminElement for this container might still be needed if it deviates beyond flex end.
+      actionsContainer.classList.add('league-item-actions-container', 'list-item-actions'); 
+      li.appendChild(actionsContainer);
+      
       const leagueId = league._id || league.name; // Prefer _id
       li.setAttribute('data-id', leagueId); 
       
@@ -953,82 +1140,109 @@ class LeagueAdminElement extends HTMLElement {
 
   _handleLeagueSelect(leagueId) {
     this.clearError();
-    // Deselect previous
-    const currentlySelected = this.shadow.querySelector('.league-list-item.selected');
-    if (currentlySelected) {
-      currentlySelected.classList.remove('selected');
+
+    const previouslySelectedId = this._selectedLeagueId;
+    const previouslySelectedElement = this.shadow.querySelector('.league-list-item.selected');
+
+    // If the clicked league is the same as the currently selected one, do nothing (or handle as a toggle if desired later)
+    // For global menu, we might want to show it even if league is already selected, if menu button is clicked.
+    // The actual menu opening is now separate from league selection itself.
+    if (previouslySelectedId === leagueId && previouslySelectedElement && previouslySelectedElement.getAttribute('data-id') === leagueId) {
+        if (this._selectedLeagueId) {
+            this._showLeagueSpecificPanels();
+        }
+        // return; // Do not return, allow actions button to still work.
     }
 
-    if (this._selectedLeagueId === leagueId) { // Clicked already selected item
-        this._selectedLeagueId = null; // Deselect
-        this._hideSelectedLeaguePanel(); // Hide the panel when deselected
-    } else {
-        this._selectedLeagueId = leagueId;
-        const newSelectedItem = this.shadow.querySelector(`.league-list-item[data-id="${leagueId}"]`);
-        if (newSelectedItem) {
-          newSelectedItem.classList.add('selected');
-        }
-        this._showSelectedLeaguePanel(); // Show and populate the panel
+    // Deselect previous item
+    if (previouslySelectedElement && previouslySelectedId !== leagueId) {
+      previouslySelectedElement.classList.remove('selected');
+      const oldActionsContainer = previouslySelectedElement.querySelector('.league-item-actions-container');
+      if (oldActionsContainer) {
+        oldActionsContainer.innerHTML = ''; // Clear its dynamic content
+      }
     }
+
+    // Select the new league
+    this._selectedLeagueId = leagueId;
+    const newSelectedItem = this.shadow.querySelector(`.league-list-item[data-id="${leagueId}"]`);
+
+    if (newSelectedItem) {
+      newSelectedItem.classList.add('selected');
+      const actionsContainer = newSelectedItem.querySelector('.league-item-actions-container');
+      if (actionsContainer) {
+        this._createAndAppendLeagueActions(actionsContainer, leagueId);
+      }
+      this._showLeagueSpecificPanels(); 
+      this._selectedTeamName = null; // ADDED: Reset selected team when league changes
+    } else {
+      // League not found in list, effectively deselecting
+      this._selectedLeagueId = null;
+      this._selectedTeamName = null; // ADDED: Reset selected team
+      this._hideLeagueSpecificPanels();
+    }
+    
     this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId: this._selectedLeagueId }));
-    this._updateButtonStates();
+    this._updateButtonStates(); // Main action buttons like New, Copy, Delete
   }
 
-  _showSelectedLeaguePanel() {
-    const selectedLeague = this._getSelectedLeague();
-    if (!selectedLeague) return;
-    
-    const panel = this.shadow.querySelector('#selectedLeaguePanel');
-    const leagueName = this.shadow.querySelector('#selectedLeagueName');
-    
-    if (panel && leagueName) {
-      leagueName.textContent = selectedLeague.name || 'Unnamed League';
-      panel.style.display = 'block';
-      
-      // Populate teams list
-      this._renderTeamsList();
-      
-      // Populate matches list
-      this._renderMatchesList();
-    }
-    // Show and update attention panel
-    const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
-    if (attentionPanel) attentionPanel.style.display = '';
-    this._updateAttentionPanel(this.getAttribute('isMobile') === 'true', selectedLeague);
+  _createAndAppendLeagueActions(container, leagueId) {
+    container.innerHTML = ''; // Clear any previous content
 
-    // Show the new panels in the right column
-    const teamsPanelRight = this.shadow.querySelector('#admin-teams-panel');
-    const matchesPanelRight = this.shadow.querySelector('#admin-matches-panel');
-    if (teamsPanelRight) teamsPanelRight.style.display = 'block';
-    if (matchesPanelRight) matchesPanelRight.style.display = 'block';
+    // Only the "..." trigger button remains here
+    const btnActions = document.createElement('button');
+    btnActions.classList.add('league-action-button', 'actions-dropdown-button'); // Keep styling classes
+    btnActions.textContent = '…'; 
+    btnActions.title = 'More actions';
+    btnActions.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._handleOpenGlobalLeagueMenu(leagueId, e.currentTarget); // Call new handler
+    });
+    container.appendChild(btnActions);
+  }
+
+  _showLeagueSpecificPanels() { // Renamed from _showSelectedLeaguePanel
+    const selectedLeague = this._getSelectedLeague();
+    if (!selectedLeague) {
+        this._hideLeagueSpecificPanels();
+        return;
+    }
+    
+    this._renderTeamsList();
+    
+    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Changed selector
+    if (attentionContainer) attentionContainer.style.display = ''; 
+    this._updateAttentionPanel(this.getAttribute('is-mobile') === 'true', selectedLeague);
+
+    const teamsPanelRight = this.shadow.querySelector('#teams-panel');
+    
+    if (teamsPanelRight) teamsPanelRight.style.display = '';
+    
   }
   
-  _hideSelectedLeaguePanel() {
-    const panel = this.shadow.querySelector('#selectedLeaguePanel');
-    if (panel) {
-      panel.style.display = 'none';
-    }
-    // Hide attention panel
-    const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
-    if (attentionPanel) attentionPanel.style.display = 'none';
+  _hideLeagueSpecificPanels() { // Renamed from _hideSelectedLeaguePanel
+    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Changed selector
+    if (attentionContainer) attentionContainer.style.display = 'none';
+    this._selectedTeamName = null; // ADDED: Reset selected team
 
-    // Hide the new panels in the right column
-    const teamsPanelRight = this.shadow.querySelector('#admin-teams-panel');
-    const matchesPanelRight = this.shadow.querySelector('#admin-matches-panel');
+    const teamsPanelRight = this.shadow.querySelector('#teams-panel');
+    
     if (teamsPanelRight) teamsPanelRight.style.display = 'none';
-    if (matchesPanelRight) matchesPanelRight.style.display = 'none';
+    
+    const teamsList = this.shadow.querySelector('#teams-list');
+    if (teamsList) teamsList.innerHTML = '<li style="padding: 0.5rem;">No league selected.</li>';
+    
   }
   
   _renderTeamsList() {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
     
-    const teamsList = this.shadow.querySelector('#teamsList');
+    const teamsList = this.shadow.querySelector('#teams-list');
     if (!teamsList) return;
     
     teamsList.innerHTML = ''; // Clear existing items
     
-    // Get teams from the selected league
     const teams = selectedLeague.teams || [];
     
     if (teams.length === 0) {
@@ -1041,89 +1255,26 @@ class LeagueAdminElement extends HTMLElement {
     
     teams.forEach(team => {
       const li = document.createElement('li');
-      li.classList.add('team-item');
+      li.classList.add('team-item', 'list-item-shared'); // MODIFIED: ADDED .list-item-shared
+      li.dataset.teamName = team.name; 
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('team-name');
+      nameSpan.classList.add('team-name', 'list-item-text-primary'); // MODIFIED: ADDED .list-item-text-primary
       nameSpan.textContent = team.name || 'Unnamed Team';
       li.appendChild(nameSpan);
       
       const actionsDiv = document.createElement('div');
-      actionsDiv.classList.add('team-actions');
-      
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
-      editBtn.addEventListener('click', () => this._handleEditTeam(team));
-      actionsDiv.appendChild(editBtn);
-      
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = 'Remove';
-      removeBtn.addEventListener('click', () => this._handleRemoveTeam(team));
-      actionsDiv.appendChild(removeBtn);
-      
+      actionsDiv.classList.add('team-actions', 'list-item-actions'); // MODIFIED: ADDED .list-item-actions
       li.appendChild(actionsDiv);
-      teamsList.appendChild(li);
-    });
-  }
 
-  _renderMatchesList() {
-    const selectedLeague = this._getSelectedLeague();
-    if (!selectedLeague) return;
-    
-    const matchesList = this.shadow.querySelector('#matchesList');
-    if (!matchesList) return;
-    
-    matchesList.innerHTML = ''; // Clear existing items
-    
-    // Get matches from the selected league
-    const matches = selectedLeague.matches || [];
-    
-    if (matches.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'No matches available.';
-      li.style.padding = '0.5rem';
-      matchesList.appendChild(li);
-      return;
-    }
-    
-    // Sort matches by date (most recent first)
-    const sortedMatches = [...matches].sort((a, b) => {
-      if (!a.date && !b.date) return 0;
-      if (!a.date) return 1;
-      if (!b.date) return -1;
-      return new Date(b.date) - new Date(a.date);
-    });
-    
-    sortedMatches.forEach(match => {
-      const li = document.createElement('li');
-      li.classList.add('match-item');
-      if (match.result) li.classList.add('match-completed');
+      // Add click listener to the list item itself
+      li.addEventListener('click', (e) => {
+        // Prevent click from propagating to league selection if teams list is inside league item (not the case here, but good practice)
+        e.stopPropagation(); 
+        this._handleTeamSelect(team); // Pass the whole team object
+      });
       
-      const matchDate = match.date ? new Date(match.date) : null;
-      const formattedDate = matchDate ? matchDate.toLocaleDateString() : 'Date not set';
-      
-      li.innerHTML = `
-        <div class="match-header">
-          <span class="match-date">${formattedDate}</span>
-          <span class="match-status">${match.result ? 'Completed' : 'Scheduled'}</span>
-        </div>
-        <div class="match-content">
-          <div class="match-result">
-            <span class="match-team home">${match.homeTeamName}</span>
-            ${match.result ? `
-              <span class="match-score">${match.result.homeScore} - ${match.result.awayScore}</span>
-            ` : `
-              <span class="match-score">vs</span>
-            `}
-            <span class="match-team away">${match.awayTeamName}</span>
-          </div>
-        </div>
-      `;
-      
-      // Add click handler to edit match
-      li.addEventListener('click', () => this._handleEditMatch({ key: match.key }));
-      
-      matchesList.appendChild(li);
+      teamsList.appendChild(li);
     });
   }
 
@@ -1140,94 +1291,80 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _attachBaseEventListeners() {
-    const btnNew = this.shadow.querySelector('#btnNew');
-    const btnCopy = this.shadow.querySelector('#btnCopy');
-    const btnUpdate = this.shadow.querySelector('#btnUpdate');
-    const btnDelete = this.shadow.querySelector('#btnDelete');
-    const btnCloseModal = this.shadow.querySelector('#btnCloseModal');
-    const btnCancelModal = this.shadow.querySelector('#btnCancelModal');
-    const btnSaveModal = this.shadow.querySelector('#btnSaveModal');
+    const btnNew = this.shadow.querySelector('#new-league-button');
+    const btnCopy = this.shadow.querySelector('#copy-league-button');
+    const btnUpdate = this.shadow.querySelector('#update-league-button');
+    const btnDelete = this.shadow.querySelector('#delete-league-button');
+    const btnCloseModal = this.shadow.querySelector('#close-league-modal');
+    const btnCancelModal = this.shadow.querySelector('#cancel-league-button');
+    const btnSaveModal = this.shadow.querySelector('#save-league-button');
 
-    if (btnNew) btnNew.addEventListener('click', () => this._handleNew());
-    if (btnCopy) btnCopy.addEventListener('click', () => this._handleCopy());
-    if (btnUpdate) btnUpdate.addEventListener('click', () => this._handleUpdate());
-    if (btnDelete) btnDelete.addEventListener('click', () => this._handleDelete());
+    if (btnNew) btnNew.addEventListener('click', () => this._handleNewLeague());
+    if (btnCopy) btnCopy.addEventListener('click', () => this._handleCopyLeague());
+    if (btnUpdate) btnUpdate.addEventListener('click', () => this._handleEditLeagueRules());
+    if (btnDelete) btnDelete.addEventListener('click', () => this._handleDeleteLeague());
     
     if (btnCloseModal) btnCloseModal.addEventListener('click', () => this._hideModal());
     if (btnCancelModal) btnCancelModal.addEventListener('click', () => this._hideModal());
-    if (btnSaveModal) btnSaveModal.addEventListener('click', () => this._handleSaveModal());
+    if (btnSaveModal) btnSaveModal.addEventListener('click', () => this._handleSaveLeagueModal());
     
-    // Actions dropdown event listeners
-    const btnActions = this.shadow.querySelector('#btnActions');
-    if (btnActions) {
-      console.log('[LeagueAdmin] Attaching click listener to #btnActions:', btnActions); // DEBUG
-      btnActions.addEventListener('click', (event) => {
-        console.log('[LeagueAdmin] #btnActions clicked!', event); // DEBUG
-        this._toggleActionsDropdown();
-      });
-    } else {
-      console.error('[LeagueAdmin] #btnActions button not found during listener attachment.'); // DEBUG
-    }
-    
-    // Reset league action
-    const btnResetLeague = this.shadow.querySelector('#btnResetLeague');
-    if (btnResetLeague) {
-      btnResetLeague.addEventListener('click', (e) => {
-        e.preventDefault();
-        this._handleResetLeague();
-        this._toggleActionsDropdown(false); // Close dropdown after action
-      });
-    }
-    
-    // View League Table action
-    const btnViewLeagueTable = this.shadow.querySelector('#btnViewLeagueTable');
-    if (btnViewLeagueTable) {
-      btnViewLeagueTable.addEventListener('click', (e) => {
-        e.preventDefault();
-        this._handleViewLeagueTable();
-        this._toggleActionsDropdown(false); // Close dropdown after action
-      });
-    }
-    
+    // Event listeners for View Table, Actions dropdown, and Reset League are now attached dynamically 
+    // in _createAndAppendLeagueActions when a league item is selected, because these elements
+    // are no longer static in the template.
+    // The global document click listener for closing any open dropdowns is handled by _handleDocumentClickForActionsDropdown.
+
     // Team management event listeners
-    const btnAddTeam = this.shadow.querySelector('#btnAddTeam');
+    const btnAddTeam = this.shadow.querySelector('#add-team-button');
     if (btnAddTeam) {
       btnAddTeam.addEventListener('click', () => this._handleAddTeam());
     }
     
     // Team modal event listeners
-    const btnCloseTeamModal = this.shadow.querySelector('#btnCloseTeamModal');
-    const btnCancelTeamModal = this.shadow.querySelector('#btnCancelTeamModal');
-    const btnSaveTeamModal = this.shadow.querySelector('#btnSaveTeamModal');
+    const btnCloseTeamModal = this.shadow.querySelector('#close-team-modal');
+    const btnCancelTeamModal = this.shadow.querySelector('#cancel-team-button');
+    const btnSaveTeamModal = this.shadow.querySelector('#save-team-button');
     
     if (btnCloseTeamModal) btnCloseTeamModal.addEventListener('click', () => this._hideTeamModal());
     if (btnCancelTeamModal) btnCancelTeamModal.addEventListener('click', () => this._hideTeamModal());
     if (btnSaveTeamModal) btnSaveTeamModal.addEventListener('click', () => this._handleSaveTeamModal());
     
     // Match management event listeners
-    const btnAddMatch = this.shadow.querySelector('#btnAddMatch');
-    if (btnAddMatch) {
-      btnAddMatch.addEventListener('click', () => this._handleAddMatch());
-    }
+    // const btnAddMatch = this.shadow.querySelector('#add-match-button'); // REMOVED
+    // if (btnAddMatch) { // REMOVED
+    //   btnAddMatch.addEventListener('click', () => this._handleAddMatch()); // REMOVED
+    // } // REMOVED
   }
   
-  _toggleActionsDropdown(force = null) {
-    console.log('[LeagueAdmin] _toggleActionsDropdown called with force:', force); // DEBUG
-    const dropdown = this.shadow.querySelector('.dropdown');
-    if (dropdown) {
-      console.log('[LeagueAdmin] Found .dropdown element:', dropdown); // DEBUG
-      let shouldShow;
-      if (force !== null) {
-        shouldShow = force;
-      } else {
-        shouldShow = !dropdown.classList.contains('show');
-      }
-      console.log('[LeagueAdmin] Toggling "show" class on .dropdown to:', shouldShow); // DEBUG
-      dropdown.classList.toggle('show', shouldShow);
-      console.log('[LeagueAdmin] .dropdown classList after toggle:', dropdown.classList); // DEBUG
-    } else {
-      console.error("[LeagueAdmin] Actions dropdown container (.dropdown) not found in _toggleActionsDropdown"); // DEBUG
+  _toggleActionsDropdown(force = null, specificDropdownButton = null) {
+    // This method's original purpose was to toggle a single, static dropdown.
+    // With dynamically created dropdowns per league item, the primary toggle logic 
+    // is now within the click event listener of the 'Actions' button in `_createAndAppendLeagueActions`.
+    // This function is now less critical for direct user interaction toggling.
+    // It might still be called by `_handleDocumentClickForActionsDropdown` to *close* dropdowns, or if programmatic control is needed.
+
+    console.log('[LeagueAdmin] _toggleActionsDropdown (context: document click or programmatic) called with force:', force, 'button:', specificDropdownButton);
+    
+    let dropdownToToggle;
+    if (specificDropdownButton) {
+        // If a specific button initiated this, find its associated dropdown.
+        const parentItem = specificDropdownButton.closest('.league-list-item');
+        if (parentItem) {
+            dropdownToToggle = parentItem.querySelector('.league-action-dropdown');
+        }
+    } else if (force === false) {
+        // If explicitly forcing close without a specific button, find any open dropdowns to close them.
+        // This is primarily for the _handleDocumentClickForActionsDropdown scenario.
+        // We iterate and close in _handleDocumentClickForActionsDropdown itself, so direct call here might be redundant for that case.
+        const openDropdowns = this.shadow.querySelectorAll('.league-list-item .league-action-dropdown.show');
+        openDropdowns.forEach(dd => dd.classList.remove('show'));
+        return; // Handled all open dropdowns
     }
+
+    if (dropdownToToggle) {
+      // If force is null, it's a toggle; otherwise, set state based on force.
+      const shouldShow = (force === null) ? !dropdownToToggle.classList.contains('show') : force;
+      dropdownToToggle.classList.toggle('show', shouldShow);
+    } 
   }
   
   _getSelectedLeague() {
@@ -1241,15 +1378,14 @@ class LeagueAdminElement extends HTMLElement {
     if (!selectedLeague) return;
     
     // Confirm before resetting
-    if (confirm(`Are you sure you want to reset league "${selectedLeague.name}"? This will remove all matches and statistics but keep teams.`)) {
-      this.dispatchEvent(new LeagueAdminElementEvent('requestResetLeague', { 
-        leagueId: this._selectedLeagueId,
-        leagueName: selectedLeague.name
-      }));
-    }
+    this.dispatchEvent(new LeagueAdminElementEvent('requestResetLeague', { 
+      leagueId: this._selectedLeagueId,
+      leagueName: selectedLeague.name
+    }));
+    this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action
   }
   
-  // New handler for View League Table
+  // New handler for View League Table (should be kept or reinstated)
   _handleViewLeagueTable() {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
@@ -1258,6 +1394,7 @@ class LeagueAdminElement extends HTMLElement {
       leagueId: this._selectedLeagueId,
       leagueName: selectedLeague.name
     }));
+    this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action
   }
   
   // Team Management Methods
@@ -1277,13 +1414,11 @@ class LeagueAdminElement extends HTMLElement {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
     
-    if (confirm(`Are you sure you want to remove team "${team.name}" from league "${selectedLeague.name}"?`)) {
-      this.dispatchEvent(new LeagueAdminElementEvent('requestRemoveTeam', { 
-        leagueId: this._selectedLeagueId,
-        teamId: team._id || team.name, // Use ID if available, otherwise name
-        teamName: team.name
-      }));
-    }
+    this.dispatchEvent(new LeagueAdminElementEvent('requestRemoveTeam', { 
+      leagueId: this._selectedLeagueId,
+      teamId: team._id || team.name, // Use ID if available, otherwise name
+      teamName: team.name
+    }));
   }
   
   _showTeamModal(mode, teamData = null) {
@@ -1333,17 +1468,17 @@ class LeagueAdminElement extends HTMLElement {
   
   _populateTeamModalForm(modalBody, teamData) {
     modalBody.innerHTML = `
-      <div class="form-group">
-        <label for="teamName">Team Name</label>
-        <input type="text" id="teamName" value="${teamData.name || ''}" required>
+      <div class="form-group-shared"> <!-- MODIFIED CLASS -->
+        <label for="teamName" class="form-label-shared">Team Name</label> <!-- MODIFIED CLASS -->
+        <input type="text" id="teamName" class="form-input-shared" value="${teamData.name || ''}" required> <!-- MODIFIED CLASS -->
       </div>
-      <div class="form-group">
-        <label for="teamContactName">Contact Name (optional)</label>
-        <input type="text" id="teamContactName" value="${teamData.contactName || ''}">
+      <div class="form-group-shared"> <!-- MODIFIED CLASS -->
+        <label for="teamContactName" class="form-label-shared">Contact Name (optional)</label> <!-- MODIFIED CLASS -->
+        <input type="text" id="teamContactName" class="form-input-shared" value="${teamData.contactName || ''}"> <!-- MODIFIED CLASS -->
       </div>
-      <div class="form-group">
-        <label for="teamContactEmail">Contact Email (optional)</label>
-        <input type="text" id="teamContactEmail" value="${teamData.contactEmail || ''}">
+      <div class="form-group-shared"> <!-- MODIFIED CLASS -->
+        <label for="teamContactEmail" class="form-label-shared">Contact Email (optional)</label> <!-- MODIFIED CLASS -->
+        <input type="text" id="teamContactEmail" class="form-input-shared" value="${teamData.contactEmail || ''}"> <!-- MODIFIED CLASS -->
       </div>
     `;
   }
@@ -1382,9 +1517,9 @@ class LeagueAdminElement extends HTMLElement {
   _showModal(mode, leagueData = null) {
     this.clearError(); // Clear errors when opening modal
     this._modalMode = mode;
-    const modal = this.shadow.querySelector('#leagueModal');
-    const modalTitle = this.shadow.querySelector('#modalTitle');
-    const modalBody = this.shadow.querySelector('#modalBody');
+    const modal = this.shadow.querySelector('#league-modal');
+    const modalTitle = this.shadow.querySelector('#league-modal-title');
+    const modalBody = this.shadow.querySelector('#league-modal-body');
 
     if (!modal || !modalTitle || !modalBody) {
         console.error("Modal elements not found!");
@@ -1446,12 +1581,12 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _hideModal() {
-    const modal = this.shadow.querySelector('#leagueModal');
+    const modal = this.shadow.querySelector('#league-modal');
     if (modal) {
       modal.style.display = 'none';
     }
     this._isModalVisible = false;
-    const modalBody = this.shadow.querySelector('#modalBody');
+    const modalBody = this.shadow.querySelector('#league-modal-body');
     if (modalBody) modalBody.innerHTML = ''; // Clear form
     this.clearError(); // Clear any errors shown in the main component area
   }
@@ -1532,7 +1667,7 @@ class LeagueAdminElement extends HTMLElement {
 
   _handleSaveModal() {
     this.clearError(); // Clear global errors
-    const modalBody = this.shadow.querySelector('#modalBody');
+    const modalBody = this.shadow.querySelector('#league-modal-body');
     const leagueNameInput = modalBody.querySelector('#leagueName');
 
     if (!leagueNameInput || !leagueNameInput.value.trim()) {
@@ -1586,18 +1721,19 @@ class LeagueAdminElement extends HTMLElement {
       this.dispatchEvent(new LeagueAdminElementEvent(eventType, { leagueData }));
     }
     this._hideModal();
+    this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action (if it was open due to edit)
   }
 
 
   // --- Action Button Handlers ---
-  _handleNew() {
+  _handleNewLeague() {
     this.clearError();
     this._selectedLeagueId = null; // Deselect any currently selected league
     this._updateButtonStates(); // Reflect deselection in button states
     this._showModal('new');
   }
 
-  _handleCopy() {
+  _handleCopyLeague() {
     this.clearError();
     const selectedLeague = this._getSelectedLeague();
     if (selectedLeague) {
@@ -1605,9 +1741,10 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       this.showError("No league selected to copy.");
     }
+    // No direct menu interaction here, modal handles itself
   }
 
-  _handleUpdate() {
+  _handleEditLeagueRules() {
     this.clearError();
     const selectedLeague = this._getSelectedLeague();
     if (selectedLeague) {
@@ -1615,21 +1752,21 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       this.showError("No league selected to update.");
     }
+    // Modal handles itself, but ensure menu is hidden if this was called from it
+    this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action
   }
 
-  _handleDelete() {
+  _handleDeleteLeague() {
     this.clearError();
     const selectedLeague = this._getSelectedLeague();
     if (selectedLeague) {
-      // Simple confirmation, consider a more robust modal confirmation for production
-      if (confirm(`Are you sure you want to delete league: "${selectedLeague.name}"?`)) {
-        this.dispatchEvent(new LeagueAdminElementEvent('requestDeleteLeague', { leagueId: this._selectedLeagueId }));
-        this._selectedLeagueId = null; // Deselect after requesting deletion
-        // The list will refresh when data attribute is updated by parent
-      }
+      this.dispatchEvent(new LeagueAdminElementEvent('requestDeleteLeague', { leagueId: this._selectedLeagueId }));
+      this._selectedLeagueId = null; // Deselect after requesting deletion
+      // The list will refresh when data attribute is updated by parent
     } else {
       this.showError("No league selected to delete.");
     }
+    this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action
   }
 
   // Match Management Methods
@@ -1680,9 +1817,9 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _setupResizer() {
-    const resizer = this.shadow.querySelector('.resizer');
-    const leftPanel = this.shadow.querySelector('.left-panel');
-    const rightPanel = this.shadow.querySelector('.right-panel');
+    const resizer = this.shadow.querySelector('#resizer');
+    const leftPanel = this.shadow.querySelector('.column-leagues');
+    const rightPanel = this.shadow.querySelector('.column-details');
     if (!resizer || !leftPanel || !rightPanel) return;
     let x = 0;
     let leftWidthAtMouseDown = 0;
@@ -1713,14 +1850,14 @@ class LeagueAdminElement extends HTMLElement {
   _updateAttentionPanel(isMobile, leagueToUse) {
     const selectedLeague = leagueToUse || this._getSelectedLeague();
     const attentionMatchesElement = this.shadow.querySelector('#admin-attention-matches');
-    const attentionPanel = this.shadow.querySelector('#admin-attention-panel');
-    if (!selectedLeague || !attentionMatchesElement || !attentionPanel) {
-      if (attentionPanel) attentionPanel.style.display = 'none';
+    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Now points to the panel wrapper
+    if (!selectedLeague || !attentionMatchesElement || !attentionContainer) {
+      if (attentionContainer) attentionContainer.style.display = 'none';
       return;
     }
     attentionMatchesElement.setAttribute('is-mobile', String(isMobile)); // Ensure boolean is stringified
     attentionMatchesElement.setAttribute('data', JSON.stringify(selectedLeague.matches || []));
-    attentionPanel.style.display = '';
+    attentionContainer.style.display = ''; // Show the panel
 
     // Ensure event listener is attached (and only once)
     if (!this._handleAdminAttentionMatchClickBound) {
@@ -1741,32 +1878,180 @@ class LeagueAdminElement extends HTMLElement {
 
   // New method to handle document clicks for closing the actions dropdown
   _handleDocumentClickForActionsDropdown(event) {
-    const actionsButton = this.shadow.querySelector('#btnActions');
-    // If the button itself doesn't exist (e.g., panel is hidden), or its parent .dropdown isn't there, bail.
-    if (!actionsButton) return;
-
-    const dropdownContainer = actionsButton.closest('.dropdown');
-    if (!dropdownContainer) return;
-
-    // If the dropdown is not currently shown, there's nothing to do for an outside click.
-    if (!dropdownContainer.classList.contains('show')) {
-      return;
-    }
-
-    // Use event.composedPath()[0] to get the actual target of the click,
-    // even if it crossed a Shadow DOM boundary.
     const clickedElement = event.composedPath && event.composedPath()[0];
+    if (!clickedElement) return;
 
-    // Check if the click originated inside the dropdown container (button or content).
-    // If so, let other event handlers (button toggle, link click) manage it.
-    if (clickedElement && dropdownContainer.contains(clickedElement)) {
-      return;
+    // Find all open dropdowns (those with class 'show') within league list items.
+    const openDropdowns = this.shadow.querySelectorAll('.league-list-item .league-action-dropdown.show');
+
+    openDropdowns.forEach(dropdownContainer => {
+        // dropdownContainer is the div with class 'league-action-dropdown'.
+        // We need to check if the click was inside *this specific instance* of an open dropdown.
+        if (!dropdownContainer.contains(clickedElement)) {
+            // If the click was outside this open dropdown, close it.
+            dropdownContainer.classList.remove('show');
+        }
+    });
+  }
+
+  _handleTeamSelect(teamObject) {
+    const teamName = teamObject.name; // Assuming team name is unique identifier for now
+
+    // Deselect previously selected team item
+    if (this._selectedTeamName && this._selectedTeamName !== teamName) {
+      const prevSelectedLi = this.shadow.querySelector(`.team-item[data-team-name="${this._selectedTeamName}"]`);
+      if (prevSelectedLi) {
+        prevSelectedLi.classList.remove('selected-team');
+        const prevActionsDiv = prevSelectedLi.querySelector('.team-actions');
+        if (prevActionsDiv) {
+          prevActionsDiv.innerHTML = ''; // Clear its buttons
+        }
+      }
     }
 
-    // If the click was outside the open dropdown, close it.
-    console.log('[LeagueAdmin] Click detected outside dropdown. Closing dropdown.', event); // DEBUG
-    this._toggleActionsDropdown(false);
+    // Handle new selection
+    const currentSelectedLi = this.shadow.querySelector(`.team-item[data-team-name="${teamName}"]`);
+    if (!currentSelectedLi) return; // Should not happen if click is on an item
+
+    if (this._selectedTeamName === teamName) {
+      // Clicked on already selected team: toggle visibility (hide actions)
+      currentSelectedLi.classList.remove('selected-team');
+      const actionsDiv = currentSelectedLi.querySelector('.team-actions');
+      if (actionsDiv) {
+        actionsDiv.innerHTML = '';
+      }
+      this._selectedTeamName = null;
+    } else {
+      // Clicked on a new team: show actions
+      currentSelectedLi.classList.add('selected-team');
+      this._selectedTeamName = teamName;
+      const actionsDiv = currentSelectedLi.querySelector('.team-actions');
+      if (actionsDiv) {
+        this._createAndAppendTeamActions(actionsDiv, teamObject);
+      }
+    }
   }
+
+  _createAndAppendTeamActions(actionsContainer, teamObject) {
+    actionsContainer.innerHTML = ''; // Clear previous buttons
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.classList.add('button-shared', 'button-sm');
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent li click handler
+      this._handleEditTeam(teamObject);
+    });
+    actionsContainer.appendChild(editBtn);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.classList.add('button-shared', 'button-sm');
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent li click handler
+      this._handleRemoveTeam(teamObject);
+    });
+    actionsContainer.appendChild(removeBtn);
+  }
+
+  // --- Global League Actions Menu Logic ---
+  _handleOpenGlobalLeagueMenu(leagueId, triggerButton) {
+    const globalMenu = this.shadow.querySelector('#league-actions-global-menu');
+    if (!globalMenu) return;
+
+    this._currentLeagueIdForMenu = leagueId; // Store for action handlers
+
+    // Populate menu
+    globalMenu.innerHTML = ''; // Clear previous items
+
+    const actions = [
+      { label: 'View Table', handler: () => this._handleViewLeagueTable() },
+      { label: 'Edit Rules', handler: () => this._handleEditLeagueRules() },
+      { label: 'Delete League', handler: () => this._handleDeleteLeague() },
+      { label: 'Reset League', handler: () => this._handleResetLeague() },
+    ];
+
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.label;
+      button.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        action.handler(); 
+      });
+      globalMenu.appendChild(button);
+    });
+
+    // Position menu
+    const rect = triggerButton.getBoundingClientRect();
+
+    // Temporarily display menu to get its dimensions, then hide before final positioning
+    globalMenu.style.visibility = 'hidden';
+    globalMenu.style.display = 'block';
+    const menuWidth = globalMenu.offsetWidth;
+    const menuHeight = globalMenu.offsetHeight; // Get height for potential vertical adjustment
+    globalMenu.style.display = 'none'; // Hide again before final placement
+    globalMenu.style.visibility = 'visible';
+
+    let top = rect.bottom;
+    let left = rect.left; // Default for desktop LTR alignment
+
+    const isMobile = this.getAttribute('is-mobile') === 'true';
+    if (isMobile) {
+      left = rect.right - menuWidth; // Align right edges on mobile
+    }
+    
+    // Basic boundary detection (ensure it doesn't go off viewport edges)
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    if (left < 0) {
+        left = 0; // Prevent moving too far left
+    }
+    if (left + menuWidth > viewportWidth) {
+        left = viewportWidth - menuWidth; // Prevent moving too far right
+    }
+    if (top + menuHeight > viewportHeight) {
+        top = rect.top - menuHeight; // Try to open upwards if it overflows bottom
+        if (top < 0) { // If opening upwards also overflows top, reset to bottom (or center)
+            top = rect.bottom; // Or a more sophisticated centering logic
+        }
+    }
+    if (top < 0) {
+        top = 0; // Prevent moving too far up
+    }
+
+    globalMenu.style.top = `${top}px`;
+    globalMenu.style.left = `${left}px`;
+    globalMenu.style.display = 'block';
+
+    // Add document click listener to close menu
+    // Remove any existing listener first
+    if (this._boundHandleDocumentClickForGlobalMenu) {
+        document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
+    }
+    this._boundHandleDocumentClickForGlobalMenu = (event) => {
+      if (!globalMenu.contains(event.target) && event.target !== triggerButton) {
+        this._hideGlobalLeagueMenu();
+      }
+    };
+    // Use setTimeout to allow the current click event to propagate before attaching the listener
+    setTimeout(() => {
+        document.addEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
+    }, 0);
+  }
+
+  _hideGlobalLeagueMenu() {
+    const globalMenu = this.shadow.querySelector('#league-actions-global-menu');
+    if (globalMenu) {
+      globalMenu.style.display = 'none';
+    }
+    if (this._boundHandleDocumentClickForGlobalMenu) {
+      document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
+      this._boundHandleDocumentClickForGlobalMenu = null;
+    }
+    this._currentLeagueIdForMenu = null;
+  }
+  // --- End Global League Actions Menu Logic ---
 }
 
 // Register the custom element

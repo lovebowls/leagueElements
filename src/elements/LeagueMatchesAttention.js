@@ -9,6 +9,8 @@ class LeagueMatchesAttentionEvent extends CustomEvent {
   }
 }
 
+import { panelStyles, buttonStyles, listItemStyles } from './shared-styles.js';
+
 /**
  * Custom element to display matches requiring attention with paging.
  *
@@ -21,59 +23,65 @@ class LeagueMatchesAttentionEvent extends CustomEvent {
 class LeagueMatchesAttention extends HTMLElement {
   static get BASE_STYLES() {
     return `
+      ${panelStyles}
+      ${buttonStyles}
+      ${listItemStyles}
       :host {
         display: block;
-        font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
         box-sizing: border-box;
-        color: #333;
-      }
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
+        color: var(--le-text-color-primary, #333);
+        font-size: var(--le-font-size-base, 1em);
       }
       .match-item {
-        /* padding, border-bottom, font-size inherited */
+        padding: var(--lae-padding-xs, 0.2rem) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--le-padding-xs, 0.25em);
       }
       .match-date {
-        color: #666;
-        font-size: 0.7em;
-        margin-bottom: 0.2em;
+        color: var(--le-text-color-secondary, #666);
+        font-size: 0.85em;
+        margin-bottom: var(--le-padding-xs, 0.2em);
       }
       .match-link {
-        color: #2196f3;
+        color: var(--le-text-color-accent, #2196f3);
         text-decoration: none;
         transition: color 0.2s;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
       }
       .match-link:hover {
-        color: #1976d2;
+        color: var(--le-text-color-accent-hover, #1976d2);
         text-decoration: underline;
       }
       .paging-controls {
         display: flex;
         justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-      }
-      .paging-btn {
-        background: #f5f5f5;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 0.2rem 0.7rem;
-        font-size: 1em;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .paging-btn:disabled {
-        background: #eee;
-        color: #aaa;
-        cursor: not-allowed;
+        gap: var(--le-padding-s, 0.5rem);
+        margin-top: var(--le-padding-s, 0.5rem);
       }
       .error {
-        color: #ff0000;
-        padding: 0.5rem;
-        background-color: #fff0f0;
-        border-radius: 4px;
+        color: var(--le-text-color-error, #ff0000);
+        padding: var(--le-padding-s, 0.5rem);
+        background-color: var(--le-background-color-error, #fff0f0);
+        border-radius: var(--lae-border-radius-standard, 4px);
+      }
+      .warning-icon-future-result { color: var(--le-color-status-warning, #f39c12); }
+      .warning-icon-conflict { color: var(--le-color-status-conflict, #e67e22); }
+      .warning-icon-pending-result { color: var(--le-color-status-pending, #e74c3c); }
+      .warning-icon-no-date { color: var(--le-color-status-info, #2196f3); }
+      .warning-icon {
+        font-size:1.2em;
+        flex-shrink: 0;
+      }
+      .no-matches {
+        padding: var(--le-padding-m, 1rem);
+        text-align: center;
+        color: var(--le-text-color-secondary, #666);
       }
     `;
   }
@@ -81,12 +89,13 @@ class LeagueMatchesAttention extends HTMLElement {
   static get MOBILE_STYLES() {
     return `
       ${LeagueMatchesAttention.BASE_STYLES}
-      .panel-header {
-        font-size: 1rem;
-        margin-bottom: 0.3rem;
+      :host {
       }
       .paging-btn {
-        padding: 0.2rem 0.7rem;
+      }
+      .match-item {
+        font-size: 1em;
+        padding: var(--lae-padding-xs, 0.2rem) 0;
       }
     `;
   }
@@ -94,22 +103,23 @@ class LeagueMatchesAttention extends HTMLElement {
   static get DESKTOP_STYLES() {
     return `
       ${LeagueMatchesAttention.BASE_STYLES}
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+      :host {
+      }
+      .match-item {
+        font-size: 1em;
+        padding: var(--lae-padding-xs, 0.2rem) 0;
       }
     `;
   }
 
   static get TEMPLATE() {
     return `
-      <div class="panel-header">Requiring Attention</div>
       <div class="attention-matches">
         {{attentionMatches}}
       </div>
       <div class="paging-controls" id="attention-paging" {{showPaging}}>
-        <button class="paging-btn" id="attention-prev" {{prevDisabled}}>&lt; Prev</button>
-        <button class="paging-btn" id="attention-next" {{nextDisabled}}>Next &gt;</button>
+        <button class="paging-btn button-shared button-sm" id="attention-prev" {{prevDisabled}}>&lt; Prev</button>
+        <button class="paging-btn button-shared button-sm" id="attention-next" {{nextDisabled}}>Next &gt;</button>
       </div>
     `;
   }
@@ -283,43 +293,51 @@ class LeagueMatchesAttention extends HTMLElement {
     const pageItems = matches.slice(start, start + this.itemsPerPage);
     if (pageItems.length === 0) {
       if (matches.length > 0) {
-        return '<div class="match-item">None</div>';
+        return '<div class="no-matches">None</div>';
       }
-      return '<div class="match-item">None</div>';
+      return '<div class="no-matches">None</div>';
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const conflictingKeys = this._getConflictingMatchKeys();
     return pageItems.map(match => {
       const matchKey = match.key || `${match.homeTeamName}_${match.awayTeamName}_unscheduled`;
-      let warning = '';
+      let warningSymbol = '';
+      let warningClass = '';
       let tooltipText = '';
       if (match.result && match.date) {
         const matchDate = new Date(match.date);
         matchDate.setHours(0, 0, 0, 0);
         if (matchDate > today) {
           tooltipText = "Result entered for a future match date";
-          warning = `<span title="${tooltipText}" style="color:#f39c12;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`;
+          warningSymbol = '&#9888;';
+          warningClass = 'warning-icon-future-result';
         }
       } else if (conflictingKeys.has(match.key)) {
         tooltipText = "Scheduling conflict on this date.";
-        warning = `<span title="${tooltipText}" style="color:#e67e22;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`;
+        warningSymbol = '&#9888;';
+        warningClass = 'warning-icon-conflict';
       } else if (match.date && !match.result) {
         const matchDate = new Date(match.date);
         matchDate.setHours(0, 0, 0, 0);
         if (matchDate < today) {
           tooltipText = "Match date passed, result pending.";
-          warning = `<span title="${tooltipText}" style="color:#e74c3c;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9203;</span>`;
+          warningSymbol = '&#9203;';
+          warningClass = 'warning-icon-pending-result';
         }
       } else if (!match.date && !match.result) {
         tooltipText = "No date set for match";
-        warning = `<span title="${tooltipText}" style="color:#2196f3;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#128197;</span>`;
+        warningSymbol = '&#128197;';
+        warningClass = 'warning-icon-no-date';
       }
       const titleAttr = tooltipText ? ` title="${this.escapeHtml(tooltipText)}"` : '';
       const dataAttr = tooltipText ? ` data-attention-reason="${this.escapeHtml(tooltipText)}"` : '';
+      const warningSpan = warningSymbol ? `<span class="warning-icon ${warningClass}" title="${this.escapeHtml(tooltipText)}">${warningSymbol}</span>` : '';
+      
       return `
-        <div class="match-item">
-          ${warning}<a href="#" class="match-link" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
+        <div class="match-item list-item-shared">
+          ${warningSpan}
+          <a href="#" class="match-link list-item-text-primary" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
             ${match.homeTeamName} vs ${match.awayTeamName}
           </a>
         </div>

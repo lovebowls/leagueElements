@@ -17,37 +17,108 @@ import './LeagueMatchesUpcoming.js';
 import './LeagueMatchesAttention.js';
 // Import the new LeagueMatch component
 import './leagueMatch.js';
+// Import the new LeagueCalendar component
+import './LeagueCalendar.js'; // ADDED IMPORT
+import { utilityStyles, panelStyles, buttonStyles } from './shared-styles.js'; // ADDED IMPORT
+// Import Temporal API utilities
+import { Temporal, TemporalUtils } from '../utils/temporalUtils.js'; // ADDED IMPORT
 
 class LeagueElement extends HTMLElement {
   // Base styles shared between mobile and desktop layouts
   static get BASE_STYLES() {
     return `
+      ${utilityStyles} /* ADDED SHARED STYLE */
+      ${panelStyles}   /* ADDED SHARED STYLE */
+      ${buttonStyles}  /* ADDED SHARED STYLE */
       :host {
         display: block;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        border: 1px solid var(--le-border-color-medium, #ccc); /* MODIFIED */
+        border-radius: var(--le-border-radius-standard, 4px); /* MODIFIED */
+        font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif); /* MODIFIED */
         box-sizing: border-box;
-        --main-content-font-size: 1.3em; /* Define the constant font size */
+        color: var(--le-text-color-primary, #333); /* MODIFIED */
+
+        /* THEME VARIABLES */
+        --le-font-family-main: 'Open Sans', Helvetica, Arial, sans-serif;
+        --le-font-size-base: 1em; /* Base for general text within this component */
+        --le-font-size-small: 0.85em;
+        --le-font-size-medium: 1em;
+        --le-font-size-large: 1.2em;
+        --le-font-size-xlarge: 1.5em;
+        --le-font-size-page-title: 1.3em; /* For main titles like league name */
+
+        --le-text-color-primary: #333;
+        --le-text-color-secondary: #666;
+        --le-text-color-accent: #2196f3;
+        --le-text-color-accent-hover: #1976d2;
+        --le-text-color-error: #ff0000; /* General text error */
+        --le-text-color-on-primary: #fff; /* Text on primary color background */
+        --le-text-color-on-accent: #fff; /* Text on accent color background */
+
+        /* Status Colors */
+        --le-color-status-warning: #f39c12; /* Orange for general warnings, future results */
+        --le-color-status-conflict: #e67e22; /* Darker Orange/Brown for scheduling conflicts */
+        --le-color-status-pending: #e74c3c; /* Reddish for pending results (past due) */
+        --le-color-status-info: #2196f3;    /* Blue for informational, like no date set */
+        --le-color-status-success: #4CAF50; /* Green for success, already used by form-w */
+
+        --le-background-color-host: #fff; /* Default host background */
+        --le-background-color-panel: #fff;
+        --le-background-color-header: #f5f5f5;
+        --le-background-color-row-hover: #f9f9f9;
+        --le-background-color-error: #fff0f0;
+        --le-background-color-tooltip: #333;
+        --le-background-color-promotion: rgb(102, 212, 128);
+        --le-background-color-relegation: #f8d7da;
+        --le-background-color-default-pos: #f0f0f0;
+        
+        --le-border-color-light: #eee;
+        --le-border-color-medium: #ddd;
+        --le-border-color-dark: #ccc; /* For main host border */
+        --le-border-color-accent: #2196f3;
+
+        --le-border-radius-standard: 4px;
+        --le-border-radius-small: 3px;
+
+        --le-spacing-unit: 0.25rem;
+        --le-padding-xs: calc(1 * var(--le-spacing-unit)); /* 0.25rem */
+        --le-padding-s: calc(2 * var(--le-spacing-unit));  /* 0.5rem */
+        --le-padding-m: calc(4 * var(--le-spacing-unit)); /* 1rem */
+        --le-padding-l: calc(6 * var(--le-spacing-unit));  /* 1.5rem */
+
+        /* Specifics */
+        --le-table-header-background: var(--le-background-color-header);
+        --le-tab-text-color: var(--le-text-color-secondary);
+        --le-tab-text-color-hover: var(--le-text-color-primary);
+        --le-tab-border-color-active: var(--le-text-color-accent);
+        
+        /* Form icon colors (could be themed further if needed) */
+        --le-form-color-w: #4CAF50;
+        --le-form-color-d: #FFC107;
+        --le-form-color-l: #F44336;
+
+        /* Rank movement colors */
+        --le-rank-up-color: green;
+        --le-rank-down-color: red;
       }
       .title {
         font-weight: bold;
-        background: #f5f5f5;
-        border-bottom: 1px solid #ddd;
+        background: var(--le-background-color-header); /* MODIFIED */
+        border-bottom: 1px solid var(--le-border-color-medium); /* MODIFIED */
       }
       .settings-icon {
         cursor: pointer;
-        color: #555;
+        color: var(--le-text-color-secondary); /* MODIFIED */
         margin-left: auto;
-        padding: 0.75rem 1rem;
+        padding: var(--le-padding-m) var(--le-padding-m); /* MODIFIED */
         transition: color 0.2s;
-        font-size: 1.2rem; /* Match desktop title size */
+        font-size: var(--le-font-size-large); /* MODIFIED */
       }
       .settings-icon:hover {
-        color: #2196f3;
+        color: var(--le-text-color-accent); /* MODIFIED */
       }
       .content {
-        color: #666;
+        color: var(--le-text-color-secondary); /* MODIFIED */
         overflow-x: auto;
       }
       table {
@@ -56,15 +127,15 @@ class LeagueElement extends HTMLElement {
       }
       th, td {
         text-align: left;
-        border-bottom: 1px solid #ddd;
-        font-size: var(--main-content-font-size); /* Apply constant font size */
+        border-bottom: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        font-size: var(--le-font-size-base); /* MODIFIED */
       }
       th:not(:first-child),
       td:not(:first-child) {
         text-align: center;
       }
       th {
-        background-color: #f5f5f5;
+        background-color: var(--le-table-header-background); /* MODIFIED */
         position: sticky;
         top: 0;
       }
@@ -82,63 +153,60 @@ class LeagueElement extends HTMLElement {
         border: 0;
         box-sizing: border-box;
       }
-      .form-w { background-color: #4CAF50; }
-      .form-d { background-color: #FFC107; /* Amber for Draw */ }
-      .form-l { background-color: #F44336; }
-      /* New styles for recent result scores */
-      /* .score-w { color: #4CAF50; background-color: transparent; } */
-      /* .score-d { color: #FFC107; background-color: transparent; } */ /* Amber text */
-      /* .score-l { color: #F44336; background-color: transparent; } */
+      .form-w { background-color: var(--le-form-color-w); } /* MODIFIED */
+      .form-d { background-color: var(--le-form-color-d); } /* MODIFIED */
+      .form-l { background-color: var(--le-form-color-l); } /* MODIFIED */
+
       .error {
-        color: #ff0000;
-        padding: 0.5rem;
-        background-color: #fff0f0;
-        border-radius: 4px;
+        color: var(--le-text-color-error); /* MODIFIED */
+        padding: var(--le-padding-s); /* MODIFIED */
+        background-color: var(--le-background-color-error); /* MODIFIED */
+        border-radius: var(--le-border-radius-standard); /* MODIFIED */
       }
       .match-link {
-        color: #2196f3;
+        color: var(--le-text-color-accent); /* MODIFIED */
         text-decoration: none;
         transition: color 0.2s;
       }
       .match-link:hover {
-        color: #1976d2;
+        color: var(--le-text-color-accent-hover); /* MODIFIED */
         text-decoration: underline;
       }
       .match-item {
-        padding: 0.5rem; /* Default/Desktop padding */
-        border-bottom: 1px solid #eee;
-        font-size: var(--main-content-font-size); /* Apply constant font size */
+        padding: var(--le-padding-s); /* MODIFIED - Default/Desktop padding */
+        border-bottom: 1px solid var(--le-border-color-light); /* MODIFIED */
+        font-size: var(--le-font-size-base); /* MODIFIED */
       }
       .match-item:last-child {
         border-bottom: none;
       }
       .match-date {
-        color: #666; /* Centralized color */
-        font-size: 0.7em; /* Relative to parent (now 1.3em for match-items) */
-        margin-bottom: 0.2em; /* Add small vertical space below the date */
+        color: var(--le-text-color-secondary); /* MODIFIED */
+        font-size: var(--le-font-size-small); /* MODIFIED - Relative to parent */
+        margin-bottom: var(--le-padding-xs); /* MODIFIED */
       }
       /* Tab Styles */
       .tab-bar {
         display: flex;
-        border-bottom: 1px solid #ddd;
-        background-color: #f9f9f9;
+        border-bottom: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        background-color: var(--le-background-color-header); /* MODIFIED */
       }
       .tab-button {
-        padding: 0.75rem 1.5rem;
+        padding: var(--le-padding-s) var(--le-padding-l); /* MODIFIED */
         cursor: pointer;
         border: none;
         background: none;
-        font-size: 1rem;
-        color: #555;
+        font-size: var(--le-font-size-medium); /* MODIFIED */
+        color: var(--le-tab-text-color); /* MODIFIED */
         border-bottom: 3px solid transparent;
         transition: color 0.2s, border-bottom-color 0.2s;
       }
       .tab-button:hover {
-        color: #000;
+        color: var(--le-tab-text-color-hover); /* MODIFIED */
       }
       .tab-button.active {
-        color: #2196f3;
-        border-bottom-color: #2196f3;
+        color: var(--le-text-color-accent); /* MODIFIED */
+        border-bottom-color: var(--le-tab-border-color-active); /* MODIFIED */
         font-weight: bold;
       }
 
@@ -146,166 +214,152 @@ class LeagueElement extends HTMLElement {
       .matrix-container {
         overflow: auto; /* For scrolling */
         flex: 1; /* Take available space if parent is flex column */
-        padding: 1rem; /* Padding for the container */
+        padding: var(--le-padding-m); /* MODIFIED */
       }
       .matrix-grid {
         display: grid;
-        /* grid-template-columns will be set dynamically */
-        /* grid-template-rows will be set dynamically (implicitly) */
-        border: 1px solid #ccc; /* Border for the whole grid */
+        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
       }
       .matrix-cell {
-        border: 1px solid #eee; /* Light border for each cell */
+        border: 1px solid var(--le-border-color-light); /* MODIFIED */
         display: flex;
         align-items: center;
         justify-content: center;
-        aspect-ratio: 1 / 1; /* Keep cells square */
-        position: relative; /* For tooltip positioning */
-        font-size: var(--main-content-font-size); /* Apply constant font size to matrix cells */
-        box-sizing: border-box; /* Ensure border is included in width/height */
+        aspect-ratio: 1 / 1;
+        position: relative;
+        font-size: var(--le-font-size-base); /* MODIFIED */
+        box-sizing: border-box;
       }
       .matrix-header-cell {
         font-weight: bold;
-        background-color: #f5f5f5; /* Light grey background for header cells */
+        background-color: var(--le-background-color-header); /* MODIFIED */
       }
-      .matrix-team-name-x { /* Away teams - top row */
+      .matrix-team-name-x {
         transform: rotate(-45deg);
         white-space: nowrap;
-        font-size: 0.9em;
-        display: inline-block; /* Needed for transform to work well in flex */
+        font-size: var(--le-font-size-small); /* MODIFIED */
+        display: inline-block;
       }
-      .matrix-team-name-y { /* Home teams - first column */
+      .matrix-team-name-y {
         text-align: right;
-        padding-right: 0.5em;
-        font-size: 0.9em;
-        width: 100%; /* Ensure it takes full cell width for alignment */
+        padding-right: var(--le-padding-s); /* MODIFIED */
+        font-size: var(--le-font-size-small); /* MODIFIED */
+        width: 100%;
       }
-      .matrix-cell-played { background-color: #e3f2fd; color: #1976d2; }
-      .matrix-cell-scheduled { background-color: #f5f5f5; } /* Light grey for scheduled */
-      .matrix-cell-none { background-color: #ffffff; } /* White for no match */
-      .matrix-cell-same-team { background-color: #eeeeee; } /* Grey for diagonal */
+      .matrix-cell-played { background-color: #e3f2fd; color: var(--le-text-color-accent-hover); } /* MODIFIED (minor adjustment) */
+      .matrix-cell-scheduled { background-color: var(--le-background-color-header); } /* MODIFIED */
+      .matrix-cell-none { background-color: var(--le-background-color-panel); } /* MODIFIED */
+      .matrix-cell-same-team { background-color: var(--le-border-color-light); } /* MODIFIED */
       .matrix-cell:hover {
-        filter: brightness(0.95); /* Subtle hover effect */
+        filter: brightness(0.95);
       }
       .matrix-score {
-        font-size: var(--main-content-font-size); /* Apply constant font size to scores */
+        font-size: var(--le-font-size-base); /* MODIFIED */
         font-weight: bold;
       }
 
       /* Tooltip Styles */
       .tooltip {
         position: absolute;
-        background-color: #333;
-        color: white;
-        padding: 0.3em 0.6em;
-        border-radius: 3px;
-        font-size: 0.8em;
+        background-color: var(--le-background-color-tooltip); /* MODIFIED */
+        color: var(--le-text-color-on-primary); /* MODIFIED */
+        padding: var(--le-padding-xs) var(--le-padding-s); /* MODIFIED */
+        border-radius: var(--le-border-radius-small); /* MODIFIED */
+        font-size: var(--le-font-size-small); /* MODIFIED */
         white-space: nowrap;
         z-index: 10;
         visibility: hidden;
         opacity: 0;
         transition: opacity 0.2s, visibility 0.2s;
-        bottom: 100%; /* Position above the cell */
+        bottom: 100%; 
         left: 50%;
-        transform: translateX(-50%) translateY(-5px); /* Center and add a small gap */
+        transform: translateX(-50%) translateY(-5px); 
       }
       .matrix-cell:hover .tooltip {
         visibility: visible;
         opacity: 1;
       }
       .view-container {
-        flex: 1; /* Allow view to take remaining vertical space in left-panel */
-        display: flex; /* To allow matrix-container to use flex:1 and manage title/content */
+        flex: 1; 
+        display: flex; 
         flex-direction: column;
-        min-height: 0; /* Important for flex children that scroll */
+        min-height: 0; 
       }
 
       /* Trends View Styles */
       .trends-view-wrapper {
         display: flex;
         flex-direction: column;
-        padding: 1rem; /* Padding for the overall trends view */
-        gap: 1rem; /* Space between controls and content area */
+        padding: var(--le-padding-m); /* MODIFIED */
+        gap: var(--le-padding-m); /* MODIFIED */
         height: 100%;
         box-sizing: border-box;
       }
       .trends-controls {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem; /* Space below the controls */
+        gap: var(--le-padding-s); /* MODIFIED */
+        margin-bottom: var(--le-padding-s); /* MODIFIED */
       }
       #graph-type-select {
-        padding: 0.3rem 0.5rem;
-        border-radius: 3px;
-        border: 1px solid #ccc;
-        font-size: 0.9em;
+        padding: var(--le-padding-xs) var(--le-padding-s); /* MODIFIED */
+        border-radius: var(--le-border-radius-small); /* MODIFIED */
+        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
+        font-size: calc(var(--le-font-size-small) * 1.1); /* MODIFIED for slight increase */
       }
       .trends-content-area {
-        flex: 1; /* Allow this area to take available space */
+        flex: 1; 
         display: flex;
-        flex-direction: column; /* Stack toggles, graph, legend vertically */
-        gap: 1rem; /* Space between toggles, graph, and legend */
-        min-height: 0; /* Important for flex children that scroll */
+        flex-direction: column; 
+        gap: var(--le-padding-m); /* MODIFIED */
+        min-height: 0; 
       }
-      /* .trends-team-toggles { */
-      /*   padding: 0.5rem; */
-      /*   border: 1px solid #eee; */
-      /*   border-radius: 3px; */
-      /*   max-height: 150px; */ /* Limit height and allow scroll if many teams */
-      /*   overflow-y: auto; */
-      /* } */
-      /* .trends-team-toggles label { */
-      /*   display: block; */ /* Each team on a new line */
-      /*   margin-bottom: 0.3rem; */
-      /* } */
       .trends-graph-area {
-        flex: 1; /* Graph takes most of the space */
-        border: 1px solid #ddd;
-        border-radius: 3px;
-        overflow: hidden; /* For SVG clipping if necessary */
-        position: relative; /* For potential absolute positioning inside */
+        flex: 1; 
+        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        border-radius: var(--le-border-radius-small); /* MODIFIED */
+        overflow: hidden; 
+        position: relative; 
       }
       .trends-graph-area svg {
-        display: block; /* Remove extra space below SVG */
+        display: block; 
         width: 100%;
         height: 100%;
       }
       .trends-graph-legend {
-        padding: 0.5rem;
-        border: 1px solid #eee;
-        border-radius: 3px;
-        font-size: 0.9em;
+        padding: var(--le-padding-s); /* MODIFIED */
+        border: 1px solid var(--le-border-color-light); /* MODIFIED */
+        border-radius: var(--le-border-radius-small); /* MODIFIED */
+        font-size: var(--le-font-size-small); /* MODIFIED */
       }
       .trends-graph-legend .legend-item {
         display: flex;
         align-items: center;
-        margin-bottom: 0.3rem;
+        margin-bottom: var(--le-padding-xs); /* MODIFIED */
       }
       .trends-graph-legend .legend-color-box {
         width: 12px;
         height: 12px;
-        margin-right: 0.5rem;
-        border: 1px solid #ccc;
+        margin-right: var(--le-padding-s); /* MODIFIED */
+        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
       }
 
-      /* Basic SVG styles (can be overridden or augmented in JS) */
       .trends-graph-area .axis path,
       .trends-graph-area .axis line {
         fill: none;
-        stroke: #666;
+        stroke: var(--le-text-color-secondary); /* MODIFIED */
         shape-rendering: crispEdges;
       }
       .trends-graph-area .axis text {
-        font-size: 10px;
-        fill: #333;
+        font-size: calc(var(--le-font-size-small) * 0.9); /* MODIFIED to be smaller */
+        fill: var(--le-text-color-primary); /* MODIFIED */
       }
       .trends-graph-area .line {
         fill: none;
         stroke-width: 2px;
       }
       .trends-graph-area .grid-line {
-        stroke: #e0e0e0;
+        stroke: var(--le-border-color-light); /* MODIFIED */
         stroke-dasharray: 2,2;
         shape-rendering: crispEdges;
       }
@@ -315,47 +369,44 @@ class LeagueElement extends HTMLElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        /* Existing .title padding will apply here */
       }
       .table-view-filter {
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-        border: 1px solid #ccc;
-        font-size: 0.8em;
-        margin-left: 1rem;
-        background-color: white; /* Ensure it's visible on different backgrounds */
-        flex-shrink: 0; /* Prevent shrinking too much */
+        padding: var(--le-padding-xs) var(--le-padding-s); /* MODIFIED */
+        border-radius: var(--le-border-radius-small); /* MODIFIED */
+        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
+        font-size: var(--le-font-size-small); /* MODIFIED */
+        margin-left: var(--le-padding-m); /* MODIFIED */
+        background-color: var(--le-background-color-panel); /* MODIFIED */
+        flex-shrink: 0; 
       }
-      .rank-up { color: green; }
-      .rank-down { color: red; }
-      /* Align position numbers */
+      .rank-up { color: var(--le-rank-up-color); } /* MODIFIED */
+      .rank-down { color: var(--le-rank-down-color); } /* MODIFIED */
+
       td.position-cell {
         text-align: left;
-        width: 30px; /* Fixed width */
-        min-width: 30px; /* Ensure minimum width */
-        max-width: 30px; /* Ensure maximum width */
+        width: 30px; 
+        min-width: 30px; 
+        max-width: 30px; 
       }
-      /* Ensure movement indicators are properly spaced from position number */
       .position-cell .rank-up,
       .position-cell .rank-down {
-        margin-left: 5px;
+        margin-left: var(--le-spacing-unit); /* MODIFIED */
         display: inline-block;
       }
-      /* New styles for position cell backgrounds */
       .pos-cell-promotion {
-        background-color:rgb(102, 212, 128);
-        color: white;
+        background-color: var(--le-background-color-promotion); /* MODIFIED */
+        color: var(--le-text-color-on-primary); /* MODIFIED */
         font-weight: bold;
       }
       .pos-cell-relegation {
-        background-color: #f8d7da; /* Light Red */
-        color: #721c24; /* Darker Red text */
+        background-color: var(--le-background-color-relegation); /* MODIFIED */
+        color: #721c24; /* Specific dark red, could be a variable too */
         font-weight: bold;
       }
       .pos-cell-default {
-        background-color: #f0f0f0; /* Light Grey */
-        color: #333;
-        border: 1px solid #e0e0e0; /* Subtle border */
+        background-color: var(--le-background-color-default-pos); /* MODIFIED */
+        color: var(--le-text-color-primary); /* MODIFIED */
+        border: 1px solid var(--le-border-color-light); /* MODIFIED */
       }
     `;
   }
@@ -365,73 +416,74 @@ class LeagueElement extends HTMLElement {
     return `
       ${LeagueElement.BASE_STYLES}
       :host {
-        padding: 0.5rem;
-        background: #fff;
+        padding: var(--le-padding-s); /* MODIFIED */
+        background: var(--le-background-color-host); /* MODIFIED */
         border: none;
         border-radius: 0;
+        /* Redefine font sizes for mobile if needed, or let em units scale from a potentially larger base */
+        /* --le-font-size-base: 1.1em; /* Example: if mobile needs a slightly larger base */
       }
       .dashboard-mobile {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: var(--le-padding-m); /* MODIFIED */
       }
-      .left-panel {
+      .left-panel { /* In mobile, this is the main content container */
         border: none;
         border-radius: 0;
         background: none;
         padding: 0;
         margin: 0;
       }
-      .panel {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
-        padding: 0.5rem;
+      .panel { /* This applies to upcoming, recent, attention panels in mobile */
+        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        border-radius: var(--le-border-radius-standard); /* MODIFIED */
+        background: var(--le-background-color-panel); /* MODIFIED */
+        padding: var(--le-padding-s); /* MODIFIED */
         margin: 0;
       }
-      .title {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        padding: 0.5rem 0 0.5rem 0;
+      .title { /* Title within the left-panel (table/matrix/trends view) */
+        font-size: var(--le-font-size-large); /* MODIFIED */
+        margin-bottom: var(--le-padding-s); /* MODIFIED */
+        padding: var(--le-padding-s) 0 var(--le-padding-s) 0; /* MODIFIED */
       }
-      .content {
+      .settings-icon {
+        font-size: var(--le-font-size-large); /* Match mobile title size */
+      }
+      .content { /* Content area for table/matrix/trends */
         padding: 0;
       }
       table {
-        width: 100vw;
-        max-width: 100vw;
+        width: 100vw; /* This can be problematic, consider max-width: 100% and overflow on parent */
+        max-width: 100%;
         margin: 0;
         border-collapse: collapse;
       }
       th, td {
-        padding: 0.4rem;
-        /* font-size is now inherited from BASE_STYLES */
+        padding: var(--le-padding-s); /* MODIFIED */
+        /* font-size inherited from BASE_STYLES using --le-font-size-base */
       }
       th:nth-child(3),
       td:nth-child(3) {
         font-weight: bold;
       }
-      /* Ensure .form-icon is not defined here, it should inherit from BASE_STYLES */
-      .panel-header {
-        font-size: 1rem;
-        margin-bottom: 0.3rem;
-        color: #333;
+      .panel-header { /* Header within the right-side panels (Upcoming, Recent, Attention) */
+        font-size: var(--le-font-size-medium); /* MODIFIED */
+        margin-bottom: var(--le-padding-xs); /* MODIFIED */
+        color: var(--le-text-color-primary); /* MODIFIED */
       }
-      .match-item {
-        padding: 0.3rem 0.2rem; /* Mobile specific padding */
-        /* border-bottom is inherited from BASE_STYLES */
-        /* font-size is now inherited from BASE_STYLES */
+      .match-item { /* For items within Upcoming, Recent, Attention */
+        padding: var(--le-padding-xs) var(--le-padding-xs); /* MODIFIED - Mobile specific padding */
+        /* border-bottom inherited from BASE_STYLES */
+        /* font-size inherited from BASE_STYLES using --le-font-size-base */
       }
-      .match-score {
-        color: #4CAF50;
+      .match-score { /* This seems to be for a different component, but if used here */
+        color: var(--le-form-color-w); /* MODIFIED (using win color for general score) */
         font-weight: bold;
       }
-      .matrix-container { /* Mobile specific matrix container scroll */
+      .matrix-container { 
         overflow-x: auto;
         overflow-y: hidden;
-      }
-      .settings-icon {
-        font-size: 1.1rem; /* Match mobile title size */
       }
     `;
   }
@@ -441,111 +493,110 @@ class LeagueElement extends HTMLElement {
     return `
       ${LeagueElement.BASE_STYLES}
       :host {
-        padding: 1rem;
+        padding: var(--le-padding-m); /* MODIFIED */
         height: 100%;
+        background-color: var(--le-background-color-host); /* MODIFIED - Can be different for desktop host if desired */
       }
       .dashboard {
         display: flex;
         height: 100%;
-        gap: 1rem;
+        gap: var(--le-padding-m); /* MODIFIED */
       }
       .left-panel {
         flex: 0 0 70%;
         min-width: 0;
         display: flex;
         flex-direction: column;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
+        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        border-radius: var(--le-border-radius-standard); /* MODIFIED */
+        background: var(--le-background-color-panel); /* MODIFIED */
       }
       .right-panel {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: var(--le-padding-m); /* MODIFIED */
         min-width: 0;
       }
-      .panel {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
-        padding: 1rem;
+      .panel { /* Panels in the right column for desktop */
+        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        border-radius: var(--le-border-radius-standard); /* MODIFIED */
+        background: var(--le-background-color-panel); /* MODIFIED */
+        padding: var(--le-padding-m); /* MODIFIED */
       }
-      .panel-header {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
+      .panel-header { /* Header within right-column panels */
+        font-size: var(--le-font-size-large); /* MODIFIED */
+        margin-bottom: var(--le-padding-s); /* MODIFIED */
+        color: var(--le-text-color-primary); /* MODIFIED */
       }
       .resizer {
         width: 5px;
-        background: #ddd;
+        background: var(--le-border-color-medium); /* MODIFIED */
         cursor: col-resize;
         transition: background 0.2s;
       }
       .resizer:hover {
-        background: #999;
+        background: var(--le-text-color-secondary); /* MODIFIED */
       }
-      .title {
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
-        padding: 1rem;
+      .title { /* Main title in the left panel (Table/Matrix/Trends) */
+        font-size: var(--le-font-size-page-title); /* MODIFIED */
+        margin-bottom: var(--le-padding-s); /* MODIFIED */
+        padding: var(--le-padding-m); /* MODIFIED */
       }
-      .content {
+      .content { /* Content area for table/matrix/trends in left panel */
         flex: 1;
-        padding: 1rem;
+        padding: var(--le-padding-m); /* MODIFIED */
       }
       th, td {
-        padding: 0.75rem;
-        /* font-size is now inherited from BASE_STYLES */
+        padding: var(--le-padding-s); /* MODIFIED - Was 0.75rem */
+        /* font-size inherited from BASE_STYLES via --le-font-size-base */
       }
       th:nth-child(3),
       td:nth-child(3) {
         font-weight: bold;
       }
 
-      /* Column width adjustments */
-      th:nth-child(1), /* Position */
+      /* Column width adjustments - these are specific and might not use variables directly */
+      th:nth-child(1), 
       td:nth-child(1) {
-        /* Already has fixed width via .position-cell, no change here but noted */
+        /* Position - uses .position-cell width */
       }
-      th:nth-child(2), /* Team */
+      th:nth-child(2), 
       td:nth-child(2) {
-        width: 35%; /* Increased width for Team column */
-        text-align: left; /* Ensure team name is left aligned */
+        width: 35%; 
+        text-align: left; 
       }
-      th:nth-child(3), /* Pts */
+      th:nth-child(3), 
       td:nth-child(3),
-      th:nth-child(4), /* MP */
+      th:nth-child(4), 
       td:nth-child(4),
-      th:nth-child(5), /* W */
+      th:nth-child(5), 
       td:nth-child(5),
-      th:nth-child(6), /* D */
+      th:nth-child(6), 
       td:nth-child(6),
-      th:nth-child(7), /* L */
+      th:nth-child(7), 
       td:nth-child(7) {
-        width: 5%; /* Reduced width for single/double digit columns */
+        width: 5%; 
       }
-      th:nth-child(8), /* SF */
+      th:nth-child(8), 
       td:nth-child(8),
-      th:nth-child(9), /* SA */
+      th:nth-child(9), 
       td:nth-child(9),
-      th:nth-child(10), /* SD */
+      th:nth-child(10), 
       td:nth-child(10) {
-        width: 7%; /* Adjusted width for up to three digit columns */
+        width: 7%; 
       }
-      th:nth-child(11), /* Form */
+      th:nth-child(11), 
       td:nth-child(11) {
-        width: 15%; /* Adjusted width for Form column */
-        min-width: 100px; /* Ensure form icons have enough space */
+        width: 15%; 
+        min-width: 100px; 
       }
 
       tr:hover {
-        background-color: #f9f9f9;
+        background-color: var(--le-background-color-row-hover); /* MODIFIED */
       }
-      /* Ensure .form-icon is not defined here, it should inherit from BASE_STYLES */
-      /* .match-item block to be removed from DESKTOP_STYLES */
-      .match-score {
-        color: #4CAF50;
+      .match-score { /* If used for display somewhere else, e.g., not form icons */
+        color: var(--le-form-color-w); /* MODIFIED (using win color for general score display) */
         font-weight: bold;
       }
     `;
@@ -611,14 +662,19 @@ class LeagueElement extends HTMLElement {
             {{trendsViewContent}}
           </div>
         </div>
-        <div class="panel">
-          <league-matches-upcoming id="mobile-upcoming-fixtures" is-mobile="true"></league-matches-upcoming>
-          <!-- Calendar and its filter are now inside league-matches-upcoming -->
+        <div class="panel"> 
+          <league-calendar id="mobile-calendar"></league-calendar> 
         </div>
         <div class="panel">
+          <div class="panel-header panel-header-shared">Upcoming Fixtures</div>
+          <league-matches-upcoming id="mobile-upcoming-fixtures" is-mobile="true"></league-matches-upcoming>
+        </div>
+        <div class="panel">
+          <div class="panel-header panel-header-shared">Recent Results</div>
           <league-matches-recent id="mobile-recent-matches" is-mobile="true"></league-matches-recent>
         </div>
         <div class="panel">
+          <div class="panel-header panel-header-shared">Requiring Attention</div>
           <league-matches-attention id="mobile-attention-matches" is-mobile="true"></league-matches-attention>
         </div>
       </div>
@@ -667,13 +723,18 @@ class LeagueElement extends HTMLElement {
         <div class="resizer"></div>
         <div class="right-panel">
           <div class="panel">
-            <league-matches-upcoming id="desktop-upcoming-fixtures"></league-matches-upcoming>
-            <!-- Calendar and its filter are now inside league-matches-upcoming -->
+            <league-calendar id="desktop-calendar"></league-calendar>
           </div>
           <div class="panel">
+            <div class="panel-header panel-header-shared">Upcoming Fixtures</div>
+            <league-matches-upcoming id="desktop-upcoming-fixtures"></league-matches-upcoming>
+          </div>
+          <div class="panel">
+            <div class="panel-header panel-header-shared">Recent Results</div>
             <league-matches-recent id="desktop-recent-matches"></league-matches-recent>
           </div>
           <div class="panel">
+            <div class="panel-header panel-header-shared">Requiring Attention</div>
             <league-matches-attention id="desktop-attention-matches"></league-matches-attention>
           </div>
         </div>
@@ -685,7 +746,8 @@ class LeagueElement extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.data = null;
-    this.selectedResultDate = null; // Retained for LeagueMatchesRecent filtering if needed
+    this.selectedResultDate = null; // Retained for LeagueMatchesRecent filtering if needed -- WILL BE REPLACED by activeCalendarFilterDate
+    this.activeCalendarFilterDate = null; // UPDATED: Will store a string in YYYY-MM-DD format representing the selected date
     this.leftPanelFlexBasis = null;
     this.minRightPanelPixelWidth = null;
     this.activeView = 'table'; // Default to table view
@@ -698,10 +760,11 @@ class LeagueElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
+    this.shadow.host.addEventListener('league-calendar-event', this._handleCalendarDateChange.bind(this)); // ADDED event listener
   }
 
   static get observedAttributes() {
-    return ['data', 'selectedMatch'];
+    return ['data', 'selectedMatch', 'is-mobile'];
   }
 
   connectedCallback() {
@@ -736,6 +799,8 @@ class LeagueElement extends HTMLElement {
           console.error('Error parsing match data for selectedMatch attribute:', error);
         }
       }
+    } else if (name === 'is-mobile') {
+      this.render();
     }
   }
 
@@ -805,6 +870,9 @@ class LeagueElement extends HTMLElement {
     // const showAttentionPaging = this.attentionMatchesPage > 0 || this._attentionMatchesHasNext(); // Moved to LeagueMatchesAttention
     
     const currentTitle = (this.data && this.data.name ? this.data.name : 'League Table') || 'League Table';
+    // const currentFilterDateISO = this.activeCalendarFilterDate 
+    //     ? this.activeCalendarFilterDate.toISOString().split('T')[0] 
+    //     : null; // This is not used in the template directly
 
     return template
       .replace(/\{\{title\}\}/g, currentTitle)
@@ -824,12 +892,13 @@ class LeagueElement extends HTMLElement {
       .replace('{{overallSelected}}', this.tableFilter === 'overall' ? 'selected' : '')
       .replace('{{homeSelected}}', this.tableFilter === 'home' ? 'selected' : '')
       .replace('{{awaySelected}}', this.tableFilter === 'away' ? 'selected' : '');
+      // REMOVED .replace('{{filterDate}}', currentFilterDateISO);
   }
 
   render() {
     // Generate table rows based on data if available
     let tableRows = '';
-    const isMobile = this.getAttribute('isMobile') === 'true';
+    const isMobile = this.getAttribute('is-mobile') === 'true';
     console.log('[LeagueElement] render START. isMobile:', isMobile);
     
     if (this.data && this.data.table) {
@@ -899,10 +968,14 @@ class LeagueElement extends HTMLElement {
       // Configure the recent matches components
       const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
       if (recentMatchesElement) {
-        recentMatchesElement.setAttribute('is-mobile', isMobile);
+        recentMatchesElement.setAttribute('is-mobile', isMobile.toString());
         recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
-        if (this.selectedResultDate) {
-          recentMatchesElement.setAttribute('selected-date', this.selectedResultDate);
+        if (this.activeCalendarFilterDate) {
+            // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
+            recentMatchesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
+            console.log('[LeagueElement] render: filter-date attribute SET on recentMatchesElement:', this.activeCalendarFilterDate);
+        } else {
+            recentMatchesElement.removeAttribute('filter-date');
         }
         
         recentMatchesElement.removeEventListener('league-matches-recent-event', this._handleRecentMatchClick);
@@ -913,7 +986,7 @@ class LeagueElement extends HTMLElement {
       // Configure the attention matches components
       const attentionMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
       if (attentionMatchesElement) {
-        attentionMatchesElement.setAttribute('is-mobile', isMobile);
+        attentionMatchesElement.setAttribute('is-mobile', isMobile.toString());
         attentionMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
 
         attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAttentionMatchClick);
@@ -945,12 +1018,20 @@ class LeagueElement extends HTMLElement {
             console.log('[LeagueElement] render: Setting data attribute on upcomingFixturesElement with:', JSON.stringify(this.data.matches).substring(0,100) + '...');
             upcomingFixturesElement.setAttribute('data', JSON.stringify(this.data.matches));
             console.log('[LeagueElement] render: data attribute SET on upcomingFixturesElement.');
+            // Set filter-date for upcoming fixtures
+            if (this.activeCalendarFilterDate) {
+                // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
+                upcomingFixturesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
+                console.log('[LeagueElement] render: filter-date attribute SET on upcomingFixturesElement:', this.activeCalendarFilterDate);
+            } else {
+                upcomingFixturesElement.removeAttribute('filter-date');
+            }
         } else {
             console.log('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
         }
-        // Listen to date changes from the upcoming fixtures calendar
-        upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Remove if it was mistakenly added for date changes before
-        upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Keep for date changes
+        // Listen to date changes from the upcoming fixtures calendar -- THIS IS NO LONGER NEEDED HERE as calendar is separate
+        // upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Remove if it was mistakenly added for date changes before
+        // upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Keep for date changes
         
         // Add listener for match clicks
         this._handleUpcomingMatchClickBound = this._handleUpcomingMatchClick.bind(this);
@@ -958,6 +1039,31 @@ class LeagueElement extends HTMLElement {
         upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Listen for general events
 
       }
+
+      // ADDED: Configure the league-calendar component
+      const calendarElement = this.shadow.querySelector(isMobile ? '#mobile-calendar' : '#desktop-calendar');
+      if (calendarElement) {
+        console.log('[LeagueElement] render: league-calendar element FOUND.');
+        calendarElement.setAttribute('is-mobile', isMobile.toString());
+        if (this.data && this.data.matches) {
+            console.log('[LeagueElement] render: Setting matches attribute on league-calendar with:', JSON.stringify(this.data.matches).substring(0,100) + '...');
+            calendarElement.setAttribute('matches', JSON.stringify(this.data.matches));
+        } else {
+            console.log('[LeagueElement] render: this.data.matches is NOT available for league-calendar.');
+        }
+        // Pass current filter date to keep calendar selection in sync if changed from parent
+        // (e.g. if filter was set by URL param or other means and leagueElement needs to inform calendar)
+        if (this.activeCalendarFilterDate) {
+            // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
+            calendarElement.setAttribute('current-filter-date', this.activeCalendarFilterDate);
+            console.log('[LeagueElement] render: current-filter-date attribute SET on calendarElement:', this.activeCalendarFilterDate);
+        } else {
+            calendarElement.removeAttribute('current-filter-date');
+        }
+        // Event listener for 'league-calendar-event' is set up in connectedCallback of leagueElement
+        // and handles updates from the calendar.
+      }
+
     } else {
       // Show error if data is missing or invalid
       this.shadow.innerHTML = `<div class="error">Invalid or missing league data</div>`;
@@ -972,7 +1078,7 @@ class LeagueElement extends HTMLElement {
       modal.match = this.matchModalData;
       modal.teams = (this.data && this.data.table && Array.isArray(this.data.table.leagueData)) ? this.data.table.leagueData.map(t => t.teamName) : [];
       modal.open = true;
-      modal.isMobile = this.getAttribute('isMobile') === 'true';
+      modal.isMobile = this.getAttribute('is-mobile') === 'true';
       modal.mode = this.matchModalMode;
       modal.addEventListener('match-save', (e) => {
         const savedMatch = e.detail.match;
@@ -1517,7 +1623,7 @@ class LeagueElement extends HTMLElement {
     //       this.selectedResultDate = date;
     //       
     //       // Update the recent matches component with the selected date
-    //       const isMobile = this.getAttribute('isMobile') === 'true';
+    //       const isMobile = this.getAttribute('is-mobile') === 'true';
     //       const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
     //       if (recentMatchesElement) {
     //         recentMatchesElement.setAttribute('selected-date', date.toISOString());
@@ -1539,7 +1645,7 @@ class LeagueElement extends HTMLElement {
     //     this.upcomingFixturesPage = 0;
     //     
     //     // Clear filter on recent matches component
-    //     const isMobile = this.getAttribute('isMobile') === 'true';
+    //     const isMobile = this.getAttribute('is-mobile') === 'true';
     //     const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
     //     if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
     //       recentMatchesElement.clearDateFilter();
@@ -1556,7 +1662,7 @@ class LeagueElement extends HTMLElement {
     //     this.upcomingFixturesPage = 0;
     //     
     //     // Clear filter on recent matches component
-    //     const isMobile = this.getAttribute('isMobile') === 'true';
+    //     const isMobile = this.getAttribute('is-mobile') === 'true';
     //     const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
     //     if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
     //       recentMatchesElement.clearDateFilter();
@@ -1682,7 +1788,7 @@ class LeagueElement extends HTMLElement {
         return '<div class="error">No teams available for matrix.</div>';
     }
 
-    const isMobile = this.getAttribute('isMobile') === 'true';
+    const isMobile = this.getAttribute('is-mobile') === 'true';
     const cellSize = isMobile ? '60px' : '80px'; // Adjusted desktop size
     const numColumns = 1 + teams.length;
     const gridMinWidth = numColumns * parseFloat(cellSize); // Calculate min-width for the grid
@@ -2082,7 +2188,7 @@ class LeagueElement extends HTMLElement {
             const x = xScale(dateVal);
             mainGroup.appendChild(createSVGElement('line', { x1: x, y1: height, x2: x, y2: height + 6, class: 'axis' }));
             
-            const isMobile = this.getAttribute('isMobile') === 'true';
+            const isMobile = this.getAttribute('is-mobile') === 'true';
             let dateLabelText;
             if (isMobile) {
                 const currentMonthName = new Date(dateVal).toLocaleDateString(undefined, { month: 'short' });
@@ -2553,6 +2659,92 @@ class LeagueElement extends HTMLElement {
       // Currently, selectedResultDate is distinct. If desired, we could unify them or sync them here.
     }
   }
+
+  // ADDED: Handler for events from league-calendar
+  _handleCalendarDateChange(e) {
+    console.log('[LeagueElement] _handleCalendarDateChange event received:', e.detail);
+    if (e.detail.type === 'dateChange') {
+        // Use Temporal API for date handling
+        
+        // Option 1: Use the dateString directly (YYYY-MM-DD format) - preferred approach
+        if (e.detail.dateString) {
+            // Store the date string directly - this is the simplest and most reliable
+            this.activeCalendarFilterDate = e.detail.dateString;
+            console.log('[LeagueElement] Date filter set from dateString:', this.activeCalendarFilterDate);
+        } 
+        // Option 2: Create from year, month, day components using Temporal
+        else if (e.detail.year && e.detail.month && e.detail.day) {
+            try {
+                // Create a PlainDate using Temporal
+                const plainDate = TemporalUtils.createPlainDate(
+                    e.detail.year, 
+                    e.detail.month, 
+                    e.detail.day
+                );
+                
+                // Store as ISO string (YYYY-MM-DD)
+                this.activeCalendarFilterDate = plainDate.toString();
+                console.log('[LeagueElement] Date filter set using Temporal from components:', this.activeCalendarFilterDate);
+            } catch (err) {
+                console.error('[LeagueElement] Error creating Temporal date:', err);
+                this.activeCalendarFilterDate = null;
+            }
+        }
+        // Legacy support for Date objects
+        else if (e.detail.date) {
+            try {
+                // Convert legacy Date to Temporal PlainDate
+                const legacyDate = new Date(e.detail.date);
+                const plainDate = TemporalUtils.fromLegacyDate(legacyDate);
+                if (plainDate) {
+                    this.activeCalendarFilterDate = plainDate.toString();
+                    console.log('[LeagueElement] Date filter set using Temporal from legacy Date:', this.activeCalendarFilterDate);
+                } else {
+                    throw new Error('Invalid date conversion');
+                }
+            } catch (err) {
+                console.error('[LeagueElement] Error converting legacy Date:', err);
+                
+                // Fallback to direct string formatting if Temporal conversion fails
+                const d = new Date(e.detail.date);
+                this.activeCalendarFilterDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                console.log('[LeagueElement] Date filter set using fallback method:', this.activeCalendarFilterDate);
+            }
+        }
+        else {
+            console.warn('[LeagueElement] No date information found in calendar event', e.detail);
+            this.activeCalendarFilterDate = null;
+        }
+    } else if (e.detail.type === 'filterClear') {
+        this.activeCalendarFilterDate = null;
+        console.log('[LeagueElement] Date filter cleared');
+    }
+    
+    // Update child components that depend on this filter date
+    this.render(); // Re-render to propagate the filter-date attribute to children
+  }
+
+  // OPTIONAL: Direct update method if render() is too much
+  /*
+  _updateChildFilterDates() {
+    const isMobile = this.getAttribute('is-mobile') === 'true';
+    const newFilterDate = this.activeCalendarFilterDate ? this.activeCalendarFilterDate.toISOString().split('T')[0] : null;
+
+    const upcomingFixturesElement = this.shadow.querySelector(isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
+    const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
+    const calendarElement = this.shadow.querySelector(isMobile ? '#mobile-calendar' : '#desktop-calendar');
+
+    if (newFilterDate) {
+        if (upcomingFixturesElement) upcomingFixturesElement.setAttribute('filter-date', newFilterDate);
+        if (recentMatchesElement) recentMatchesElement.setAttribute('filter-date', newFilterDate);
+        if (calendarElement) calendarElement.setAttribute('current-filter-date', newFilterDate);
+    } else {
+        if (upcomingFixturesElement) upcomingFixturesElement.removeAttribute('filter-date');
+        if (recentMatchesElement) recentMatchesElement.removeAttribute('filter-date');
+        if (calendarElement) calendarElement.removeAttribute('current-filter-date');
+    }
+  }
+  */
 }
 
 // Register the custom element

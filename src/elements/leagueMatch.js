@@ -1,115 +1,88 @@
 // leagueMatch.js
 // Modal dialog for creating/updating a match
 
+// OR if vanilla:
+// class LeagueMatch extends HTMLElement { ... }
+
+// Import shared styles
+import { buttonStyles, modalStyles, formStyles } from './shared-styles.js';
+
 class LeagueMatchEvent extends CustomEvent {
   constructor(type, detail) {
     super(type, { detail, bubbles: true, composed: true });
   }
 }
 
-class LeagueMatch extends HTMLElement {
-  static get BASE_STYLES() {
+class LeagueMatch extends HTMLElement { // Or extends LitElement
+  static get BASE_STYLES() { // Or static styles for LitElement
     return `
+      ${buttonStyles}
+      ${modalStyles}
+      ${formStyles}
       :host {
-        display: block;
-      }
-      .modal-overlay {
+        /* Host itself might be the modal-shared-overlay or contain it */
+        /* If host is the overlay: */
+        display: none; /* Controlled by 'open' attribute/property */
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.4);
-        z-index: 10000;
-        display: flex;
+        z-index: var(--le-z-index-modal, 1001); /* Higher than admin modal if stacked */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: var(--le-background-color-modal-overlay, rgba(0,0,0,0.4));
+        /* Use flex to center the modal-shared-content if the host is the overlay */
         align-items: center;
         justify-content: center;
-        overflow-y: auto;
       }
-      .modal {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-        max-width: 95vw;
-        min-width: 280px;
-        width: 400px;
-        padding: 0;
+      :host([open]) {
+        display: flex; 
+      }
+      /* STYLES FOR .dialog-content, .dialog-header, .dialog-body, .dialog-footer REMOVED as they are covered by .modal-shared-* classes */
+      /* GENERAL FORM STYLES for .form-group, label, input, select REMOVED as they are covered by .form-*-shared classes */
+
+      /* Keep styles specific to leagueMatch.js */
+      .score-inputs {
         display: flex;
-        flex-direction: column;
-        position: relative;
-        animation: fadeIn 0.2s;
+        align-items: center;
+        gap: var(--le-padding-s, 0.5em);
       }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(40px); }
-        to { opacity: 1; transform: none; }
+      .score-inputs label {
+        /* flex-basis: auto; */ /* If they were form-label-shared they'd be block */
+         margin-bottom: 0; /* Override if needed */
       }
-      .modal-header {
-        padding: 1rem 1.5rem 0.5rem 1.5rem;
-        font-weight: bold;
-        font-size: 1.2rem;
-        border-bottom: 1px solid #eee;
+      .score-inputs input[type="number"] {
+        width: 60px; /* Specific width for score inputs */
+        /* padding: var(--le-padding-xs, 0.25em); Already form-input-shared */
       }
-      .modal-body {
-        padding: 1rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .modal-footer {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #eee;
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-      }
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
-      }
-      label {
-        font-weight: 500;
-      }
-      select, input[type="number"], input[type="date"] {
-        padding: 0.4rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 1rem;
-      }
-      .error {
-        color: #d8000c;
-        background: #ffd2d2;
-        border: 1px solid #d8000c;
-        border-radius: 4px;
-        padding: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      @media (max-width: 600px) {
-        .modal {
-          width: 98vw;
-          min-width: unset;
-          max-width: 100vw;
-          padding: 0;
-        }
-        .modal-header, .modal-body, .modal-footer {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
+      #error-message-match-modal {
+        color: var(--le-text-color-error, #D8000C);
+        background-color: var(--le-background-color-error, #FFD2D2);
+        padding: var(--le-padding-s);
+        border: 1px solid var(--le-border-color-error, #D8000C);
+        border-radius: var(--le-border-radius-standard);
+        margin-bottom: var(--le-padding-m); 
+        font-size: var(--le-font-size-small);
       }
     `;
   }
 
   static get observedAttributes() {
-    return ['open', 'isMobile', 'mode'];
+    return ['open', 'is-mobile', 'mode'];
   }
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.shadow = this.attachShadow({ mode: 'open' });
     this._match = null;
     this._teams = [];
     this._open = false;
     this._isMobile = false;
     this._mode = 'new';
     this._error = '';
+    this._boundOnKeydown = this._onKeydown.bind(this);
+    this._firstFocusableElement = null;
+    this._lastFocusableElement = null;
   }
 
   /**
@@ -134,8 +107,19 @@ class LeagueMatch extends HTMLElement {
    * @param {boolean} value
    */
   set open(value) {
+    const Rerender = this._open !== !!value;
     this._open = !!value;
-    this.render();
+    if (Rerender) {
+        this.render(); // Render first to ensure elements are in shadow DOM
+    }
+
+    if (this._open) {
+      this.shadowRoot.addEventListener('keydown', this._boundOnKeydown);
+      // Focus the first element after a brief delay to ensure it's focusable
+      setTimeout(() => this._focusFirstElement(), 0);
+    } else {
+      this.shadowRoot.removeEventListener('keydown', this._boundOnKeydown);
+    }
   }
   get open() { return this._open; }
 
@@ -144,6 +128,7 @@ class LeagueMatch extends HTMLElement {
    */
   set isMobile(value) {
     this._isMobile = !!value;
+    this.setAttribute('is-mobile', this._isMobile);
     this.render();
   }
   get isMobile() { return this._isMobile; }
@@ -160,7 +145,7 @@ class LeagueMatch extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) return;
     if (name === 'open') this._open = newValue !== null && newValue !== 'false';
-    if (name === 'isMobile') this._isMobile = newValue !== null && newValue !== 'false';
+    if (name === 'is-mobile') this._isMobile = newValue !== null && newValue !== 'false';
     if (name === 'mode') this._mode = newValue === 'edit' ? 'edit' : 'new';
     this.render();
   }
@@ -289,127 +274,137 @@ class LeagueMatch extends HTMLElement {
   }
 
   render() {
-    if (!this._open) {
-      this.shadowRoot.innerHTML = '';
-      return;
-    }
-    const isMobile = this._isMobile;
-    const match = this._match || {};
-    const teams = this._teams || [];
-    const mode = this._mode;
-    const error = this._error;
-    // Pre-fill values
-    const dateVal = match.date ? new Date(match.date).toISOString().slice(0,10) : '';
-    const homeTeamVal = match.homeTeamName || '';
-    const awayTeamVal = match.awayTeamName || '';
-    const homeShotsVal = match.result && typeof match.result.homeScore === 'number' ? match.result.homeScore : '';
-    const awayShotsVal = match.result && typeof match.result.awayScore === 'number' ? match.result.awayScore : '';
+    // Determine if host itself should act as overlay or if it contains an overlay div.
+    // For this example, host itself will be the overlay when open.
+    // The actual dialog box will be modal-shared-content.
 
-    // Build team options for Home Team dropdown
-    const homeTeamOptions = ['<option value="">-- Select Team --</option>']
-      .concat(teams.map(t => 
-        `<option value="${this._escapeHtml(t)}" ${t === homeTeamVal ? 'selected' : ''} ${t === awayTeamVal ? 'disabled' : ''}>${this._escapeHtml(t)}</option>`
-      )).join('');
+    const title = this._mode === 'edit' ? 'Edit Match' : 'Add Match';
+    const homeTeamName = this._match?.homeTeamName || '';
+    const awayTeamName = this._match?.awayTeamName || '';
+    const matchDate = this._match?.date ? new Date(this._match.date).toISOString().split('T')[0] : '';
+    const homeScore = this._match?.result?.homeScore !== undefined && this._match?.result?.homeScore !== null ? this._match.result.homeScore : '';
+    const awayScore = this._match?.result?.awayScore !== undefined && this._match?.result?.awayScore !== null ? this._match.result.awayScore : '';
+    const isPlayed = this._match?.result?.played !== undefined ? this._match.result.played : (homeScore !== '' || awayScore !== '');
 
-    // Build team options for Away Team dropdown
-    const awayTeamOptions = ['<option value="">-- Select Team --</option>']
-      .concat(teams.map(t => 
-        `<option value="${this._escapeHtml(t)}" ${t === awayTeamVal ? 'selected' : ''} ${t === homeTeamVal ? 'disabled' : ''}>${this._escapeHtml(t)}</option>`
-      )).join('');
+    const teamOptions = this._teams.map(team => 
+        `<option value="${this._escapeHtml(team)}" ?selected="${team === homeTeamName || team === awayTeamName}">${this._escapeHtml(team)}</option>`
+    ).join('');
 
-    // Modal HTML
-    this.shadowRoot.innerHTML = `
-      <style>${LeagueMatch.BASE_STYLES}</style>
-      <div class="modal-overlay" role="dialog" aria-modal="true">
-        <div class="modal" tabindex="-1">
-          <div class="modal-header">${mode === 'edit' ? 'Edit Match' : 'Add Match'}</div>
-          <form class="modal-body" autocomplete="off">
-            ${error ? `<div class="error">${this._escapeHtml(error)}</div>` : ''}
-            <div class="form-group">
-              <label for="match-date">Date</label>
-              <input type="date" id="match-date" name="date" value="${dateVal}" required />
-            </div>
-            <div class="form-group">
-              <label for="match-home">Home Team</label>
-              <select id="match-home" name="homeTeam" required>${homeTeamOptions}</select>
-            </div>
-            <div class="form-group">
-              <label for="match-away">Away Team</label>
-              <select id="match-away" name="awayTeam" required>${awayTeamOptions}</select>
-            </div>
-            <div class="form-group">
-              <label for="match-home-shots">Home Shots</label>
-              <input type="number" id="match-home-shots" name="homeShots" min="0" value="${homeShotsVal}" />
-            </div>
-            <div class="form-group">
-              <label for="match-away-shots">Away Shots</label>
-              <input type="number" id="match-away-shots" name="awayShots" min="0" value="${awayShotsVal}" />
-            </div>
-          </form>
-          <div class="modal-footer">
-            <button type="button" id="cancel-btn">Cancel</button>
-            <button type="button" id="ok-btn">OK</button>
+    this.shadow.innerHTML = `
+      <style>
+        ${LeagueMatch.BASE_STYLES}
+      </style>
+      <div class="modal-shared-content" role="dialog" aria-labelledby="match-modal-title" aria-modal="true">
+        <div class="modal-shared-header">
+          <span id="match-modal-title">${title}</span>
+          <button class="close-button-shared" id="close-match-modal" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="modal-shared-body">
+          <div id="error-message-match-modal" style="display: none;"></div>
+          <div class="form-group-shared">
+            <label for="homeTeam" class="form-label-shared">Home Team</label>
+            <select id="homeTeam" class="form-select-shared">
+              <option value="">Select Home Team</option>
+              ${this._teams.map(team => `<option value="${this._escapeHtml(team)}" ${team === homeTeamName ? 'selected' : ''}>${this._escapeHtml(team)}</option>`).join('')}
+            </select>
           </div>
+          <div class="form-group-shared">
+            <label for="awayTeam" class="form-label-shared">Away Team</label>
+            <select id="awayTeam" class="form-select-shared">
+              <option value="">Select Away Team</option>
+              ${this._teams.map(team => `<option value="${this._escapeHtml(team)}" ${team === awayTeamName ? 'selected' : ''}>${this._escapeHtml(team)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group-shared">
+            <label for="matchDate" class="form-label-shared">Date</label>
+            <input type="date" id="matchDate" class="form-input-shared" value="${matchDate}">
+          </div>
+          <div class="form-group-shared">
+            <label class="form-checkbox-label-shared">
+              <input type="checkbox" id="isPlayed" ${isPlayed ? 'checked' : ''}>
+              Match Played?
+            </label>
+          </div>
+          <div class="form-group-shared score-inputs-container" style="display: ${isPlayed ? 'block' : 'none'};">
+            <label class="form-label-shared">Score</label> <!-- This label might need specific styling if it's for the group -->
+            <div class="score-inputs">
+              <input type="number" id="homeScore" class="form-input-shared" placeholder="Home" value="${homeScore}" aria-label="Home team score">
+              <span>-</span>
+              <input type="number" id="awayScore" class="form-input-shared" placeholder="Away" value="${awayScore}" aria-label="Away team score">
+            </div>
+          </div>
+        </div>
+        <div class="modal-shared-footer">
+          <button id="ok-button" class="button-shared">OK</button>
+          <button id="cancel-button" class="button-shared">Cancel</button>
         </div>
       </div>
     `;
+
     // Event listeners
-    this.shadowRoot.getElementById('ok-btn').onclick = () => this._onOk();
-    this.shadowRoot.getElementById('cancel-btn').onclick = () => this._onCancel();
-    // Dynamic update for disabled options on change
-    const homeSelect = this.shadowRoot.getElementById('match-home');
-    const awaySelect = this.shadowRoot.getElementById('match-away');
-    homeSelect.addEventListener('change', () => this._updateDisabledOptions(homeSelect, awaySelect));
-    awaySelect.addEventListener('change', () => this._updateDisabledOptions(awaySelect, homeSelect));
+    this.shadow.querySelector('#ok-button').addEventListener('click', () => this._onOk());
+    this.shadow.querySelector('#cancel-button').addEventListener('click', () => this._onCancel());
+    this.shadow.querySelector('#close-match-modal').addEventListener('click', () => this._onCancel());
     
-    // Add input event listeners for shot fields for live logging
-    const homeShotsInputEl = this.shadowRoot.getElementById('match-home-shots');
-    const awayShotsInputEl = this.shadowRoot.getElementById('match-away-shots');
+    const homeTeamSelect = this.shadow.querySelector('#homeTeam');
+    const awayTeamSelect = this.shadow.querySelector('#awayTeam');
+    homeTeamSelect.addEventListener('change', () => this._updateDisabledOptions(homeTeamSelect, awayTeamSelect));
+    awayTeamSelect.addEventListener('change', () => this._updateDisabledOptions(awayTeamSelect, homeTeamSelect));
+    this._updateDisabledOptions(homeTeamSelect, awayTeamSelect); // Initial sync
 
-    if (homeShotsInputEl) {
-        homeShotsInputEl.addEventListener('input', (e) => {
-            console.log('[LeagueMatch homeShots INPUT]', e.target.value);
-        });
-    }
-    if (awayShotsInputEl) {
-        awayShotsInputEl.addEventListener('input', (e) => {
-            console.log('[LeagueMatch awayShots INPUT]', e.target.value);
-        });
-    }
+    const isPlayedCheckbox = this.shadow.querySelector('#isPlayed');
+    const scoreInputsContainer = this.shadow.querySelector('.score-inputs-container');
+    isPlayedCheckbox.addEventListener('change', (e) => {
+      scoreInputsContainer.style.display = e.target.checked ? 'block' : 'none';
+      if (!e.target.checked) {
+        this.shadow.querySelector('#homeScore').value = '';
+        this.shadow.querySelector('#awayScore').value = '';
+      }
+    });
+  }
 
-    // Trap focus inside modal
-    this._trapFocus();
+  _onKeydown(e) {
+    if (!this._open) return;
+
+    const focusableElements = Array.from(this.shadowRoot.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null && !el.disabled);
+
+    if (focusableElements.length === 0) return;
+
+    const firstFocusableElement = focusableElements[0];
+    const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+    if (e.key === 'Tab') {
+      if (e.shiftKey) { // Shift + Tab
+        if (this.shadowRoot.activeElement === firstFocusableElement) {
+          e.preventDefault();
+          lastFocusableElement.focus();
+        }
+      } else { // Tab
+        if (this.shadowRoot.activeElement === lastFocusableElement) {
+          e.preventDefault();
+          firstFocusableElement.focus();
+        }
+      }
+    } else if (e.key === 'Escape') {
+      this._onCancel();
+    }
   }
 
   _escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  _trapFocus() {
-    // Trap focus inside modal for accessibility
-    const focusable = this.shadowRoot.querySelectorAll('button, [tabindex]:not([tabindex="-1"]), input, select');
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    this.shadowRoot.addEventListener('keydown', e => {
-      if (e.key === 'Tab') {
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      } else if (e.key === 'Escape') {
-        this._onCancel();
-      }
-    });
-    // Focus first input
-    setTimeout(() => { first.focus(); }, 0);
+  _focusFirstElement() {
+    if (!this._open) return;
+    const focusableElements = Array.from(this.shadowRoot.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null && !el.disabled);
+    
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
   }
 
   _updateDisabledOptions(changedSelect, otherSelect) {
