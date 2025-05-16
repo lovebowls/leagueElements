@@ -23,7 +23,8 @@ const globals = {
   'wix-location': 'wixLocation',
   'wix-data': 'wixData',
   'wix-http-functions': 'wixHttpFunctions',
-  '@js-temporal/polyfill': 'temporal'
+  '@js-temporal/polyfill': 'temporal',
+  'jsbi': 'JSBI'
 };
 
 // Define external modules - those that won't be bundled
@@ -38,10 +39,7 @@ const externals = [
 const getPlugins = () => [
   nodeResolve({
     browser: true,
-    preferBuiltins: false,
-    // Don't exclude node_modules - this allows @js-temporal/polyfill to be bundled
-    // while the externals array will still exclude the specified external modules
-    dedupe: ['@js-temporal/polyfill']
+    preferBuiltins: false
   }),
   typescript({
     tsconfig: false, // Don't use the tsconfig file directly
@@ -55,7 +53,7 @@ const getPlugins = () => [
   }),
   babel({
     babelHelpers: 'bundled',
-    exclude: ['node_modules/**', '!**/node_modules/@js-temporal/**'], // Exclude all node_modules except @js-temporal
+    exclude: 'node_modules/**', // Exclude all node_modules
     presets: [
       ['@babel/preset-env', {
         targets: {
@@ -78,7 +76,7 @@ const elementConfigs = elements.map(element => ({
     globals
   },
   plugins: getPlugins(),
-  external: externals
+  external: [...externals, '@js-temporal/polyfill', 'jsbi']
 }));
 
 // Add the bundle configuration
@@ -92,7 +90,7 @@ const bundleConfig = {
     globals
   },
   plugins: getPlugins(),
-  external: externals
+  external: [...externals, '@js-temporal/polyfill', 'jsbi']
 };
 
 // Export both configurations
