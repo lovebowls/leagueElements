@@ -337,12 +337,14 @@ class LeagueMatchesUpcoming extends HTMLElement {
       };
     }
     const matchLinks = this.shadow.querySelectorAll('.match-link');
+    console.log('[LeagueMatchesUpcoming] Number of .match-link elements:', matchLinks.length);
     matchLinks.forEach(link => {
       link.onclick = (e) => {
         e.preventDefault();
         const matchKey = link.dataset.matchKey;
         const match = this.matches.find(m => m.key === matchKey);
         if (match) {
+          console.log('[LeagueMatchesUpcoming] Dispatching matchClick event for match:', match);
           this.dispatchEvent(new LeagueMatchesUpcomingEvent({
             type: 'matchClick',
             match: match

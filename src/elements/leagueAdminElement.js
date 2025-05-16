@@ -148,41 +148,41 @@ class LeagueAdminElement extends HTMLElement {
       }
       .column-leagues .panel-header-shared .action-buttons { /* For New/Copy buttons in Leagues header */
         display: flex; /* Ensure buttons are in a row */
-        align-items: center; /* ADDED for vertical alignment of buttons */
+        align-items: center;
         justify-content: flex-end; /* Align these buttons to the right */
         gap: var(--lae-padding-s); /* Space between New/Copy */
         margin-left: auto; /* Push this container to the right of "Leagues" text */
       }
       .league-list-item {
-        padding: var(--lae-padding-s) var(--lae-padding-xs); 
+        padding: var(--lae-padding-s) var(--lae-padding-xs);
         /* flex-wrap: wrap; REMOVE - we want items on one line if possible */
-        display: flex; /* ADDED */
-        flex-direction: row; /* ADDED */
-        justify-content: space-between; /* ADDED */
-        align-items: center; /* ADDED */
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
         border-bottom: 1px solid var(--lae-border-color-light); /* Keep border */
       }
       .league-list-item:last-child {
         border-bottom: none;
       }
       .league-name-text {
-        font-size: var(--lae-font-size-medium); 
+        font-size: var(--lae-font-size-medium);
         /* margin-bottom: var(--lae-padding-xs); REMOVE - no longer needed if side-by-side */
         /* flex-basis: 100%; REMOVE - allow it to size naturally / grow */
         flex-grow: 1; /* Allow name to take available space */
         margin-right: var(--lae-padding-s); /* Space before buttons */
-        pointer-events: none; /* ADDED: Allow clicks to pass through to parent li */
+        pointer-events: none;
       }
       .league-item-actions-container { /* For View Table/Actions on selected league */
         /* flex-basis: 100%; REMOVE - not needed if side-by-side */
         display: flex;
-        justify-content: flex-end; 
-        gap: var(--lae-padding-s); 
+        justify-content: flex-end;
+        gap: var(--lae-padding-s);
         /* margin-top: var(--lae-padding-xs); REMOVE - not needed if side-by-side */
         flex-shrink: 0; /* Prevent button container from shrinking */
       }
-      .league-list-item.selected { /* ADDED for mobile selection highlight */
-        background-color: var(--lae-background-color-selected-item, #e9eff7); 
+      .league-list-item.selected {
+        background-color: var(--lae-background-color-selected-item, #e9eff7);
         font-weight: bold;
       }
       .league-list-item.selected .league-name-text {
@@ -248,11 +248,11 @@ class LeagueAdminElement extends HTMLElement {
       }
       .modal-header { /* Uses .panel-header-shared in template but has overrides */
         /* padding, border-bottom, font-weight potentially from .panel-header-shared */
-        background-color: var(--lae-background-color-modal-header); /* MODAL SPECIFIC background */
+        background-color: var(--lae-background-color-modal-header);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: var(--lae-font-size-large); /* MODAL SPECIFIC font size */
+        font-size: var(--lae-font-size-large);
          /* Ensure shared padding is applied if not overridden by specificity */
         padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
         border-bottom: 1px solid var(--le-border-color-medium, #eee);
@@ -378,21 +378,21 @@ class LeagueAdminElement extends HTMLElement {
       .dropdown {
         position: relative;
         display: inline-block;
-        z-index: 2; /* ADDED */
+        z-index: 2;
       }
       .dropdown-content {
         display: none;
         position: absolute;
         background-color: var(--lae-background-color-panel, #f9f9f9);
         /* min-width: 160px; REMOVED */
-        min-width: auto; /* ADDED */
-        width: fit-content; /* ADDED */
+        min-width: auto;
+        width: fit-content;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 100; 
+        z-index: 100;
         border-radius: var(--lae-border-radius-standard);
         border: 1px solid var(--lae-border-color-medium);
-        top: 100%; /* ADDED */
-        right: 0;  /* ADDED */
+        top: 100%;
+        right: 0;
       }
       .dropdown-content button { /* Assuming these are also to be styled as shared buttons or a variant */
         color: var(--lae-text-color-primary, black);
@@ -409,7 +409,7 @@ class LeagueAdminElement extends HTMLElement {
       .dropdown-content button:hover {
         background-color: var(--lae-background-color-button-hover, #f1f1f1);
       }
-      .dropdown.show .dropdown-content { /* MODIFIED: Changed .active to .show */
+      .dropdown.show .dropdown-content {
         display: block;
       }
       #admin-matches-attention-container league-matches-attention {
@@ -717,14 +717,7 @@ class LeagueAdminElement extends HTMLElement {
           <div class="header">
       <div id="main-title">League Administration</div>
       <div class="header-actions">
-        <button id="reset-league-button" class="button-shared" title="Reset to No League Selected" aria-label="Reset to No League Selected" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
-                <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
-            </svg>
-            <span class="sr-only">Reset League Selection</span>
-        </button>
-          </div>
+      </div>
             </div>
             
     <div id="error-message" class="error" style="display: none;"></div>
@@ -733,14 +726,14 @@ class LeagueAdminElement extends HTMLElement {
       <div class="columns">
         <div class="column column-leagues">
           <div class="panel">
-            <div class="panel-header panel-header-shared"> <!-- MODIFIED: ADDED .panel-header-shared -->
+            <div class="panel-header panel-header-shared">
               <span>Leagues</span>
               <div class="action-buttons"> 
-                <button id="new-league-button" class="button-shared">New</button> <!-- MODIFIED: ADDED .button-shared -->
-                <button id="copy-league-button" class="button-shared" disabled>Copy</button> <!-- MODIFIED: ADDED .button-shared -->
+                <button id="new-league-button" class="button-shared">New</button>
+                <button id="copy-league-button" class="button-shared" disabled>Copy</button>
             </div>
           </div>
-            <div class="league-list-container panel-content panel-content-shared"> <!-- MODIFIED: ADDED .panel-content-shared -->
+            <div class="league-list-container panel-content panel-content-shared">
               <ul class="league-list" id="league-list-ul"></ul>
             </div>
           </div>
@@ -793,16 +786,16 @@ class LeagueAdminElement extends HTMLElement {
       </div>
       
     <!-- Modal for New/Edit League -->
-    <div id="league-modal" class="modal-shared-overlay"> <!-- MODIFIED CLASS -->
-        <div class="modal-shared-content"> <!-- MODIFIED CLASS -->
-        <div class="modal-shared-header"> <!-- MODIFIED CLASS - panel-header-shared might be redundant or combined -->
+    <div id="league-modal" class="modal-shared-overlay">
+        <div class="modal-shared-content">
+        <div class="modal-shared-header">
           <span id="league-modal-title">New League</span>
-          <span class="close-button close-button-shared" id="close-league-modal">&times;</span> <!-- ADDED close-button-shared -->
+          <span class="close-button close-button-shared" id="close-league-modal">&times;</span>
           </div>
-        <div class="modal-shared-body" id="league-modal-body"> <!-- MODIFIED CLASS -->
+        <div class="modal-shared-body" id="league-modal-body">
           <!-- Form content will be injected here by JS -->
           </div>
-          <div class="modal-shared-footer"> <!-- MODIFIED CLASS -->
+          <div class="modal-shared-footer">
           <button id="save-league-button" class="button-shared">Save</button>
           <button id="cancel-league-button" class="button-shared">Cancel</button>
           </div>
@@ -810,16 +803,16 @@ class LeagueAdminElement extends HTMLElement {
       </div>
       
     <!-- Modal for New/Edit Team -->
-    <div id="team-modal" class="modal-shared-overlay"> <!-- MODIFIED CLASS -->
-        <div class="modal-shared-content"> <!-- MODIFIED CLASS -->
-            <div class="modal-shared-header"> <!-- MODIFIED CLASS -->
+    <div id="team-modal" class="modal-shared-overlay">
+        <div class="modal-shared-content">
+            <div class="modal-shared-header">
                 <span id="team-modal-title">Add Team</span>
-                <span class="close-button close-button-shared" id="close-team-modal">&times;</span> <!-- ADDED close-button-shared -->
+                <span class="close-button close-button-shared" id="close-team-modal">&times;</span>
           </div>
-            <div class="modal-shared-body" id="team-modal-body"> <!-- MODIFIED CLASS -->
+            <div class="modal-shared-body" id="team-modal-body">
                 <!-- Form content will be injected by JS -->
           </div>
-          <div class="modal-shared-footer"> <!-- MODIFIED CLASS -->
+          <div class="modal-shared-footer">
                 <button id="save-team-button" class="button-shared">Save</button>
                 <button id="cancel-team-button" class="button-shared">Cancel</button>
           </div>
@@ -974,19 +967,21 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   showError(message) {
-    const errorContainer = this.shadow.querySelector('#errorContainer');
-    if (errorContainer) {
-      errorContainer.innerHTML = `<div class="error">${message}</div>`;
+    const errorElement = this.shadow.querySelector('#error-message');
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
     } else {
       // Fallback if container not ready, though render should ensure it is.
-      console.error("Error container not found in shadow DOM. Message:", message);
+      console.error("Error element not found in shadow DOM. Message:", message);
     }
   }
 
   clearError() {
-    const errorContainer = this.shadow.querySelector('#errorContainer');
-    if (errorContainer) {
-      errorContainer.innerHTML = '';
+    const errorElement = this.shadow.querySelector('#error-message');
+    if (errorElement) {
+      errorElement.textContent = '';
+      errorElement.style.display = 'none';
     }
   }
 
@@ -1118,16 +1113,15 @@ class LeagueAdminElement extends HTMLElement {
 
     this._leagues.forEach(league => {
       const li = document.createElement('li');
-      li.classList.add('league-list-item', 'list-item-shared'); // MODIFIED: ADDED .list-item-shared
+      li.classList.add('league-list-item', 'list-item-shared');
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('league-name-text', 'list-item-text-primary'); // MODIFIED: ADDED .list-item-text-primary
+      nameSpan.classList.add('league-name-text', 'list-item-text-primary');
       nameSpan.textContent = league.name || 'Unnamed League';
       li.appendChild(nameSpan);
 
       const actionsContainer = document.createElement('div');
-      // MODIFIED: ADDED .list-item-actions - specific styling in leagueAdminElement for this container might still be needed if it deviates beyond flex end.
-      actionsContainer.classList.add('league-item-actions-container', 'list-item-actions'); 
+      actionsContainer.classList.add('league-item-actions-container', 'list-item-actions');
       li.appendChild(actionsContainer);
       
       const leagueId = league._id || league.name; // Prefer _id
@@ -1255,16 +1249,16 @@ class LeagueAdminElement extends HTMLElement {
     
     teams.forEach(team => {
       const li = document.createElement('li');
-      li.classList.add('team-item', 'list-item-shared'); // MODIFIED: ADDED .list-item-shared
+      li.classList.add('team-item', 'list-item-shared');
       li.dataset.teamName = team.name; 
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('team-name', 'list-item-text-primary'); // MODIFIED: ADDED .list-item-text-primary
+      nameSpan.classList.add('team-name', 'list-item-text-primary');
       nameSpan.textContent = team.name || 'Unnamed Team';
       li.appendChild(nameSpan);
       
       const actionsDiv = document.createElement('div');
-      actionsDiv.classList.add('team-actions', 'list-item-actions'); // MODIFIED: ADDED .list-item-actions
+      actionsDiv.classList.add('team-actions', 'list-item-actions');
       li.appendChild(actionsDiv);
 
       // Add click listener to the list item itself
@@ -1279,9 +1273,9 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _updateButtonStates() {
-    const btnCopy = this.shadow.querySelector('#btnCopy');
-    const btnUpdate = this.shadow.querySelector('#btnUpdate');
-    const btnDelete = this.shadow.querySelector('#btnDelete');
+    const btnCopy = this.shadow.querySelector('#copy-league-button');
+    const btnUpdate = this.shadow.querySelector('#update-league-button');
+    const btnDelete = this.shadow.querySelector('#delete-league-button');
 
     const isLeagueSelected = !!this._selectedLeagueId;
 
@@ -1306,7 +1300,7 @@ class LeagueAdminElement extends HTMLElement {
     
     if (btnCloseModal) btnCloseModal.addEventListener('click', () => this._hideModal());
     if (btnCancelModal) btnCancelModal.addEventListener('click', () => this._hideModal());
-    if (btnSaveModal) btnSaveModal.addEventListener('click', () => this._handleSaveLeagueModal());
+    if (btnSaveModal) btnSaveModal.addEventListener('click', () => this._handleSaveModal());
     
     // Event listeners for View Table, Actions dropdown, and Reset League are now attached dynamically 
     // in _createAndAppendLeagueActions when a league item is selected, because these elements
@@ -1426,9 +1420,9 @@ class LeagueAdminElement extends HTMLElement {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
     
-    const modal = this.shadow.querySelector('#teamModal');
-    const modalTitle = this.shadow.querySelector('#teamModalTitle');
-    const modalBody = this.shadow.querySelector('#teamModalBody');
+    const modal = this.shadow.querySelector('#team-modal');
+    const modalTitle = this.shadow.querySelector('#team-modal-title');
+    const modalBody = this.shadow.querySelector('#team-modal-body');
     
     if (!modal || !modalTitle || !modalBody) return;
     
@@ -1457,7 +1451,7 @@ class LeagueAdminElement extends HTMLElement {
   }
   
   _hideTeamModal() {
-    const modal = this.shadow.querySelector('#teamModal');
+    const modal = this.shadow.querySelector('#team-modal');
     if (modal) {
       modal.style.display = 'none';
     }
@@ -1468,23 +1462,15 @@ class LeagueAdminElement extends HTMLElement {
   
   _populateTeamModalForm(modalBody, teamData) {
     modalBody.innerHTML = `
-      <div class="form-group-shared"> <!-- MODIFIED CLASS -->
-        <label for="teamName" class="form-label-shared">Team Name</label> <!-- MODIFIED CLASS -->
-        <input type="text" id="teamName" class="form-input-shared" value="${teamData.name || ''}" required> <!-- MODIFIED CLASS -->
-      </div>
-      <div class="form-group-shared"> <!-- MODIFIED CLASS -->
-        <label for="teamContactName" class="form-label-shared">Contact Name (optional)</label> <!-- MODIFIED CLASS -->
-        <input type="text" id="teamContactName" class="form-input-shared" value="${teamData.contactName || ''}"> <!-- MODIFIED CLASS -->
-      </div>
-      <div class="form-group-shared"> <!-- MODIFIED CLASS -->
-        <label for="teamContactEmail" class="form-label-shared">Contact Email (optional)</label> <!-- MODIFIED CLASS -->
-        <input type="text" id="teamContactEmail" class="form-input-shared" value="${teamData.contactEmail || ''}"> <!-- MODIFIED CLASS -->
+      <div class="form-group-shared">
+        <label for="teamName" class="form-label-shared">Team Name</label>
+        <input type="text" id="teamName" class="form-input-shared" value="${teamData.name || ''}" required>
       </div>
     `;
   }
   
   _handleSaveTeamModal() {
-    const modalBody = this.shadow.querySelector('#teamModalBody');
+    const modalBody = this.shadow.querySelector('#team-modal-body');
     const teamNameInput = modalBody.querySelector('#teamName');
     
     if (!teamNameInput || !teamNameInput.value.trim()) {
@@ -1493,9 +1479,7 @@ class LeagueAdminElement extends HTMLElement {
     }
     
     const teamData = {
-      name: teamNameInput.value.trim(),
-      contactName: modalBody.querySelector('#teamContactName').value.trim(),
-      contactEmail: modalBody.querySelector('#teamContactEmail').value.trim()
+      name: teamNameInput.value.trim()
     };
     
     // Preserve ID if editing
@@ -1965,10 +1949,10 @@ class LeagueAdminElement extends HTMLElement {
     globalMenu.innerHTML = ''; // Clear previous items
 
     const actions = [
-      { label: 'View Table', handler: () => this._handleViewLeagueTable() },
-      { label: 'Edit Rules', handler: () => this._handleEditLeagueRules() },
-      { label: 'Delete League', handler: () => this._handleDeleteLeague() },
-      { label: 'Reset League', handler: () => this._handleResetLeague() },
+      { label: 'View..', handler: () => this._handleViewLeagueTable() },
+      { label: 'Edit..', handler: () => this._handleEditLeagueRules() },
+      { label: 'Delete..', handler: () => this._handleDeleteLeague() },
+      { label: 'Reset..', handler: () => this._handleResetLeague() },
     ];
 
     actions.forEach(action => {

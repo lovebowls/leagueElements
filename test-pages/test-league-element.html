@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <title>Test league-element</title>
   <!-- Load our bundled Temporal polyfill first -->
-  <script src="../dist/browser/temporal-polyfill.js"></script>
+  <script>
+    if (!window.Temporal && !window.temporal) {
+      console.log("Loading Temporal from CDN as fallback");
+    }
+  </script>
   <!-- Fall back to CDN if our bundled version is not available -->
   <script>
     if (!window.Temporal && !window.temporal) {
@@ -28,7 +32,7 @@
 </head>
 <body>
   <h1>Test: &lt;league-element&gt;</h1>
-  <league-element id="test-league" data='{"_id":"league1","name":"Spring Bowls League","settings":{"pointsForWin":2,"pointsForDraw":1,"pointsForLoss":0,"timesTeamsPlayOther":2,"rinkPoints":{"pointsPerRinkWin":1,"pointsPerRinkDraw":0.5,"defaultRinks":4,"enabled":true}},"teams":[{"name":"Team A"},{"name":"Team B"},{"name":"Team C"}],"matches":[{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}],"table":{"leagueData":[{"teamName":"Team A"},{"teamName":"Team B"},{"teamName":"Team C"}],"metaData":{"promotionPlaces":1,"relegationPlaces":1}},"createdAt":"2025-01-01T12:00:00Z","updatedAt":"2025-05-01T12:00:00Z"}'></league-element>
+  <league-element id="test-league" data='{"_id":"league1","name":"Spring Bowls League","settings":{"pointsForWin":2,"pointsForDraw":1,"pointsForLoss":0,"timesTeamsPlayOther":2,"rinkPoints":{"pointsPerRinkWin":1,"pointsPerRinkDraw":0.5,"defaultRinks":4,"enabled":true}},"teams":[{"name":"Team A"},{"name":"Team B"},{"name":"Team C"}],"matches":[{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-25","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}],"table":{"leagueData":[{"teamName":"Team A"},{"teamName":"Team B"},{"teamName":"Team C"}],"metaData":{"promotionPlaces":1,"relegationPlaces":1}},"createdAt":"2025-01-01T12:00:00Z","updatedAt":"2025-05-01T12:00:00Z"}'></league-element>
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../src/elements/leagueElement.js';

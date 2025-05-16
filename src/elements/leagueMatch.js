@@ -77,6 +77,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     this._match = null;
     this._teams = [];
     this._open = false;
+    console.log('[LeagueMatch] constructor, _open initialized to:', this._open);
     this._isMobile = false;
     this._mode = 'new';
     this._error = '';
@@ -109,19 +110,23 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   set open(value) {
     const Rerender = this._open !== !!value;
     this._open = !!value;
+    console.log('[LeagueMatch] set open property. New _open value:', this._open, 'Rerender needed:', Rerender);
+    this.setAttribute('open', this._open.toString());
     if (Rerender) {
-        this.render(); // Render first to ensure elements are in shadow DOM
+        this.render();
     }
 
     if (this._open) {
       this.shadowRoot.addEventListener('keydown', this._boundOnKeydown);
-      // Focus the first element after a brief delay to ensure it's focusable
       setTimeout(() => this._focusFirstElement(), 0);
     } else {
       this.shadowRoot.removeEventListener('keydown', this._boundOnKeydown);
     }
   }
-  get open() { return this._open; }
+  get open() {
+    console.log('[LeagueMatch] get open property, returning:', this._open);
+    return this._open;
+  }
 
   /**
    * @param {boolean} value
@@ -143,11 +148,30 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   get mode() { return this._mode; }
 
   attributeChangedCallback(name, oldValue, newValue) {
+    console.log(`[LeagueMatch] attributeChangedCallback: ${name} changed from ${oldValue} to ${newValue}`);
     if (oldValue === newValue) return;
-    if (name === 'open') this._open = newValue !== null && newValue !== 'false';
-    if (name === 'is-mobile') this._isMobile = newValue !== null && newValue !== 'false';
-    if (name === 'mode') this._mode = newValue === 'edit' ? 'edit' : 'new';
-    this.render();
+
+    let shouldRender = false;
+    if (name === 'open') {
+      const newOpenState = newValue !== null && newValue !== 'false';
+      if (this._open !== newOpenState) {
+        this._open = newOpenState;
+        console.log('[LeagueMatch] attributeChangedCallback for open. New _open value:', this._open);
+        shouldRender = true; 
+      }
+    }
+    if (name === 'is-mobile') {
+      this._isMobile = newValue !== null && newValue !== 'false';
+      shouldRender = true;
+    }
+    if (name === 'mode') {
+      this._mode = newValue === 'edit' ? 'edit' : 'new';
+      shouldRender = true;
+    }
+    
+    if (shouldRender) {
+      this.render();
+    }
   }
 
   connectedCallback() {
@@ -274,6 +298,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   }
 
   render() {
+    console.log('[LeagueMatch] render() called. Current _open state:', this._open);
     // Determine if host itself should act as overlay or if it contains an overlay div.
     // For this example, host itself will be the overlay when open.
     // The actual dialog box will be modal-shared-content.
@@ -294,7 +319,11 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       <style>
         ${LeagueMatch.BASE_STYLES}
       </style>
-      <div class="modal-shared-content" role="dialog" aria-labelledby="match-modal-title" aria-modal="true">
+      <div class="modal-shared-content ${this._open ? 'modal-is-open' : 'modal-is-closed'}" 
+           role="dialog" 
+           aria-labelledby="match-modal-title" 
+           aria-modal="true"
+           style="display: ${this._open ? 'flex' : 'none'};">
         <div class="modal-shared-header">
           <span id="match-modal-title">${title}</span>
           <button class="close-button-shared" id="close-match-modal" aria-label="Close dialog">&times;</button>
@@ -361,6 +390,8 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         this.shadow.querySelector('#awayScore').value = '';
       }
     });
+
+    console.log('[LeagueMatch] render() finished. Host display style should be:', this.style.display);
   }
 
   _onKeydown(e) {

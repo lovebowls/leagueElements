@@ -32,11 +32,11 @@ class LeagueElement extends HTMLElement {
       ${buttonStyles}  /* ADDED SHARED STYLE */
       :host {
         display: block;
-        border: 1px solid var(--le-border-color-medium, #ccc); /* MODIFIED */
-        border-radius: var(--le-border-radius-standard, 4px); /* MODIFIED */
-        font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif); /* MODIFIED */
+        border: 1px solid var(--le-border-color-medium, #ccc); 
+        border-radius: var(--le-border-radius-standard, 4px); 
+        font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif); 
         box-sizing: border-box;
-        color: var(--le-text-color-primary, #333); /* MODIFIED */
+        color: var(--le-text-color-primary, #333); 
 
         /* THEME VARIABLES */
         --le-font-family-main: 'Open Sans', Helvetica, Arial, sans-serif;
@@ -103,22 +103,22 @@ class LeagueElement extends HTMLElement {
       }
       .title {
         font-weight: bold;
-        background: var(--le-background-color-header); /* MODIFIED */
-        border-bottom: 1px solid var(--le-border-color-medium); /* MODIFIED */
+        background: var(--le-background-color-header); 
+        border-bottom: 1px solid var(--le-border-color-medium); 
       }
       .settings-icon {
         cursor: pointer;
-        color: var(--le-text-color-secondary); /* MODIFIED */
+        color: var(--le-text-color-secondary); 
         margin-left: auto;
-        padding: var(--le-padding-m) var(--le-padding-m); /* MODIFIED */
+        padding: var(--le-padding-m) var(--le-padding-m); 
         transition: color 0.2s;
-        font-size: var(--le-font-size-large); /* MODIFIED */
+        font-size: var(--le-font-size-large); 
       }
       .settings-icon:hover {
-        color: var(--le-text-color-accent); /* MODIFIED */
+        color: var(--le-text-color-accent); 
       }
       .content {
-        color: var(--le-text-color-secondary); /* MODIFIED */
+        color: var(--le-text-color-secondary); 
         overflow-x: auto;
       }
       table {
@@ -127,15 +127,15 @@ class LeagueElement extends HTMLElement {
       }
       th, td {
         text-align: left;
-        border-bottom: 1px solid var(--le-border-color-medium); /* MODIFIED */
-        font-size: var(--le-font-size-base); /* MODIFIED */
+        border-bottom: 1px solid var(--le-border-color-medium); 
+        font-size: var(--le-font-size-base); 
       }
       th:not(:first-child),
       td:not(:first-child) {
         text-align: center;
       }
       th {
-        background-color: var(--le-table-header-background); /* MODIFIED */
+        background-color: var(--le-table-header-background); 
         position: sticky;
         top: 0;
       }
@@ -153,60 +153,60 @@ class LeagueElement extends HTMLElement {
         border: 0;
         box-sizing: border-box;
       }
-      .form-w { background-color: var(--le-form-color-w); } /* MODIFIED */
-      .form-d { background-color: var(--le-form-color-d); } /* MODIFIED */
-      .form-l { background-color: var(--le-form-color-l); } /* MODIFIED */
+      .form-w { background-color: var(--le-form-color-w); } 
+      .form-d { background-color: var(--le-form-color-d); } 
+      .form-l { background-color: var(--le-form-color-l); } 
 
       .error {
-        color: var(--le-text-color-error); /* MODIFIED */
-        padding: var(--le-padding-s); /* MODIFIED */
-        background-color: var(--le-background-color-error); /* MODIFIED */
-        border-radius: var(--le-border-radius-standard); /* MODIFIED */
+        color: var(--le-text-color-error); 
+        padding: var(--le-padding-s); 
+        background-color: var(--le-background-color-error); 
+        border-radius: var(--le-border-radius-standard); 
       }
       .match-link {
-        color: var(--le-text-color-accent); /* MODIFIED */
+        color: var(--le-text-color-accent); 
         text-decoration: none;
         transition: color 0.2s;
       }
       .match-link:hover {
-        color: var(--le-text-color-accent-hover); /* MODIFIED */
+        color: var(--le-text-color-accent-hover); 
         text-decoration: underline;
       }
       .match-item {
         padding: var(--le-padding-s); /* MODIFIED - Default/Desktop padding */
-        border-bottom: 1px solid var(--le-border-color-light); /* MODIFIED */
-        font-size: var(--le-font-size-base); /* MODIFIED */
+        border-bottom: 1px solid var(--le-border-color-light); 
+        font-size: var(--le-font-size-base); 
       }
       .match-item:last-child {
         border-bottom: none;
       }
       .match-date {
-        color: var(--le-text-color-secondary); /* MODIFIED */
+        color: var(--le-text-color-secondary); 
         font-size: var(--le-font-size-small); /* MODIFIED - Relative to parent */
-        margin-bottom: var(--le-padding-xs); /* MODIFIED */
+        margin-bottom: var(--le-padding-xs); 
       }
       /* Tab Styles */
       .tab-bar {
         display: flex;
-        border-bottom: 1px solid var(--le-border-color-medium); /* MODIFIED */
-        background-color: var(--le-background-color-header); /* MODIFIED */
+        border-bottom: 1px solid var(--le-border-color-medium); 
+        background-color: var(--le-background-color-header); 
       }
       .tab-button {
-        padding: var(--le-padding-s) var(--le-padding-l); /* MODIFIED */
+        padding: var(--le-padding-s) var(--le-padding-l); 
         cursor: pointer;
         border: none;
         background: none;
-        font-size: var(--le-font-size-medium); /* MODIFIED */
-        color: var(--le-tab-text-color); /* MODIFIED */
+        font-size: var(--le-font-size-medium); 
+        color: var(--le-tab-text-color); 
         border-bottom: 3px solid transparent;
         transition: color 0.2s, border-bottom-color 0.2s;
       }
       .tab-button:hover {
-        color: var(--le-tab-text-color-hover); /* MODIFIED */
+        color: var(--le-tab-text-color-hover); 
       }
       .tab-button.active {
-        color: var(--le-text-color-accent); /* MODIFIED */
-        border-bottom-color: var(--le-tab-border-color-active); /* MODIFIED */
+        color: var(--le-text-color-accent); 
+        border-bottom-color: var(--le-tab-border-color-active); 
         font-weight: bold;
       }
 
@@ -214,58 +214,58 @@ class LeagueElement extends HTMLElement {
       .matrix-container {
         overflow: auto; /* For scrolling */
         flex: 1; /* Take available space if parent is flex column */
-        padding: var(--le-padding-m); /* MODIFIED */
+        padding: var(--le-padding-m); 
       }
       .matrix-grid {
         display: grid;
-        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
+        border: 1px solid var(--le-border-color-dark); 
       }
       .matrix-cell {
-        border: 1px solid var(--le-border-color-light); /* MODIFIED */
+        border: 1px solid var(--le-border-color-light); 
         display: flex;
         align-items: center;
         justify-content: center;
         aspect-ratio: 1 / 1;
         position: relative;
-        font-size: var(--le-font-size-base); /* MODIFIED */
+        font-size: var(--le-font-size-base); 
         box-sizing: border-box;
       }
       .matrix-header-cell {
         font-weight: bold;
-        background-color: var(--le-background-color-header); /* MODIFIED */
+        background-color: var(--le-background-color-header); 
       }
       .matrix-team-name-x {
         transform: rotate(-45deg);
         white-space: nowrap;
-        font-size: var(--le-font-size-small); /* MODIFIED */
+        font-size: var(--le-font-size-small); 
         display: inline-block;
       }
       .matrix-team-name-y {
         text-align: right;
-        padding-right: var(--le-padding-s); /* MODIFIED */
-        font-size: var(--le-font-size-small); /* MODIFIED */
+        padding-right: var(--le-padding-s); 
+        font-size: var(--le-font-size-small); 
         width: 100%;
       }
       .matrix-cell-played { background-color: #e3f2fd; color: var(--le-text-color-accent-hover); } /* MODIFIED (minor adjustment) */
-      .matrix-cell-scheduled { background-color: var(--le-background-color-header); } /* MODIFIED */
-      .matrix-cell-none { background-color: var(--le-background-color-panel); } /* MODIFIED */
-      .matrix-cell-same-team { background-color: var(--le-border-color-light); } /* MODIFIED */
+      .matrix-cell-scheduled { background-color: var(--le-background-color-header); } 
+      .matrix-cell-none { background-color: var(--le-background-color-panel); } 
+      .matrix-cell-same-team { background-color: var(--le-border-color-light); } 
       .matrix-cell:hover {
         filter: brightness(0.95);
       }
       .matrix-score {
-        font-size: var(--le-font-size-base); /* MODIFIED */
+        font-size: var(--le-font-size-base); 
         font-weight: bold;
       }
 
       /* Tooltip Styles */
       .tooltip {
         position: absolute;
-        background-color: var(--le-background-color-tooltip); /* MODIFIED */
-        color: var(--le-text-color-on-primary); /* MODIFIED */
-        padding: var(--le-padding-xs) var(--le-padding-s); /* MODIFIED */
-        border-radius: var(--le-border-radius-small); /* MODIFIED */
-        font-size: var(--le-font-size-small); /* MODIFIED */
+        background-color: var(--le-background-color-tooltip); 
+        color: var(--le-text-color-on-primary); 
+        padding: var(--le-padding-xs) var(--le-padding-s); 
+        border-radius: var(--le-border-radius-small); 
+        font-size: var(--le-font-size-small); 
         white-space: nowrap;
         z-index: 10;
         visibility: hidden;
@@ -290,34 +290,34 @@ class LeagueElement extends HTMLElement {
       .trends-view-wrapper {
         display: flex;
         flex-direction: column;
-        padding: var(--le-padding-m); /* MODIFIED */
-        gap: var(--le-padding-m); /* MODIFIED */
+        padding: var(--le-padding-m); 
+        gap: var(--le-padding-m); 
         height: 100%;
         box-sizing: border-box;
       }
       .trends-controls {
         display: flex;
         align-items: center;
-        gap: var(--le-padding-s); /* MODIFIED */
-        margin-bottom: var(--le-padding-s); /* MODIFIED */
+        gap: var(--le-padding-s); 
+        margin-bottom: var(--le-padding-s); 
       }
       #graph-type-select {
-        padding: var(--le-padding-xs) var(--le-padding-s); /* MODIFIED */
-        border-radius: var(--le-border-radius-small); /* MODIFIED */
-        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
+        padding: var(--le-padding-xs) var(--le-padding-s); 
+        border-radius: var(--le-border-radius-small); 
+        border: 1px solid var(--le-border-color-dark); 
         font-size: calc(var(--le-font-size-small) * 1.1); /* MODIFIED for slight increase */
       }
       .trends-content-area {
         flex: 1; 
         display: flex;
         flex-direction: column; 
-        gap: var(--le-padding-m); /* MODIFIED */
+        gap: var(--le-padding-m); 
         min-height: 0; 
       }
       .trends-graph-area {
         flex: 1; 
-        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
-        border-radius: var(--le-border-radius-small); /* MODIFIED */
+        border: 1px solid var(--le-border-color-medium); 
+        border-radius: var(--le-border-radius-small); 
         overflow: hidden; 
         position: relative; 
       }
@@ -327,39 +327,39 @@ class LeagueElement extends HTMLElement {
         height: 100%;
       }
       .trends-graph-legend {
-        padding: var(--le-padding-s); /* MODIFIED */
-        border: 1px solid var(--le-border-color-light); /* MODIFIED */
-        border-radius: var(--le-border-radius-small); /* MODIFIED */
-        font-size: var(--le-font-size-small); /* MODIFIED */
+        padding: var(--le-padding-s); 
+        border: 1px solid var(--le-border-color-light); 
+        border-radius: var(--le-border-radius-small); 
+        font-size: var(--le-font-size-small); 
       }
       .trends-graph-legend .legend-item {
         display: flex;
         align-items: center;
-        margin-bottom: var(--le-padding-xs); /* MODIFIED */
+        margin-bottom: var(--le-padding-xs); 
       }
       .trends-graph-legend .legend-color-box {
         width: 12px;
         height: 12px;
-        margin-right: var(--le-padding-s); /* MODIFIED */
-        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
+        margin-right: var(--le-padding-s); 
+        border: 1px solid var(--le-border-color-dark); 
       }
 
       .trends-graph-area .axis path,
       .trends-graph-area .axis line {
         fill: none;
-        stroke: var(--le-text-color-secondary); /* MODIFIED */
+        stroke: var(--le-text-color-secondary); 
         shape-rendering: crispEdges;
       }
       .trends-graph-area .axis text {
         font-size: calc(var(--le-font-size-small) * 0.9); /* MODIFIED to be smaller */
-        fill: var(--le-text-color-primary); /* MODIFIED */
+        fill: var(--le-text-color-primary); 
       }
       .trends-graph-area .line {
         fill: none;
         stroke-width: 2px;
       }
       .trends-graph-area .grid-line {
-        stroke: var(--le-border-color-light); /* MODIFIED */
+        stroke: var(--le-border-color-light); 
         stroke-dasharray: 2,2;
         shape-rendering: crispEdges;
       }
@@ -371,16 +371,16 @@ class LeagueElement extends HTMLElement {
         align-items: center;
       }
       .table-view-filter {
-        padding: var(--le-padding-xs) var(--le-padding-s); /* MODIFIED */
-        border-radius: var(--le-border-radius-small); /* MODIFIED */
-        border: 1px solid var(--le-border-color-dark); /* MODIFIED */
-        font-size: var(--le-font-size-small); /* MODIFIED */
-        margin-left: var(--le-padding-m); /* MODIFIED */
-        background-color: var(--le-background-color-panel); /* MODIFIED */
+        padding: var(--le-padding-xs) var(--le-padding-s); 
+        border-radius: var(--le-border-radius-small); 
+        border: 1px solid var(--le-border-color-dark); 
+        font-size: var(--le-font-size-small); 
+        margin-left: var(--le-padding-m); 
+        background-color: var(--le-background-color-panel); 
         flex-shrink: 0; 
       }
-      .rank-up { color: var(--le-rank-up-color); } /* MODIFIED */
-      .rank-down { color: var(--le-rank-down-color); } /* MODIFIED */
+      .rank-up { color: var(--le-rank-up-color); } 
+      .rank-down { color: var(--le-rank-down-color); } 
 
       td.position-cell {
         text-align: left;
@@ -390,23 +390,23 @@ class LeagueElement extends HTMLElement {
       }
       .position-cell .rank-up,
       .position-cell .rank-down {
-        margin-left: var(--le-spacing-unit); /* MODIFIED */
+        margin-left: var(--le-spacing-unit); 
         display: inline-block;
       }
       .pos-cell-promotion {
-        background-color: var(--le-background-color-promotion); /* MODIFIED */
-        color: var(--le-text-color-on-primary); /* MODIFIED */
+        background-color: var(--le-background-color-promotion); 
+        color: var(--le-text-color-on-primary); 
         font-weight: bold;
       }
       .pos-cell-relegation {
-        background-color: var(--le-background-color-relegation); /* MODIFIED */
+        background-color: var(--le-background-color-relegation); 
         color: #721c24; /* Specific dark red, could be a variable too */
         font-weight: bold;
       }
       .pos-cell-default {
-        background-color: var(--le-background-color-default-pos); /* MODIFIED */
-        color: var(--le-text-color-primary); /* MODIFIED */
-        border: 1px solid var(--le-border-color-light); /* MODIFIED */
+        background-color: var(--le-background-color-default-pos); 
+        color: var(--le-text-color-primary); 
+        border: 1px solid var(--le-border-color-light); 
       }
     `;
   }
@@ -416,8 +416,8 @@ class LeagueElement extends HTMLElement {
     return `
       ${LeagueElement.BASE_STYLES}
       :host {
-        padding: var(--le-padding-s); /* MODIFIED */
-        background: var(--le-background-color-host); /* MODIFIED */
+        padding: var(--le-padding-s); 
+        background: var(--le-background-color-host); 
         border: none;
         border-radius: 0;
         /* Redefine font sizes for mobile if needed, or let em units scale from a potentially larger base */
@@ -426,7 +426,7 @@ class LeagueElement extends HTMLElement {
       .dashboard-mobile {
         display: flex;
         flex-direction: column;
-        gap: var(--le-padding-m); /* MODIFIED */
+        gap: var(--le-padding-m); 
       }
       .left-panel { /* In mobile, this is the main content container */
         border: none;
@@ -436,16 +436,16 @@ class LeagueElement extends HTMLElement {
         margin: 0;
       }
       .panel { /* This applies to upcoming, recent, attention panels in mobile */
-        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
-        border-radius: var(--le-border-radius-standard); /* MODIFIED */
-        background: var(--le-background-color-panel); /* MODIFIED */
-        padding: var(--le-padding-s); /* MODIFIED */
+        border: 1px solid var(--le-border-color-medium); 
+        border-radius: var(--le-border-radius-standard); 
+        background: var(--le-background-color-panel); 
+        padding: var(--le-padding-s); 
         margin: 0;
       }
       .title { /* Title within the left-panel (table/matrix/trends view) */
-        font-size: var(--le-font-size-large); /* MODIFIED */
-        margin-bottom: var(--le-padding-s); /* MODIFIED */
-        padding: var(--le-padding-s) 0 var(--le-padding-s) 0; /* MODIFIED */
+        font-size: var(--le-font-size-large); 
+        margin-bottom: var(--le-padding-s); 
+        padding: var(--le-padding-s) 0 var(--le-padding-s) 0; 
       }
       .settings-icon {
         font-size: var(--le-font-size-large); /* Match mobile title size */
@@ -460,7 +460,7 @@ class LeagueElement extends HTMLElement {
         border-collapse: collapse;
       }
       th, td {
-        padding: var(--le-padding-s); /* MODIFIED */
+        padding: var(--le-padding-s); 
         /* font-size inherited from BASE_STYLES using --le-font-size-base */
       }
       th:nth-child(3),
@@ -468,9 +468,9 @@ class LeagueElement extends HTMLElement {
         font-weight: bold;
       }
       .panel-header { /* Header within the right-side panels (Upcoming, Recent, Attention) */
-        font-size: var(--le-font-size-medium); /* MODIFIED */
-        margin-bottom: var(--le-padding-xs); /* MODIFIED */
-        color: var(--le-text-color-primary); /* MODIFIED */
+        font-size: var(--le-font-size-medium); 
+        margin-bottom: var(--le-padding-xs); 
+        color: var(--le-text-color-primary); 
       }
       .match-item { /* For items within Upcoming, Recent, Attention */
         padding: var(--le-padding-xs) var(--le-padding-xs); /* MODIFIED - Mobile specific padding */
@@ -493,59 +493,59 @@ class LeagueElement extends HTMLElement {
     return `
       ${LeagueElement.BASE_STYLES}
       :host {
-        padding: var(--le-padding-m); /* MODIFIED */
+        padding: var(--le-padding-m); 
         height: 100%;
         background-color: var(--le-background-color-host); /* MODIFIED - Can be different for desktop host if desired */
       }
       .dashboard {
         display: flex;
         height: 100%;
-        gap: var(--le-padding-m); /* MODIFIED */
+        gap: var(--le-padding-m); 
       }
       .left-panel {
         flex: 0 0 70%;
         min-width: 0;
         display: flex;
         flex-direction: column;
-        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
-        border-radius: var(--le-border-radius-standard); /* MODIFIED */
-        background: var(--le-background-color-panel); /* MODIFIED */
+        border: 1px solid var(--le-border-color-medium); 
+        border-radius: var(--le-border-radius-standard); 
+        background: var(--le-background-color-panel); 
       }
       .right-panel {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: var(--le-padding-m); /* MODIFIED */
+        gap: var(--le-padding-m); 
         min-width: 0;
       }
       .panel { /* Panels in the right column for desktop */
-        border: 1px solid var(--le-border-color-medium); /* MODIFIED */
-        border-radius: var(--le-border-radius-standard); /* MODIFIED */
-        background: var(--le-background-color-panel); /* MODIFIED */
-        padding: var(--le-padding-m); /* MODIFIED */
+        border: 1px solid var(--le-border-color-medium); 
+        border-radius: var(--le-border-radius-standard); 
+        background: var(--le-background-color-panel); 
+        padding: var(--le-padding-m); 
       }
       .panel-header { /* Header within right-column panels */
-        font-size: var(--le-font-size-large); /* MODIFIED */
-        margin-bottom: var(--le-padding-s); /* MODIFIED */
-        color: var(--le-text-color-primary); /* MODIFIED */
+        font-size: var(--le-font-size-large); 
+        margin-bottom: var(--le-padding-s); 
+        color: var(--le-text-color-primary); 
       }
       .resizer {
         width: 5px;
-        background: var(--le-border-color-medium); /* MODIFIED */
+        background: var(--le-border-color-medium); 
         cursor: col-resize;
         transition: background 0.2s;
       }
       .resizer:hover {
-        background: var(--le-text-color-secondary); /* MODIFIED */
+        background: var(--le-text-color-secondary); 
       }
       .title { /* Main title in the left panel (Table/Matrix/Trends) */
-        font-size: var(--le-font-size-page-title); /* MODIFIED */
-        margin-bottom: var(--le-padding-s); /* MODIFIED */
-        padding: var(--le-padding-m); /* MODIFIED */
+        font-size: var(--le-font-size-page-title); 
+        margin-bottom: var(--le-padding-s); 
+        padding: var(--le-padding-m); 
       }
       .content { /* Content area for table/matrix/trends in left panel */
         flex: 1;
-        padding: var(--le-padding-m); /* MODIFIED */
+        padding: var(--le-padding-m); 
       }
       th, td {
         padding: var(--le-padding-s); /* MODIFIED - Was 0.75rem */
@@ -593,7 +593,7 @@ class LeagueElement extends HTMLElement {
       }
 
       tr:hover {
-        background-color: var(--le-background-color-row-hover); /* MODIFIED */
+        background-color: var(--le-background-color-row-hover); 
       }
       .match-score { /* If used for display somewhere else, e.g., not form icons */
         color: var(--le-form-color-w); /* MODIFIED (using win color for general score display) */
@@ -1077,7 +1077,8 @@ class LeagueElement extends HTMLElement {
       modal = document.createElement('league-match');
       modal.match = this.matchModalData;
       modal.teams = (this.data && this.data.table && Array.isArray(this.data.table.leagueData)) ? this.data.table.leagueData.map(t => t.teamName) : [];
-      modal.open = true;
+      modal.open = true; // This line sets the property
+      console.log('[LeagueElement] Just set modal.open. Property modal.open:', modal.open, 'Attribute modal.getAttribute("open"):', modal.getAttribute('open'));
       modal.isMobile = this.getAttribute('is-mobile') === 'true';
       modal.mode = this.matchModalMode;
       modal.addEventListener('match-save', (e) => {
@@ -1110,6 +1111,7 @@ class LeagueElement extends HTMLElement {
         this.closeMatchModal();
       });
       this.shadow.appendChild(modal);
+      console.log('[LeagueElement] Modal appended to shadow DOM:', modal);
     } else {
       // Remove modal if not open
       let modal = this.shadow.querySelector('league-match');
@@ -2592,6 +2594,7 @@ class LeagueElement extends HTMLElement {
    * @param {'edit'|'new'} mode
    */
   openMatchModal(matchData, teams, mode = 'edit') {
+    console.log('[LeagueElement] openMatchModal called with:', { matchData, teams, mode });
     this.matchModalOpen = true;
     this.matchModalData = matchData;
     this.matchModalTeams = teams;
@@ -2612,6 +2615,7 @@ class LeagueElement extends HTMLElement {
 
   _handleRecentMatchClick(e) {
     if (e.detail.type === 'matchClick' && e.detail.match) {
+      console.log('[LeagueElement] _handleRecentMatchClick called with match:', e.detail.match);
       const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
                         ? this.data.table.leagueData.map(t => t.teamName)
                         : [];
