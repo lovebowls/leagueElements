@@ -1,66 +1,50 @@
-LeagueMatchesUpcoming.js:347 [LeagueMatchesUpcoming] Dispatching matchClick event for match: {key: 'm2', homeTeamName: 'Team B', awayTeamName: 'Team C', date: '2025-05-22', result: null}
-leagueElement.js:2596 [LeagueElement] openMatchModal called with: {matchData: {…}, teams: Array(3), mode: 'edit'}
-leagueElement.js:902 [LeagueElement] render START. isMobile: false
-LeagueCalendar.js:295 [LeagueCalendar] connectedCallback - Initial attributes: matches: null current-filter-date: null
-LeagueCalendar.js:584 [LeagueCalendar] _renderCalendarHTML: Rendering for 2025-5. Today: 2025-05-16
-LeagueCalendar.js:585 [LeagueCalendar] _renderCalendarHTML: _selectedDate: null
-LeagueCalendar.js:586 [LeagueCalendar] _renderCalendarHTML: Using _fixtureDates: [] _resultDates: []
-LeagueCalendar.js:641 [LeagueCalendar] DAY 1 DEBUG: cellDateStr: 2025-05-01 cellTemporal: 2025-05-01 cellDateLocal: Thu May 01 2025 00:00:00 GMT+0100 (British Summer Time) cellDateLocal ISO: 2025-04-30T23:00:00.000Z cellTimestamp: 1746054000000 selectedDate (if any): null selectedTemporal (if any): null selectedDateString (if any): null selectedDate timestamp (if any): null match? false
-LeagueCalendar.js:641 [LeagueCalendar] DAY 2 DEBUG: cellDateStr: 2025-05-02 cellTemporal: 2025-05-02 cellDateLocal: Fri May 02 2025 00:00:00 GMT+0100 (British Summer Time) cellDateLocal ISO: 2025-05-01T23:00:00.000Z cellTimestamp: 1746140400000 selectedDate (if any): null selectedTemporal (if any): null selectedDateString (if any): null selectedDate timestamp (if any): null match? false
-LeagueMatchesUpcoming.js:131 [LeagueMatchesUpcoming] constructor CALLED
-LeagueMatchesUpcoming.js:144 [LeagueMatchesUpcoming] connectedCallback CALLED
-LeagueMatchesUpcoming.js:340 [LeagueMatchesUpcoming] Number of .match-link elements: 0
-LeagueMatchesRecent.js:332 [LeagueMatchesRecent] Number of .match-link elements: 0
-LeagueMatchesAttention.js:388 [LeagueMatchesAttention] Number of .match-link elements: 0
-LeagueMatchesRecent.js:332 [LeagueMatchesRecent] Number of .match-link elements: 0
-LeagueMatchesRecent.js:287 [LeagueMatchesRecent] renderRecentResults HTML: <div class="matches-container">
-        <div class="match-date">15/05/2025</div>
-        <div class="match-item list-item-shared" data-match-key="m1">
-          <a href="#" class="match-link list-item-text-primary">
-            Team A vs Team B
-          </a>
-          <div class="list-item-actions match-score-container">
-            <span class="match-score score-w">2</span>
-            <span class="match-score"> - </span>
-            <span class="match-score score-l">1</span>
-          </div>
-        </div>
-      </div>
-LeagueMatchesRecent.js:332 [LeagueMatchesRecent] Number of .match-link elements: 1
-LeagueMatchesAttention.js:388 [LeagueMatchesAttention] Number of .match-link elements: 0
-LeagueMatchesAttention.js:388 [LeagueMatchesAttention] Number of .match-link elements: 0
-leagueElement.js:1011 [LeagueElement] render: Attempting to find upcomingFixturesElement
-leagueElement.js:1015 [LeagueElement] render: upcomingFixturesElement FOUND.
-LeagueMatchesUpcoming.js:157 [LeagueMatchesUpcoming] attributeChangedCallback: is-mobile changed from null to false
-LeagueMatchesUpcoming.js:340 [LeagueMatchesUpcoming] Number of .match-link elements: 0
-leagueElement.js:1018 [LeagueElement] render: Setting data attribute on upcomingFixturesElement with: [{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScor...
-LeagueMatchesUpcoming.js:157 [LeagueMatchesUpcoming] attributeChangedCallback: data changed from null to [{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}]
-LeagueMatchesUpcoming.js:190 [LeagueMatchesUpcoming] loadData received: [{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}] typeof: string
-LeagueMatchesUpcoming.js:340 [LeagueMatchesUpcoming] Number of .match-link elements: 2
-leagueElement.js:1020 [LeagueElement] render: data attribute SET on upcomingFixturesElement.
-leagueElement.js:1046 [LeagueElement] render: league-calendar element FOUND.
-LeagueCalendar.js:311 [LeagueCalendar] attributeChangedCallback: is-mobile oldValue: null newValue: false...
-LeagueCalendar.js:584 [LeagueCalendar] _renderCalendarHTML: Rendering for 2025-5. Today: 2025-05-16
-LeagueCalendar.js:585 [LeagueCalendar] _renderCalendarHTML: _selectedDate: null
-LeagueCalendar.js:586 [LeagueCalendar] _renderCalendarHTML: Using _fixtureDates: [] _resultDates: []
-LeagueCalendar.js:641 [LeagueCalendar] DAY 1 DEBUG: cellDateStr: 2025-05-01 cellTemporal: 2025-05-01 cellDateLocal: Thu May 01 2025 00:00:00 GMT+0100 (British Summer Time) cellDateLocal ISO: 2025-04-30T23:00:00.000Z cellTimestamp: 1746054000000 selectedDate (if any): null selectedTemporal (if any): null selectedDateString (if any): null selectedDate timestamp (if any): null match? false
-LeagueCalendar.js:641 [LeagueCalendar] DAY 2 DEBUG: cellDateStr: 2025-05-02 cellTemporal: 2025-05-02 cellDateLocal: Fri May 02 2025 00:00:00 GMT+0100 (British Summer Time) cellDateLocal ISO: 2025-05-01T23:00:00.000Z cellTimestamp: 1746140400000 selectedDate (if any): null selectedTemporal (if any): null selectedDateString (if any): null selectedDate timestamp (if any): null match? false
-leagueElement.js:1049 [LeagueElement] render: Setting matches attribute on league-calendar with: [{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScor...
-LeagueCalendar.js:311 [LeagueCalendar] attributeChangedCallback: matches oldValue: null newValue: [{"key":"m1","homeTeamName":"Team A","awayTeamName...
-LeagueCalendar.js:415 [LeagueCalendar] _loadMatchesData started. Input type: string
-LeagueCalendar.js:417 [LeagueCalendar] _loadMatchesData: Parsing matchesData string: [{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22"...
-LeagueCalendar.js:423 [LeagueCalendar] _loadMatchesData: Parsed _matches count: 3 First match (if any): {"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}}
-LeagueCalendar.js:436 [LeagueCalendar] _processMatchDates: Processing...
-LeagueCalendar.js:454 [LeagueCalendar] Match date from 2025-05-15 parsed as Temporal: 2025-05-15
-LeagueCalendar.js:466 [LeagueCalendar] Added 2025-05-15 to resultDates as timestamp 1747267200000
-LeagueCalendar.js:454 [LeagueCalendar] Match date from 2025-05-22 parsed as Temporal: 2025-05-22
-LeagueCalendar.js:469 [LeagueCalendar] Added 2025-05-22 to fixtureDates as timestamp 1747872000000
-LeagueCalendar.js:454 [LeagueCalendar] Match date from 2025-05-29 parsed as Temporal: 2025-05-29
-LeagueCalendar.js:469 [LeagueCalendar] Added 2025-05-29 to fixtureDates as timestamp 1748476800000
-LeagueCalendar.js:506 [LeagueCalendar] _processMatchDates: Finished. fixtureDates: (2) [1747872000000, 1748476800000] resultDates: [1747267200000]
-LeagueCalendar.js:584 [LeagueCalendar] _renderCalendarHTML: Rendering for 2025-5. Today: 2025-05-16
-LeagueCalendar.js:585 [LeagueCalendar] _renderCalendarHTML: _selectedDate: null
-LeagueCalendar.js:586 [LeagueCalendar] _renderCalendarHTML: Using _fixtureDates: (2) [1747872000000, 1748476800000] _resultDates: [1747267200000]
-LeagueCalendar.js:641 [LeagueCalendar] DAY 1 DEBUG: cellDateStr: 2025-05-01 cellTemporal: 2025-05-01 cellDateLocal: Thu May 01 2025 00:00:00 GMT+0100 (British Summer Time) cellDateLocal ISO: 2025-04-30T23:00:00.000Z cellTimestamp: 1746054000000 selectedDate (if any): null selectedTemporal (if any): null selectedDateString (if any): null selectedDate timestamp (if any): null match? false
-LeagueCalendar.js:641 [LeagueCalendar] DAY 2 DEBUG: cellDateStr: 2025-05-02 cellTemporal: 2025-05-02 cellDateLocal: Fri May 02 2025 00:00:00 GMT+0100 (British Summer Time) cellDateLocal ISO: 2025-05-01T23:00:00.000Z cellTimestamp: 1746140400000 selectedDate (if any): null selectedTemporal (if any): null selectedDateString (if any): null selectedDate timestamp (if any): null match? false
-leagueElement.js:1113 [LeagueElement] Modal appended to shadow DOM: <league-match is-mobile=​"false">​…​</league-match>​
+temporal-polyfill.js:81 Created minimal Temporal implementation
+leagueAdminElement.js?v=2:906 [LAD_LIFE_CYCLE] attributeChangedCallback('current-league-id'): NewVal=. Old _currentLeagueId=null. Current _selectedLeagueId=null
+leagueAdminElement.js?v=2:914 [LAD_LIFE_CYCLE] attributeChangedCallback('current-league-id'): No leagues or empty _leagues array, skipping _applyCurrentLeagueIdSelection.
+leagueAdminElement.js?v=2:870 [LeagueAdminElement] connectedCallback: is-mobile attribute: null
+leagueAdminElement.js?v=2:1082 [LAD_RENDER] Render start. _selectedLeagueId = null, _currentLeagueId = null
+leagueAdminElement.js?v=2:1095 [LAD_RENDER] Current _leagues summaries (showing up to 5 of 0): []
+leagueAdminElement.js?v=2:1110 [LAD_RENDER] _getSelectedLeague() returned undefined or null. _selectedLeagueId was null. leagueForRender remains null.
+LeagueMatchesAttention.js:427 [LeagueMatchesAttention] Number of .match-link elements: 0
+leagueMatch.js:111 [LeagueMatch] constructor, _open initialized to: false
+leagueMatch.js:348 [LeagueMatch] render() called. Current _open state: false
+leagueMatch.js:453 [LeagueMatch] render() finished. Host display style should be: 
+league-test-data.js:29 Including 3 lovebowls teams in test data
+league-test-data.js:34 Team 1 set to lovebowls team: Lovebowls Club Alpha (lb-guid-a123)
+league-test-data.js:34 Team 2 set to lovebowls team: Lovebowls Club Beta (lb-guid-b456)
+league-test-data.js:34 Team 3 set to lovebowls team: Lovebowls Club Gamma (lb-guid-c789)
+league-test-data.js:29 Including 4 lovebowls teams in test data
+league-test-data.js:34 Team 1 set to lovebowls team: Lovebowls Club Alpha (lb-guid-a123)
+league-test-data.js:34 Team 2 set to lovebowls team: Lovebowls Club Beta (lb-guid-b456)
+league-test-data.js:34 Team 3 set to lovebowls team: Lovebowls Club Gamma (lb-guid-c789)
+league-test-data.js:34 Team 4 set to lovebowls team: Lovebowls Club Delta (lb-guid-d012)
+league-test-data.js:29 Including 5 lovebowls teams in test data
+league-test-data.js:34 Team 1 set to lovebowls team: Lovebowls Club Alpha (lb-guid-a123)
+league-test-data.js:34 Team 2 set to lovebowls team: Lovebowls Club Beta (lb-guid-b456)
+league-test-data.js:34 Team 3 set to lovebowls team: Lovebowls Club Gamma (lb-guid-c789)
+league-test-data.js:34 Team 4 set to lovebowls team: Lovebowls Club Delta (lb-guid-d012)
+league-test-data.js:34 Team 5 set to lovebowls team: Lovebowls Club Epsilon (lb-guid-e345)
+leagueAdminElement.js?v=2:897 [LAD_LIFE_CYCLE] attributeChangedCallback('data'): BEFORE _parseAndLoadData. _selectedLeagueId = null
+leagueAdminElement.js?v=2:932 [LAD_LIFE_CYCLE] _parseAndLoadData: CALLED. Initial _selectedLeagueId = null
+leagueAdminElement.js?v=2:965 [LAD_LIFE_CYCLE] _parseAndLoadData: After Defensive Check. _selectedLeagueId changed from null to null.
+leagueAdminElement.js?v=2:1015 [LAD_LIFE_CYCLE] _applyCurrentLeagueIdSelection: CALLED. _currentLeagueId = null, Initial _selectedLeagueId = null
+leagueAdminElement.js?v=2:1018 [LAD_LIFE_CYCLE] _applyCurrentLeagueIdSelection: No _currentLeagueId or no/empty _leagues. No change to _selectedLeagueId.
+leagueAdminElement.js?v=2:971 [LAD_LIFE_CYCLE] _parseAndLoadData: After _applyCurrentLeagueIdSelection. _selectedLeagueId changed from null to null.
+leagueAdminElement.js?v=2:900 [LAD_LIFE_CYCLE] attributeChangedCallback('data'): AFTER _parseAndLoadData. _selectedLeagueId = null
+leagueAdminElement.js?v=2:923 [LAD_LIFE_CYCLE] attributeChangedCallback: Triggering render for attribute 'data'. Current _selectedLeagueId=null
+leagueAdminElement.js?v=2:1082 [LAD_RENDER] Render start. _selectedLeagueId = null, _currentLeagueId = null
+leagueAdminElement.js?v=2:1095 [LAD_RENDER] Current _leagues summaries (showing up to 5 of 2): (2) [{…}, {…}]
+leagueAdminElement.js?v=2:1110 [LAD_RENDER] _getSelectedLeague() returned undefined or null. _selectedLeagueId was null. leagueForRender remains null.
+LeagueMatchesAttention.js:427 [LeagueMatchesAttention] Number of .match-link elements: 0
+leagueMatch.js:111 [LeagueMatch] constructor, _open initialized to: false
+leagueMatch.js:348 [LeagueMatch] render() called. Current _open state: false
+leagueMatch.js:453 [LeagueMatch] render() finished. Host display style should be: 
+leagueAdminElement.js?v=2:923 [LAD_LIFE_CYCLE] attributeChangedCallback: Triggering render for attribute 'is-mobile'. Current _selectedLeagueId=null
+leagueAdminElement.js?v=2:1082 [LAD_RENDER] Render start. _selectedLeagueId = null, _currentLeagueId = null
+leagueAdminElement.js?v=2:1095 [LAD_RENDER] Current _leagues summaries (showing up to 5 of 2): (2) [{…}, {…}]
+leagueAdminElement.js?v=2:1110 [LAD_RENDER] _getSelectedLeague() returned undefined or null. _selectedLeagueId was null. leagueForRender remains null.
+LeagueMatchesAttention.js:427 [LeagueMatchesAttention] Number of .match-link elements: 0
+leagueMatch.js:111 [LeagueMatch] constructor, _open initialized to: false
+leagueMatch.js:348 [LeagueMatch] render() called. Current _open state: false
+leagueMatch.js:453 [LeagueMatch] render() finished. Host display style should be: 
+temporalUtils.js:90 CDN load failed, using bundled Temporal implementation

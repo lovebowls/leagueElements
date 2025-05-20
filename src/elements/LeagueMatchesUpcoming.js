@@ -18,6 +18,7 @@ import { panelStyles, buttonStyles, listItemStyles } from './shared-styles.js';
  * @attr {string} data - JSON stringified array of match objects
  * @attr {string} [filter-date] - ISO date string (YYYY-MM-DD) to filter fixtures by date
  * @attr {boolean} [is-mobile] - Whether to use mobile styles
+ * @attr {string} [team-mapping] - JSON stringified array of team mapping objects
  *
  * Emits 'league-matches-upcoming-event' with detail { type: 'matchClick', match }
  */
@@ -134,10 +135,11 @@ class LeagueMatchesUpcoming extends HTMLElement {
     this.currentPage = 0;
     this.itemsPerPage = 5;
     this._filterDate = null; // Store parsed filter date object
+    this.teamMapping = [];
   }
 
   static get observedAttributes() {
-    return ['data', 'filter-date', 'is-mobile']; // Changed 'selected-date' to 'filter-date'
+    return ['data', 'filter-date', 'is-mobile', 'team-mapping'];
   }
 
   connectedCallback() {
@@ -147,7 +149,10 @@ class LeagueMatchesUpcoming extends HTMLElement {
       this.loadData(initialData);
     }
     if (this.hasAttribute('filter-date')) {
-        this._setFilterDate(this.getAttribute('filter-date'));
+      this._setFilterDate(this.getAttribute('filter-date'));
+    }
+    if (this.hasAttribute('team-mapping')) {
+      this._setTeamMapping(this.getAttribute('team-mapping'));
     } else {
       this.render(); 
     }
@@ -163,6 +168,9 @@ class LeagueMatchesUpcoming extends HTMLElement {
       this._setFilterDate(newValue);
     } else if (name === 'is-mobile') {
       this.render();
+    } else if (name === 'team-mapping') {
+      this._setTeamMapping(newValue);
+      this.render(); // Re-render to apply new team names
     }
   }
   
@@ -180,6 +188,19 @@ class LeagueMatchesUpcoming extends HTMLElement {
     }
     this.currentPage = 0; // Reset page when filter changes
     this.render();
+  }
+
+  _setTeamMapping(mappingData) {
+    try {
+      if (mappingData && mappingData !== 'null' && mappingData !== 'undefined') {
+        this.teamMapping = JSON.parse(mappingData);
+      } else {
+        this.teamMapping = [];
+      }
+    } catch (error) {
+      console.error('[LeagueMatchesUpcoming] Error parsing team mapping:', error);
+      this.teamMapping = [];
+    }
   }
 
   /**
@@ -259,6 +280,19 @@ class LeagueMatchesUpcoming extends HTMLElement {
     return (this.currentPage + 1) * this.itemsPerPage < list.length;
   }
 
+  getTeamDisplayName(teamName) {
+    if (!teamName || !this.teamMapping || !Array.isArray(this.teamMapping)) {
+      return teamName;
+    }
+    
+    const mapping = this.teamMapping.find(m => m.id === teamName);
+    if (mapping && mapping.displayName) {
+      return mapping.displayName;
+    }
+    
+    return teamName;
+  }
+
   renderUpcomingFixtures() {
     const list = this._upcomingFixturesList();
     const start = this.currentPage * this.itemsPerPage;
@@ -278,6 +312,10 @@ class LeagueMatchesUpcoming extends HTMLElement {
     }
     let lastDate = null;
     return pageItems.map(match => {
+      // Get display names for teams
+      const homeTeamDisplay = this.getTeamDisplayName(match.homeTeamName);
+      const awayTeamDisplay = this.getTeamDisplayName(match.awayTeamName);
+      
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0);
       const matchDateStr = currentDateObj.toLocaleDateString();
@@ -290,7 +328,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
       <div class="match-item">
         ${dateDisplay}
         <a href="#" class="match-link" data-match-key="${match.key}">
-          ${this.escapeHtml(match.homeTeamName)} vs ${this.escapeHtml(match.awayTeamName)}
+          ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}
         </a>
       </div>
     `}).join('');

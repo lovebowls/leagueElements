@@ -124,15 +124,19 @@ class LeagueMatchesRecent extends HTMLElement {
     this.currentPage = 0;
     this.itemsPerPage = 5;
     this._filterDate = null;
+    this.teamMapping = [];
   }
 
   static get observedAttributes() {
-    return ['data', 'is-mobile', 'filter-date'];
+    return ['data', 'is-mobile', 'filter-date', 'team-mapping'];
   }
 
   connectedCallback() {
     if (this.hasAttribute('filter-date')) {
       this._setFilterDate(this.getAttribute('filter-date'));
+    }
+    if (this.hasAttribute('team-mapping')) {
+      this._setTeamMapping(this.getAttribute('team-mapping'));
     }
     this.render();
   }
@@ -146,6 +150,9 @@ class LeagueMatchesRecent extends HTMLElement {
       this.render();
     } else if (name === 'filter-date') {
       this._setFilterDate(newValue);
+    } else if (name === 'team-mapping') {
+      this._setTeamMapping(newValue);
+      this.render(); // Re-render to apply new team names
     }
   }
 
@@ -163,6 +170,33 @@ class LeagueMatchesRecent extends HTMLElement {
     }
     this.currentPage = 0;
     this.render();
+  }
+
+  _setTeamMapping(mappingData) {
+    try {
+      if (mappingData && mappingData !== 'null' && mappingData !== 'undefined') {
+        this.teamMapping = JSON.parse(mappingData);
+      } else {
+        this.teamMapping = [];
+      }
+    } catch (error) {
+      console.error('[LeagueMatchesRecent] Error parsing team mapping:', error);
+      this.teamMapping = [];
+    }
+  }
+
+  // Add a utility method to get display name for a team
+  getTeamDisplayName(teamName) {
+    if (!teamName || !this.teamMapping || !Array.isArray(this.teamMapping)) {
+      return teamName;
+    }
+    
+    const mapping = this.teamMapping.find(m => m.id === teamName);
+    if (mapping && mapping.displayName) {
+      return mapping.displayName;
+    }
+    
+    return teamName;
   }
 
   async loadData(data) {
@@ -260,6 +294,10 @@ class LeagueMatchesRecent extends HTMLElement {
         else if (homeScore < awayScore) { homeScoreClass = 'score-l'; awayScoreClass = 'score-w'; }
       }
       
+      // Get display names for teams
+      const homeTeamDisplay = this.getTeamDisplayName(match.homeTeamName);
+      const awayTeamDisplay = this.getTeamDisplayName(match.awayTeamName);
+      
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0); 
       const matchDateStr = currentDateObj.toLocaleDateString();
@@ -273,7 +311,7 @@ class LeagueMatchesRecent extends HTMLElement {
         ${dateDisplayHtml}
         <div class="match-item list-item-shared" data-match-key="${match.key}">
           <a href="#" class="match-link list-item-text-primary">
-            ${match.homeTeamName} vs ${match.awayTeamName}
+            ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}
           </a>
           <div class="list-item-actions match-score-container">
             <span class="match-score ${homeScoreClass}">${homeScore}</span>

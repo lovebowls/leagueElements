@@ -52,8 +52,29 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
          margin-bottom: 0; /* Override if needed */
       }
       .score-inputs input[type="number"] {
-        width: 60px; /* Specific width for score inputs */
+        width: 80px; /* Increased from 60px to show placeholders better */
+        min-width: 80px; /* Ensure minimum width even on small screens */
         /* padding: var(--le-padding-xs, 0.25em); Already form-input-shared */
+      }
+      /* Remove spinner buttons from number inputs */
+      .score-inputs input[type="number"]::-webkit-inner-spin-button,
+      .score-inputs input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .score-inputs input[type="number"] {
+        -moz-appearance: textfield; /* Firefox */
+      }
+      /* Right-align the home score input */
+      .score-inputs input[type="number"]:first-of-type {
+        text-align: right;
+      }
+      /* Responsive adjustment for mobile */
+      @media (max-width: 480px) {
+        .score-inputs input[type="number"] {
+          width: 70px; /* Slightly smaller on mobile but still big enough */
+          min-width: 70px;
+        }
       }
       #error-message-match-modal {
         color: var(--le-text-color-error, #D8000C);
@@ -64,11 +85,21 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         margin-bottom: var(--le-padding-m); 
         font-size: var(--le-font-size-small);
       }
+      .attention-banner {
+        background-color: var(--le-color-status-warning, #f39c12);
+        color: var(--le-text-color-on-primary, #fff);
+        padding: var(--le-padding-s, 0.5em);
+        border-bottom: 1px solid var(--le-border-color-dark, #ccc);
+        text-align: center;
+        font-size: var(--le-font-size-small, 0.85em);
+        border-top-left-radius: var(--le-border-radius-standard);
+        border-top-right-radius: var(--le-border-radius-standard);
+      }
     `;
   }
 
   static get observedAttributes() {
-    return ['open', 'is-mobile', 'mode'];
+    return ['open', 'is-mobile', 'mode', 'attention-reason'];
   }
 
   constructor() {
@@ -81,6 +112,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     this._isMobile = false;
     this._mode = 'new';
     this._error = '';
+    this._attentionReason = null;
     this._boundOnKeydown = this._onKeydown.bind(this);
     this._firstFocusableElement = null;
     this._lastFocusableElement = null;
@@ -147,6 +179,17 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   }
   get mode() { return this._mode; }
 
+  /**
+   * @param {string | null} value
+   */
+  set attentionReason(value) {
+    if (this._attentionReason !== value) {
+      this._attentionReason = value;
+      this.render();
+    }
+  }
+  get attentionReason() { return this._attentionReason; }
+
   attributeChangedCallback(name, oldValue, newValue) {
     console.log(`[LeagueMatch] attributeChangedCallback: ${name} changed from ${oldValue} to ${newValue}`);
     if (oldValue === newValue) return;
@@ -166,6 +209,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     }
     if (name === 'mode') {
       this._mode = newValue === 'edit' ? 'edit' : 'new';
+      shouldRender = true;
+    }
+    if (name === 'attention-reason') {
+      this._attentionReason = newValue;
       shouldRender = true;
     }
     
@@ -201,11 +248,11 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
    */
   _onOk() {
     // Values must be read BEFORE clearError, as clearError can cause a re-render
-    const dateInput = this.shadowRoot.getElementById('match-date');
-    const homeTeamSelect = this.shadowRoot.getElementById('match-home');
-    const awayTeamSelect = this.shadowRoot.getElementById('match-away');
-    const homeShotsInput = this.shadowRoot.getElementById('match-home-shots');
-    const awayShotsInput = this.shadowRoot.getElementById('match-away-shots');
+    const dateInput = this.shadowRoot.getElementById('matchDate');
+    const homeTeamSelect = this.shadowRoot.getElementById('homeTeam');
+    const awayTeamSelect = this.shadowRoot.getElementById('awayTeam');
+    const homeShotsInput = this.shadowRoot.getElementById('homeScore');
+    const awayShotsInput = this.shadowRoot.getElementById('awayScore');
 
     // Extremely verbose logging for these two elements:
     if (homeShotsInput) {
@@ -315,6 +362,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         `<option value="${this._escapeHtml(team)}" ?selected="${team === homeTeamName || team === awayTeamName}">${this._escapeHtml(team)}</option>`
     ).join('');
 
+    const attentionBannerHTML = this._attentionReason
+      ? `<div class="attention-banner">${this._escapeHtml(this._attentionReason)}</div>`
+      : '';
+
     this.shadow.innerHTML = `
       <style>
         ${LeagueMatch.BASE_STYLES}
@@ -324,12 +375,13 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
            aria-labelledby="match-modal-title" 
            aria-modal="true"
            style="display: ${this._open ? 'flex' : 'none'};">
+        ${attentionBannerHTML} 
         <div class="modal-shared-header">
           <span id="match-modal-title">${title}</span>
           <button class="close-button-shared" id="close-match-modal" aria-label="Close dialog">&times;</button>
         </div>
         <div class="modal-shared-body">
-          <div id="error-message-match-modal" style="display: none;"></div>
+          <div id="error-message-match-modal" style="display: ${this._error ? 'block' : 'none'};">${this._escapeHtml(this._error)}</div>
           <div class="form-group-shared">
             <label for="homeTeam" class="form-label-shared">Home Team</label>
             <select id="homeTeam" class="form-select-shared">
@@ -390,6 +442,13 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         this.shadow.querySelector('#awayScore').value = '';
       }
     });
+
+    // Error message display update
+    const errorDiv = this.shadow.querySelector('#error-message-match-modal');
+    if (errorDiv) {
+        errorDiv.style.display = this._error ? 'block' : 'none';
+        errorDiv.textContent = this._error ? this._escapeHtml(this._error) : '';
+    }
 
     console.log('[LeagueMatch] render() finished. Host display style should be:', this.style.display);
   }

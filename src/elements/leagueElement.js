@@ -247,10 +247,44 @@ class LeagueElement extends HTMLElement {
         width: 100%;
       }
       .matrix-cell-played { background-color: #e3f2fd; color: var(--le-text-color-accent-hover); } /* MODIFIED (minor adjustment) */
-      .matrix-cell-scheduled { background-color: var(--le-background-color-header); } 
-      .matrix-cell-none { background-color: var(--le-background-color-panel); } 
-      .matrix-cell-same-team { background-color: var(--le-border-color-light); } 
-      .matrix-cell:hover {
+      .matrix-cell-scheduled { background-color: #e8f5e9; color: #2e7d32; } /* MODIFIED to light green */
+      .matrix-cell-none { 
+        background-color: var(--le-background-color-panel);
+        position: relative;
+      }
+      .matrix-cell-none .add-match-icon {
+        color: var(--le-border-color-dark);
+        font-size: 1.2em;
+        opacity: 0.6;
+        transition: opacity 0.2s ease-in-out;
+      }
+      .matrix-cell-none:hover .add-match-icon {
+        opacity: 1;
+        color: var(--le-text-color-accent);
+      }
+      .matrix-cell-same-team { 
+        background-color: var(--le-border-color-light);
+        position: relative;
+        overflow: hidden;
+      } 
+      .matrix-cell-same-team::before,
+      .matrix-cell-same-team::after {
+        content: '';
+        position: absolute;
+        background-color: var(--le-border-color-dark);
+        width: 1px;
+        height: 141%; /* √2 * 100% to cover the diagonal */
+        top: 50%;
+        left: 50%;
+      }
+      .matrix-cell-same-team::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+      }
+      .matrix-cell-same-team::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+      }
+      /* Apply hover effect only to interactive cells */
+      .matrix-cell:not(.matrix-cell-same-team):hover {
         filter: brightness(0.95);
       }
       .matrix-score {
@@ -387,11 +421,19 @@ class LeagueElement extends HTMLElement {
         width: 30px; 
         min-width: 30px; 
         max-width: 30px; 
+        position: relative; /* Add relative positioning to contain absolute elements */
+        padding-right: 15px; /* Add extra padding on the right for the indicators */
       }
       .position-cell .rank-up,
       .position-cell .rank-down {
-        margin-left: var(--le-spacing-unit); 
         display: inline-block;
+        position: absolute; /* Position absolutely to avoid affecting row height */
+        right: 3px; /* Position from right side of the cell */
+        top: 50%; /* Center vertically */
+        transform: translateY(-50%); /* Perfect vertical centering */
+        margin-left: 0; /* Remove left margin */
+        font-size: 0.85em; /* Slightly smaller font size */
+        line-height: 1; /* Ensure consistent line height */
       }
       .pos-cell-promotion {
         background-color: var(--le-background-color-promotion); 
@@ -760,11 +802,12 @@ class LeagueElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
+    this.lovebowlsTeams = []; // Store lovebowls teams data
     this.shadow.host.addEventListener('league-calendar-event', this._handleCalendarDateChange.bind(this)); // ADDED event listener
   }
 
   static get observedAttributes() {
-    return ['data', 'selectedMatch', 'is-mobile'];
+    return ['data', 'selectedMatch', 'is-mobile', 'lovebowls-teams'];
   }
 
   connectedCallback() {
@@ -801,13 +844,14 @@ class LeagueElement extends HTMLElement {
       }
     } else if (name === 'is-mobile') {
       this.render();
+    } else if (name === 'lovebowls-teams') {
+      this.parseLovebowlsTeams(newValue);
     }
   }
 
   async loadLeagueData(data) {
     try {
       // Parse data if it's a string
-      console.log('[loadLeagueData] Started. Data type:', typeof data);
       if (typeof data === 'string') {
         try {
           this.data = JSON.parse(data);
@@ -899,7 +943,6 @@ class LeagueElement extends HTMLElement {
     // Generate table rows based on data if available
     let tableRows = '';
     const isMobile = this.getAttribute('is-mobile') === 'true';
-    console.log('[LeagueElement] render START. isMobile:', isMobile);
     
     if (this.data && this.data.table) {
       const processedLeagueData = this._getFilteredLeagueData();
@@ -935,7 +978,7 @@ class LeagueElement extends HTMLElement {
           return `
           <tr> 
             <td class="position-cell ${positionCellClass}">${team.currentRank !== undefined ? team.currentRank : '-'} ${movementIndicator}</td>
-            <td>${team.teamName}</td>
+            <td>${team.teamDisplayName}</td>
             <td>${team.points}</td>
             <td title="${this.formatMatchList(team.allMatchesForTooltip, undefined, true)}">${team.played}</td>
             <td title="${this.formatMatchList(team.allMatchesForTooltip, 'W', false)}">${team.won}</td>
@@ -970,10 +1013,13 @@ class LeagueElement extends HTMLElement {
       if (recentMatchesElement) {
         recentMatchesElement.setAttribute('is-mobile', isMobile.toString());
         recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
+        
+        // Add team mapping data for display name resolution
+        recentMatchesElement.setAttribute('team-mapping', JSON.stringify(this.createTeamMappingArray()));
+        
         if (this.activeCalendarFilterDate) {
             // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
             recentMatchesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
-            console.log('[LeagueElement] render: filter-date attribute SET on recentMatchesElement:', this.activeCalendarFilterDate);
         } else {
             recentMatchesElement.removeAttribute('filter-date');
         }
@@ -988,6 +1034,9 @@ class LeagueElement extends HTMLElement {
       if (attentionMatchesElement) {
         attentionMatchesElement.setAttribute('is-mobile', isMobile.toString());
         attentionMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
+        
+        // Add team mapping data for display name resolution
+        attentionMatchesElement.setAttribute('team-mapping', JSON.stringify(this.createTeamMappingArray()));
 
         attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAttentionMatchClick);
         this._handleAttentionMatchClickBound = this._handleAttentionMatchClick.bind(this);
@@ -1008,45 +1057,38 @@ class LeagueElement extends HTMLElement {
         this.setupTrendsViewInteractivity(); // Ensure interactivity is set up
       }
 
-      console.log('[LeagueElement] render: Attempting to find upcomingFixturesElement');
       // Configure the upcoming fixtures component
       const upcomingFixturesElement = this.shadow.querySelector(isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
       if (upcomingFixturesElement) {
-        console.log('[LeagueElement] render: upcomingFixturesElement FOUND.');
         upcomingFixturesElement.setAttribute('is-mobile', isMobile.toString());
+        
+        // Add team mapping data for display name resolution
+        upcomingFixturesElement.setAttribute('team-mapping', JSON.stringify(this.createTeamMappingArray()));
+        
         if (this.data && this.data.matches) {
-            console.log('[LeagueElement] render: Setting data attribute on upcomingFixturesElement with:', JSON.stringify(this.data.matches).substring(0,100) + '...');
             upcomingFixturesElement.setAttribute('data', JSON.stringify(this.data.matches));
-            console.log('[LeagueElement] render: data attribute SET on upcomingFixturesElement.');
             // Set filter-date for upcoming fixtures
             if (this.activeCalendarFilterDate) {
                 // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
                 upcomingFixturesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
-                console.log('[LeagueElement] render: filter-date attribute SET on upcomingFixturesElement:', this.activeCalendarFilterDate);
             } else {
                 upcomingFixturesElement.removeAttribute('filter-date');
             }
         } else {
             console.log('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
         }
-        // Listen to date changes from the upcoming fixtures calendar -- THIS IS NO LONGER NEEDED HERE as calendar is separate
-        // upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Remove if it was mistakenly added for date changes before
-        // upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingFixtureDateChange); // Keep for date changes
-        
+
         // Add listener for match clicks
         this._handleUpcomingMatchClickBound = this._handleUpcomingMatchClick.bind(this);
         upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Remove previous if any
         upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Listen for general events
-
       }
 
       // ADDED: Configure the league-calendar component
       const calendarElement = this.shadow.querySelector(isMobile ? '#mobile-calendar' : '#desktop-calendar');
       if (calendarElement) {
-        console.log('[LeagueElement] render: league-calendar element FOUND.');
         calendarElement.setAttribute('is-mobile', isMobile.toString());
         if (this.data && this.data.matches) {
-            console.log('[LeagueElement] render: Setting matches attribute on league-calendar with:', JSON.stringify(this.data.matches).substring(0,100) + '...');
             calendarElement.setAttribute('matches', JSON.stringify(this.data.matches));
         } else {
             console.log('[LeagueElement] render: this.data.matches is NOT available for league-calendar.');
@@ -1056,7 +1098,6 @@ class LeagueElement extends HTMLElement {
         if (this.activeCalendarFilterDate) {
             // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
             calendarElement.setAttribute('current-filter-date', this.activeCalendarFilterDate);
-            console.log('[LeagueElement] render: current-filter-date attribute SET on calendarElement:', this.activeCalendarFilterDate);
         } else {
             calendarElement.removeAttribute('current-filter-date');
         }
@@ -1075,12 +1116,46 @@ class LeagueElement extends HTMLElement {
       let modal = this.shadow.querySelector('league-match');
       if (modal) modal.remove();
       modal = document.createElement('league-match');
+      
+      // Add display names to match data for UI presentation if they don't exist
+      if (this.matchModalData) {
+        if (!this.matchModalData.homeTeamDisplay && this.matchModalData.homeTeamName) {
+          this.matchModalData.homeTeamDisplay = this.getTeamDisplayName(this.matchModalData.homeTeamName);
+        }
+        if (!this.matchModalData.awayTeamDisplay && this.matchModalData.awayTeamName) {
+          this.matchModalData.awayTeamDisplay = this.getTeamDisplayName(this.matchModalData.awayTeamName);
+        }
+      }
+      
       modal.match = this.matchModalData;
-      modal.teams = (this.data && this.data.table && Array.isArray(this.data.table.leagueData)) ? this.data.table.leagueData.map(t => t.teamName) : [];
+      
+      // Create teams array with display names (if we're using the original teamName strings)
+      if (this.data && this.data.table && Array.isArray(this.data.table.leagueData)) {
+        const teamsWithDisplay = this.data.table.leagueData.map(team => {
+          return {
+            id: team.teamName,
+            displayName: this.getTeamDisplayName(team.teamName)
+          };
+        });
+        
+        // Set the teams property with the mapped display names
+        modal.teams = teamsWithDisplay;
+        
+        // Pass the lovebowls teams data to the modal for reference if needed
+        if (this.lovebowlsTeams && this.lovebowlsTeams.length > 0) {
+          modal.lovebowlsTeams = this.lovebowlsTeams;
+        }
+      } else {
+        modal.teams = this.matchModalTeams || [];
+      }
+      
       modal.open = true; // This line sets the property
-      console.log('[LeagueElement] Just set modal.open. Property modal.open:', modal.open, 'Attribute modal.getAttribute("open"):', modal.getAttribute('open'));
       modal.isMobile = this.getAttribute('is-mobile') === 'true';
       modal.mode = this.matchModalMode;
+      // Pass attention reason if available in matchModalData
+      if (this.matchModalData && this.matchModalData.attentionReason) {
+        modal.attentionReason = this.matchModalData.attentionReason;
+      }
       modal.addEventListener('match-save', (e) => {
         const savedMatch = e.detail.match;
         if (!this.data || !this.data.matches) {
@@ -1111,7 +1186,6 @@ class LeagueElement extends HTMLElement {
         this.closeMatchModal();
       });
       this.shadow.appendChild(modal);
-      console.log('[LeagueElement] Modal appended to shadow DOM:', modal);
     } else {
       // Remove modal if not open
       let modal = this.shadow.querySelector('league-match');
@@ -1307,13 +1381,18 @@ class LeagueElement extends HTMLElement {
       if (!match || !match.result || !match.date || !match.homeTeamName || !match.awayTeamName || typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
         return 'Invalid match data for tooltip';
       }
+      
+      // Use display names if available, fall back to team names
+      const homeTeamDisplay = match.homeTeamDisplayName || this.getTeamDisplayName(match.homeTeamName) || match.homeTeamName;
+      const awayTeamDisplay = match.awayTeamDisplayName || this.getTeamDisplayName(match.awayTeamName) || match.awayTeamName;
+      
       let resultVerb = '';
       if (match.result.toUpperCase() === 'W') resultVerb = 'Won';
       else if (match.result.toUpperCase() === 'L') resultVerb = 'Lost';
       else if (match.result.toUpperCase() === 'D') resultVerb = 'Drew';
 
       const dateStr = new Date(match.date).toLocaleDateString();
-      const matchDetails = `${match.homeTeamName} ${match.homeScore}-${match.awayScore} ${match.awayTeamName}`;
+      const matchDetails = `${homeTeamDisplay} ${match.homeScore}-${match.awayScore} ${awayTeamDisplay}`;
       return `${displayVerb ? resultVerb + ' ' : ''}${matchDetails} on ${dateStr}`;
     }).join('\n');
 
@@ -1382,305 +1461,6 @@ class LeagueElement extends HTMLElement {
     }
 
     return conflictingKeys;
-  }
-
-  _getMatchesRequiringAttention() {
-    // This method logic will be in LeagueMatchesAttention.js
-    // For now, assuming it was similar to _upcomingFixturesHasNext
-    // const list = this._getMatchesRequiringAttention();
-    // return (this.attentionMatchesPage + 1) * 5 < list.length;
-    return []; // Placeholder, as the actual component will manage this
-  }
-
-  // Render matches requiring attention
-  renderMatchesRequiringAttention() {
-    // This method logic will be in LeagueMatchesAttention.js
-    // For now, assuming it was similar to _upcomingFixturesHasNext
-    // const matches = this._getMatchesRequiringAttention();
-    // const start = this.attentionMatchesPage * 5;
-    // const pageItems = matches.slice(start, start + 5);
-    // if (pageItems.length === 0) {
-    //     if (matches.length > 0) { // Items exist, but current page is empty
-    //         return '<div class="match-item">No more matches requiring attention</div>';
-    //     }
-    //     return '<div class="match-item">No matches requiring attention</div>';
-    // }
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0);
-    // const conflictingMatchKeys = this._getConflictingMatchKeys(); // Get conflicting keys again for rendering logic
-    // return pageItems.map(match => {
-    //   const matchKey = match.key || `${match.homeTeamName}_${match.awayTeamName}_unscheduled`;
-    //   let warning = '';
-    //   let tooltipText = '';
-    //   
-    //   if (match.result && match.date) { // Case 1: Future date with result
-    //     const matchDate = new Date(match.date);
-    //     matchDate.setHours(0, 0, 0, 0);
-    //     if (matchDate > today) {
-    //       tooltipText = "Result entered for a future match date";
-    //       warning = `<span title="${tooltipText}" style="color:#f39c12;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`; // Orange warning
-    //     }
-    //   } else if (conflictingMatchKeys.has(match.key)) { // Case 2: Scheduling conflict
-    //      tooltipText = "Scheduling conflict on this date.";
-    //      warning = `<span title="${tooltipText}" style="color:#e67e22;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9888;</span>`; // Different Orange/Red warning maybe?
-    //   } else if (match.date && !match.result) { // Case 3: Past date, no result
-    //     const matchDate = new Date(match.date);
-    //     matchDate.setHours(0, 0, 0, 0);
-    //     if (matchDate < today) {
-    //       tooltipText = "Match date passed, result pending.";
-    //       warning = `<span title="${tooltipText}" style="color:#e74c3c;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#9203;</span>`; // Hourglass icon
-    //     }
-    //   } else if (!match.date && !match.result) { // Case 4: No date and no result
-    //     tooltipText = "No date set for match";
-    //     warning = `<span title="${tooltipText}" style="color:#2196f3;font-size:1.2em;vertical-align:middle;margin-right:0.5em;">&#128197;</span>`; // Calendar icon
-    //   }
-    //   
-    //   const titleAttr = tooltipText ? ` title="${this.escapeHtml(tooltipText)}"` : '';
-    //   const dataAttr = tooltipText ? ` data-attention-reason="${this.escapeHtml(tooltipText)}"` : '';
-    //   
-    //   return `
-    //     <div class="match-item">
-    //       ${warning}<a href="#" class="match-link" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
-    //         ${match.homeTeamName} vs ${match.awayTeamName}
-    //       </a>
-    //     </div>
-    //   `;
-    // }).join('');
-    return '<div class="match-item">No matches requiring attention</div>';
-  }
-
-  // Render calendar
-  renderCalendar() {
-    // This method logic will be in LeagueMatchesUpcoming.js
-    // For now, assuming it was similar to _upcomingFixturesHasNext
-    // const year = this.calendarDate.getFullYear();
-    // const month = this.calendarDate.getMonth();
-    // const matchDates = this._getMatchDates();
-    // const resultDates = this._getResultDates();
-    // 
-    // // Get first day of month and total days
-    // const firstDay = new Date(year, month, 1);
-    // const lastDay = new Date(year, month + 1, 0);
-    // const totalDays = lastDay.getDate();
-    // 
-    // // Get starting day of week (0 = Sunday)
-    // const startDay = firstDay.getDay();
-    // 
-    // // Get previous month's last days
-    // const prevMonthLastDay = new Date(year, month, 0).getDate();
-    // 
-    // // Generate calendar grid
-    // let calendarHTML = `
-    //   <div class="calendar-header">
-    //     <span class="calendar-nav" id="calendar-prev">&lt;</span>
-    //     <span>${firstDay.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-    //     <span class="calendar-nav" id="calendar-next">&gt;</span>
-    //   </div>
-    //   <div class="calendar-grid">
-    //     <div>Su</div>
-    //     <div>Mo</div>
-    //     <div>Tu</div>
-    //     <div>We</div>
-    //     <div>Th</div>
-    //     <div>Fr</div>
-    //     <div>Sa</div>
-    // `;
-    // 
-    // // Add previous month's days
-    // for (let i = startDay - 1; i >= 0; i--) {
-    //   const day = prevMonthLastDay - i;
-    //   calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
-    // }
-    // 
-    // // Add current month's days
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0);
-    // 
-    // for (let day = 1; day <= totalDays; day++) {
-    //   const date = new Date(year, month, day);
-    //   date.setHours(0, 0, 0, 0);
-    //   const isToday = date.getTime() === today.getTime();
-    //   const hasMatch = matchDates.has(date.getTime());
-    //   const hasResult = resultDates.has(date.getTime());
-    //   const isSelected = this.selectedDate && date.getTime() === this.selectedDate.getTime();
-    //   
-    //   let classes = ['calendar-day'];
-    //   if (isToday) classes.push('today');
-    //   if (hasMatch) classes.push('has-match');
-    //   if (hasResult) classes.push('has-result');
-    //   if (isSelected) classes.push('selected');
-    //
-    //   // Style for days
-    //   let style = '';
-    //   if (hasResult && hasMatch) {
-    //     // Split diagonal background: green for result, blue for fixture
-    //     style = 'background: linear-gradient(135deg, #c8e6c9 50%, #bbdefb 50%); border: 2px solid #388e3c; font-weight: bold;';
-    //   } else if (hasResult) {
-    //     style = 'background-color: #c8e6c9; border: 2px solid #388e3c; font-weight: bold;';
-    //   } else if (hasMatch) {
-    //     style = 'background-color: #bbdefb; border: 2px solid #1976d2; font-weight: bold;';
-    //   }
-    //
-    //   // Tooltip logic
-    //   let tooltip = '';
-    //   if (this.data?.matches) {
-    //     const matchesOnDay = this.data.matches.filter(match => {
-    //       if (!match.date) return false;
-    //       const matchDate = new Date(match.date);
-    //       matchDate.setHours(0, 0, 0, 0);
-    //       return matchDate.getTime() === date.getTime();
-    //     });
-    //     const results = matchesOnDay.filter(m => m.result);
-    //     const fixtures = matchesOnDay.filter(m => !m.result);
-    //
-    //     let tooltipLines = [];
-    //     if (results.length > 0) {
-    //       tooltipLines.push('Results:');
-    //       tooltipLines.push(...results.map(m => `${m.homeTeamName} ${m.result.homeScore}\u2013${m.result.awayScore} ${m.awayTeamName}`));
-    //     }
-    //     if (fixtures.length > 0) {
-    //       if (results.length > 0) tooltipLines.push(''); // blank line between
-    //       tooltipLines.push('Fixtures:');
-    //       tooltipLines.push(...fixtures.map(m => `${m.homeTeamName} vs ${m.awayTeamName}`));
-    //     }
-    //     if (tooltipLines.length > 0) {
-    //       tooltip = 'title="' + this.escapeHtml(tooltipLines.join('\n')) + '"';
-    //     }
-    //   }
-    //
-    //   calendarHTML += `
-    //     <div class="${classes.join(' ')}" data-date="${date.toISOString()}" style="${style}" ${tooltip}>
-    //       ${day}
-    //     </div>
-    //   `;
-    // }
-    // 
-    // // Add next month's days
-    // const remainingDays = 42 - (startDay + totalDays); // 42 = 6 rows * 7 days
-    // for (let day = 1; day <= remainingDays; day++) {
-    //   calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
-    // }
-    // 
-    // calendarHTML += '</div>';
-    // return calendarHTML;
-    return ''; // Placeholder, as the actual component will manage this
-  }
-
-  // Render calendar filter buttons
-  renderCalendarFilter() {
-    // This method logic will be in LeagueMatchesUpcoming.js
-    // For now, assuming it was similar to _upcomingFixturesHasNext
-    // const hasFilter = this.selectedDate || this.selectedResultDate;
-    // return `
-    //   <button class="${!hasFilter ? 'active' : ''}" id="calendar-all">All Dates</button>
-    //   ${hasFilter ? `
-    //     <button id="calendar-clear">Clear Filter</button>
-    //   ` : ''}
-    // `;
-    return ''; // Placeholder, as the actual component will manage this
-  }
-
-  // Setup calendar event listeners
-  setupCalendar() {
-    // This method logic will be in LeagueMatchesUpcoming.js
-    // For now, assuming it was similar to _upcomingFixturesHasNext
-    // const calendar = this.shadow.querySelector('.calendar');
-    // if (!calendar) return;
-    //
-    // // Previous/Next month navigation
-    // const prevBtn = calendar.querySelector('#calendar-prev');
-    // const nextBtn = calendar.querySelector('#calendar-next');
-    // 
-    // if (prevBtn) {
-    //   prevBtn.onclick = () => {
-    //     this.calendarDate.setMonth(this.calendarDate.getMonth() - 1);
-    //     this.render();
-    //   };
-    // }
-    // 
-    // if (nextBtn) {
-    //   nextBtn.onclick = () => {
-    //     this.calendarDate.setMonth(this.calendarDate.getMonth() + 1);
-    //     this.render();
-    //   };
-    // }
-    //
-    // // Date selection
-    // const days = calendar.querySelectorAll('.calendar-day:not(.other-month)');
-    // days.forEach(day => {
-    //   day.onclick = () => {
-    //     const date = new Date(day.dataset.date);
-    //     // Check for matches or results on this date
-    //     const matchDates = this._getMatchDates();
-    //     const resultDates = this._getResultDates();
-    //     const dateTime = date.getTime();
-    //     
-    //     if (matchDates.has(dateTime)) {
-    //       // Handle fixture date selection
-    //       this.selectedDate = date;
-    //       this.upcomingFixturesPage = 0;
-    //       this.render();
-    //     } else if (resultDates.has(dateTime)) {
-    //       // Handle result date selection
-    //       this.selectedResultDate = date;
-    //       
-    //       // Update the recent matches component with the selected date
-    //       const isMobile = this.getAttribute('is-mobile') === 'true';
-    //       const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-    //       if (recentMatchesElement) {
-    //         recentMatchesElement.setAttribute('selected-date', date.toISOString());
-    //       }
-    //       
-    //       this.render();
-    //     }
-    //   };
-    // });
-    //
-    // // Filter buttons
-    // const allBtn = this.shadow.querySelector('#calendar-all');
-    // const clearBtn = this.shadow.querySelector('#calendar-clear');
-    // 
-    // if (allBtn) {
-    //   allBtn.onclick = () => {
-    //     this.selectedDate = null;
-    //     this.selectedResultDate = null;
-    //     this.upcomingFixturesPage = 0;
-    //     
-    //     // Clear filter on recent matches component
-    //     const isMobile = this.getAttribute('is-mobile') === 'true';
-    //     const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-    //     if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
-    //       recentMatchesElement.clearDateFilter();
-    //     }
-    //     
-    //     this.render();
-    //   };
-    // }
-    // 
-    // if (clearBtn) {
-    //   clearBtn.onclick = () => {
-    //     this.selectedDate = null;
-    //     this.selectedResultDate = null;
-    //     this.upcomingFixturesPage = 0;
-    //     
-    //     // Clear filter on recent matches component
-    //     const isMobile = this.getAttribute('is-mobile') === 'true';
-    //     const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-    //     if (recentMatchesElement && recentMatchesElement.clearDateFilter) {
-    //       recentMatchesElement.clearDateFilter();
-    //     }
-    //     
-    //     this.render();
-    //   };
-    // }
-  }
-
-  _attentionMatchesHasNext() {
-    // This method logic will be in LeagueMatchesAttention.js
-    // For now, assuming it was similar to _upcomingFixturesHasNext
-    // const list = this._getMatchesRequiringAttention();
-    // return (this.attentionMatchesPage + 1) * 5 < list.length;
-    return false; // Placeholder, as the actual component will manage this
   }
 
   setupTabs() {
@@ -1757,7 +1537,7 @@ class LeagueElement extends HTMLElement {
 
         if (homeTeam === awayTeam) {
           status = 'same';
-          tooltip = '-';
+          tooltip = ''; // Remove tooltip for diagonal cells
         } else if (matchesMap.has(matchKey)) {
           match = matchesMap.get(matchKey);
           if (match.result && typeof match.result.homeScore === 'number' && typeof match.result.awayScore === 'number') {
@@ -1800,27 +1580,56 @@ class LeagueElement extends HTMLElement {
     // Header row (top-left empty cell + away teams)
     html += '<div class="matrix-cell matrix-header-cell"></div>'; // Top-left empty
     teams.forEach(awayTeam => {
-      html += `<div class="matrix-cell matrix-header-cell"><div class="matrix-team-name-x">${this.escapeHtml(awayTeam)}</div></div>`;
+      // Use display name for away teams in header
+      const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
+      html += `<div class="matrix-cell matrix-header-cell"><div class="matrix-team-name-x">${this.escapeHtml(awayTeamDisplay)}</div></div>`;
     });
 
     // Matrix rows (home teams + match cells)
     teams.forEach(homeTeam => {
-      html += `<div class="matrix-cell matrix-header-cell"><div class="matrix-team-name-y">${this.escapeHtml(homeTeam)}</div></div>`; // Home team header
+      // Use display name for home teams in header
+      const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
+      html += `<div class="matrix-cell matrix-header-cell"><div class="matrix-team-name-y">${this.escapeHtml(homeTeamDisplay)}</div></div>`; // Home team header
       teams.forEach(awayTeam => {
         const cellData = matrix[homeTeam][awayTeam];
         let content = '';
+        
         if (cellData.status === 'played') {
           content = `<span class="matrix-score">${cellData.match.result.homeScore}-${cellData.match.result.awayScore}</span>`;
+        } else if (cellData.status === 'none') {
+          content = `<span class="add-match-icon">+</span>`;
         }
+
+        // Special handling for diagonal cells (same team)
+        const cellClass = cellData.status === 'same' ? 'matrix-cell-same-team' : `matrix-cell-${cellData.status}`;
+        
+        // Update tooltip text to use display names
+        let tooltipText = cellData.tooltip;
+        if (cellData.match) {
+          const homeTeamDisplay = this.getTeamDisplayName(cellData.match.homeTeamName);
+          const awayTeamDisplay = this.getTeamDisplayName(cellData.match.awayTeamName);
+          
+          if (cellData.status === 'played') {
+            tooltipText = `${new Date(cellData.match.date).toLocaleDateString()}: ${homeTeamDisplay} ${cellData.match.result.homeScore} - ${cellData.match.result.awayScore} ${awayTeamDisplay}`;
+          } else if (cellData.status === 'scheduled') {
+            tooltipText = cellData.match.date ? `Scheduled: ${new Date(cellData.match.date).toLocaleDateString()} - ${homeTeamDisplay} vs ${awayTeamDisplay}` : `Scheduled: ${homeTeamDisplay} vs ${awayTeamDisplay} (No date)`;
+          }
+        } else if (cellData.status === 'none') {
+          const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
+          const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
+          tooltipText = `${homeTeamDisplay} vs ${awayTeamDisplay} - No match scheduled`;
+        }
+        
+        const tooltipHtml = tooltipText ? `<div class="tooltip">${this.escapeHtml(tooltipText)}</div>` : '';
 
         html += `
           <div 
-            class="matrix-cell matrix-cell-${cellData.status}" 
+            class="matrix-cell ${cellClass}" 
             data-home-team="${this.escapeHtml(homeTeam)}" 
             data-away-team="${this.escapeHtml(awayTeam)}"
           >
             ${content}
-            <div class="tooltip">${this.escapeHtml(cellData.tooltip)}</div>
+            ${tooltipHtml}
           </div>
         `;
       });
@@ -2006,7 +1815,6 @@ class LeagueElement extends HTMLElement {
         this.pointsOverTimeChartData.teamSeries[teamName][dateIndex] = currentTeamPoints[teamName];
       });
     });
-    console.log("Prepared pointsOverTimeChartData:", JSON.parse(JSON.stringify(this.pointsOverTimeChartData)));
   }
 
   ensureTeamColors() {
@@ -2057,7 +1865,6 @@ class LeagueElement extends HTMLElement {
         colorIndex++;
       }
     });
-    console.log("Team colors assigned:", JSON.parse(JSON.stringify(this.teamColors)));
   }
 
   drawPointsOverTimeSVG() {
@@ -2088,15 +1895,16 @@ class LeagueElement extends HTMLElement {
         allTeamNames.forEach(teamName => {
             const color = this.teamColors[teamName] || '#ccc';
             const isChecked = this.selectedTeamsForGraph.has(teamName);
+            const teamDisplayName = this.getTeamDisplayName(teamName);
 
             const legendItemLabel = document.createElement('label');
             legendItemLabel.className = 'legend-item';
-            legendItemLabel.title = `Toggle visibility for ${this.escapeHtml(teamName)}`;
+            legendItemLabel.title = `Toggle visibility for ${this.escapeHtml(teamDisplayName)}`;
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'trends-team-toggle-cb';
-            checkbox.value = teamName;
+            checkbox.value = teamName; // Keep original ID as value for data lookups
             checkbox.checked = isChecked;
             
             const colorBox = document.createElement('span');
@@ -2104,7 +1912,7 @@ class LeagueElement extends HTMLElement {
             colorBox.style.backgroundColor = color;
 
             const nameSpan = document.createElement('span');
-            nameSpan.textContent = this.escapeHtml(teamName);
+            nameSpan.textContent = this.escapeHtml(teamDisplayName);
 
             legendItemLabel.appendChild(checkbox);
             legendItemLabel.appendChild(colorBox);
@@ -2247,10 +2055,6 @@ class LeagueElement extends HTMLElement {
         mainGroup.appendChild(createSVGElement('path', { d: pathData.trim(), stroke: color, fill: 'none', 'stroke-width': 2, class: 'line' }));
       }
     });
-    
-    // Legend population was moved to the top
-
-    console.log("SVG graph drawn and legend populated.");
   }
 
   setupTrendsViewInteractivity() {
@@ -2271,7 +2075,6 @@ class LeagueElement extends HTMLElement {
           const legendDiv = this.shadow.querySelector('.trends-graph-legend');
           if (legendDiv) legendDiv.innerHTML = '';
         }
-        console.log(`Active trend graph type changed to: ${this.activeTrendGraphType}`);
       });
     }
 
@@ -2287,7 +2090,6 @@ class LeagueElement extends HTMLElement {
             this.selectedTeamsForGraph.delete(teamName);
           }
           this.drawPointsOverTimeSVG(); // Redraw graph with new team selection
-          console.log(`Selected teams for graph updated:`, Array.from(this.selectedTeamsForGraph));
         }
       });
     }
@@ -2343,7 +2145,17 @@ class LeagueElement extends HTMLElement {
             } else {
               lost++; matchResultForTeam = 'L';
             }
-            teamFilteredMatches.push({ result: matchResultForTeam, date: match.date, homeTeamName: match.homeTeamName, awayTeamName: match.awayTeamName, homeScore, awayScore });
+            teamFilteredMatches.push({ 
+              result: matchResultForTeam, 
+              date: match.date, 
+              homeTeamName: match.homeTeamName, 
+              awayTeamName: match.awayTeamName, 
+              homeScore, 
+              awayScore,
+              // Add display names for tooltip readability
+              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
+              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+            });
           }
         } else if (this.tableFilter === 'away') {
           if (match.awayTeamName === teamName) {
@@ -2357,7 +2169,17 @@ class LeagueElement extends HTMLElement {
             } else {
               lost++; matchResultForTeam = 'L';
             }
-            teamFilteredMatches.push({ result: matchResultForTeam, date: match.date, homeTeamName: match.homeTeamName, awayTeamName: match.awayTeamName, homeScore, awayScore });
+            teamFilteredMatches.push({ 
+              result: matchResultForTeam, 
+              date: match.date, 
+              homeTeamName: match.homeTeamName, 
+              awayTeamName: match.awayTeamName, 
+              homeScore, 
+              awayScore,
+              // Add display names for tooltip readability
+              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
+              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+            });
           }
         } else { // 'overall'
           if (match.homeTeamName === teamName) {
@@ -2371,7 +2193,17 @@ class LeagueElement extends HTMLElement {
             } else {
               lost++; matchResultForTeam = 'L';
             }
-            teamFilteredMatches.push({ result: matchResultForTeam, date: match.date, homeTeamName: match.homeTeamName, awayTeamName: match.awayTeamName, homeScore, awayScore });
+            teamFilteredMatches.push({ 
+              result: matchResultForTeam, 
+              date: match.date, 
+              homeTeamName: match.homeTeamName, 
+              awayTeamName: match.awayTeamName, 
+              homeScore, 
+              awayScore,
+              // Add display names for tooltip readability
+              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
+              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+            });
           } else if (match.awayTeamName === teamName) {
             played++;
             shotsFor += awayScore;
@@ -2383,7 +2215,17 @@ class LeagueElement extends HTMLElement {
             } else {
               lost++; matchResultForTeam = 'L';
             }
-            teamFilteredMatches.push({ result: matchResultForTeam, date: match.date, homeTeamName: match.homeTeamName, awayTeamName: match.awayTeamName, homeScore, awayScore });
+            teamFilteredMatches.push({ 
+              result: matchResultForTeam, 
+              date: match.date, 
+              homeTeamName: match.homeTeamName, 
+              awayTeamName: match.awayTeamName, 
+              homeScore, 
+              awayScore,
+              // Add display names for tooltip readability
+              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
+              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+            });
           }
         }
       });
@@ -2392,6 +2234,7 @@ class LeagueElement extends HTMLElement {
 
       return {
         teamName,
+        teamDisplayName: this.getTeamDisplayName(teamName), // Add display name for the team
         played,
         won,
         drawn,
@@ -2402,7 +2245,7 @@ class LeagueElement extends HTMLElement {
         points,
         matches: teamFilteredMatches.slice(0, 5).map(m => ({
           result: m.result,
-          description: `${new Date(m.date).toLocaleDateString()}: ${m.homeTeamName} ${m.homeScore}-${m.awayScore} ${m.awayTeamName}`
+          description: `${new Date(m.date).toLocaleDateString()}: ${m.homeTeamDisplayName} ${m.homeScore}-${m.awayScore} ${m.awayTeamDisplayName}`
         })),
         allMatchesForTooltip: teamFilteredMatches,
         inPromotionPosition: false,
@@ -2415,7 +2258,7 @@ class LeagueElement extends HTMLElement {
       if (b.points !== a.points) return b.points - a.points;
       if (b.shotDifference !== a.shotDifference) return b.shotDifference - a.shotDifference;
       if (b.shotsFor !== a.shotsFor) return b.shotsFor - a.shotsFor;
-      return a.teamName.localeCompare(b.teamName);
+      return a.teamDisplayName.localeCompare(b.teamDisplayName); // Use display name for sort
     });
 
     // Assign currentRank based on the primary sort for the current view (overall, home, away)
@@ -2594,7 +2437,6 @@ class LeagueElement extends HTMLElement {
    * @param {'edit'|'new'} mode
    */
   openMatchModal(matchData, teams, mode = 'edit') {
-    console.log('[LeagueElement] openMatchModal called with:', { matchData, teams, mode });
     this.matchModalOpen = true;
     this.matchModalData = matchData;
     this.matchModalTeams = teams;
@@ -2615,7 +2457,6 @@ class LeagueElement extends HTMLElement {
 
   _handleRecentMatchClick(e) {
     if (e.detail.type === 'matchClick' && e.detail.match) {
-      console.log('[LeagueElement] _handleRecentMatchClick called with match:', e.detail.match);
       const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
                         ? this.data.table.leagueData.map(t => t.teamName)
                         : [];
@@ -2628,7 +2469,11 @@ class LeagueElement extends HTMLElement {
       const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
                         ? this.data.table.leagueData.map(t => t.teamName)
                         : [];
-      this.openMatchModal(e.detail.match, teamsArray, 'edit');
+      const matchData = { ...e.detail.match }; // Clone to avoid modifying original event detail
+      if (e.detail.attentionReason) {
+          matchData.attentionReason = e.detail.attentionReason;
+      }
+      this.openMatchModal(matchData, teamsArray, 'edit');
     }
   }
 
@@ -2666,7 +2511,6 @@ class LeagueElement extends HTMLElement {
 
   // ADDED: Handler for events from league-calendar
   _handleCalendarDateChange(e) {
-    console.log('[LeagueElement] _handleCalendarDateChange event received:', e.detail);
     if (e.detail.type === 'dateChange') {
         // Use Temporal API for date handling
         
@@ -2674,7 +2518,6 @@ class LeagueElement extends HTMLElement {
         if (e.detail.dateString) {
             // Store the date string directly - this is the simplest and most reliable
             this.activeCalendarFilterDate = e.detail.dateString;
-            console.log('[LeagueElement] Date filter set from dateString:', this.activeCalendarFilterDate);
         } 
         // Option 2: Create from year, month, day components using Temporal
         else if (e.detail.year && e.detail.month && e.detail.day) {
@@ -2688,7 +2531,6 @@ class LeagueElement extends HTMLElement {
                 
                 // Store as ISO string (YYYY-MM-DD)
                 this.activeCalendarFilterDate = plainDate.toString();
-                console.log('[LeagueElement] Date filter set using Temporal from components:', this.activeCalendarFilterDate);
             } catch (err) {
                 console.error('[LeagueElement] Error creating Temporal date:', err);
                 this.activeCalendarFilterDate = null;
@@ -2702,7 +2544,6 @@ class LeagueElement extends HTMLElement {
                 const plainDate = TemporalUtils.fromLegacyDate(legacyDate);
                 if (plainDate) {
                     this.activeCalendarFilterDate = plainDate.toString();
-                    console.log('[LeagueElement] Date filter set using Temporal from legacy Date:', this.activeCalendarFilterDate);
                 } else {
                     throw new Error('Invalid date conversion');
                 }
@@ -2712,7 +2553,6 @@ class LeagueElement extends HTMLElement {
                 // Fallback to direct string formatting if Temporal conversion fails
                 const d = new Date(e.detail.date);
                 this.activeCalendarFilterDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                console.log('[LeagueElement] Date filter set using fallback method:', this.activeCalendarFilterDate);
             }
         }
         else {
@@ -2721,7 +2561,6 @@ class LeagueElement extends HTMLElement {
         }
     } else if (e.detail.type === 'filterClear') {
         this.activeCalendarFilterDate = null;
-        console.log('[LeagueElement] Date filter cleared');
     }
     
     // Update child components that depend on this filter date
@@ -2749,6 +2588,52 @@ class LeagueElement extends HTMLElement {
     }
   }
   */
+
+  // Add this new method to parse lovebowls teams
+  parseLovebowlsTeams(teamsData) {
+    try {
+      if (typeof teamsData === 'string') {
+        this.lovebowlsTeams = JSON.parse(teamsData);
+      } else if (Array.isArray(teamsData)) {
+        this.lovebowlsTeams = teamsData;
+      } else {
+        console.warn('Invalid lovebowls teams data format');
+        this.lovebowlsTeams = [];
+      }
+      console.log('Parsed lovebowls teams:', this.lovebowlsTeams);
+      this.render(); // Re-render to reflect the new team names
+    } catch (error) {
+      console.error('Error parsing lovebowls teams:', error);
+      this.lovebowlsTeams = [];
+    }
+  }
+
+  // Add utility method to get display name for a team
+  getTeamDisplayName(teamName) {
+    if (!teamName || !this.lovebowlsTeams || !this.lovebowlsTeams.length) {
+      return teamName;
+    }
+    
+    // Check if this team name is a GUID from a lovebowls team
+    const lovebowlsTeam = this.lovebowlsTeams.find(lt => lt.value === teamName);
+    if (lovebowlsTeam) {
+      return lovebowlsTeam.label;
+    }
+    
+    return teamName;
+  }
+
+  // Create a mapping array for team display names that can be passed to subcomponents
+  createTeamMappingArray() {
+    if (!this.data || !this.data.table || !this.data.table.leagueData || !Array.isArray(this.data.table.leagueData)) {
+      return [];
+    }
+
+    return this.data.table.leagueData.map(team => ({
+      id: team.teamName,
+      displayName: this.getTeamDisplayName(team.teamName)
+    }));
+  }
 }
 
 // Register the custom element

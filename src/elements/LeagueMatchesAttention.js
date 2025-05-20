@@ -130,13 +130,17 @@ class LeagueMatchesAttention extends HTMLElement {
     this.matches = [];
     this.currentPage = 0;
     this.itemsPerPage = 5;
+    this.teamMapping = [];
   }
 
   static get observedAttributes() {
-    return ['data', 'is-mobile'];
+    return ['data', 'is-mobile', 'team-mapping'];
   }
 
   connectedCallback() {
+    if (this.hasAttribute('team-mapping')) {
+      this._setTeamMapping(this.getAttribute('team-mapping'));
+    }
     this.render();
   }
 
@@ -146,7 +150,37 @@ class LeagueMatchesAttention extends HTMLElement {
       this.loadData(newValue);
     } else if (name === 'is-mobile') {
       this.render();
+    } else if (name === 'team-mapping') {
+      this._setTeamMapping(newValue);
+      this.render(); // Re-render to apply new team names
     }
+  }
+
+  _setTeamMapping(mappingData) {
+    try {
+      if (mappingData && mappingData !== 'null' && mappingData !== 'undefined') {
+        this.teamMapping = JSON.parse(mappingData);
+      } else {
+        this.teamMapping = [];
+      }
+    } catch (error) {
+      console.error('[LeagueMatchesAttention] Error parsing team mapping:', error);
+      this.teamMapping = [];
+    }
+  }
+
+  // Add a utility method to get display name for a team
+  getTeamDisplayName(teamName) {
+    if (!teamName || !this.teamMapping || !Array.isArray(this.teamMapping)) {
+      return teamName;
+    }
+    
+    const mapping = this.teamMapping.find(m => m.id === teamName);
+    if (mapping && mapping.displayName) {
+      return mapping.displayName;
+    }
+    
+    return teamName;
   }
 
   /**
@@ -302,6 +336,11 @@ class LeagueMatchesAttention extends HTMLElement {
     const conflictingKeys = this._getConflictingMatchKeys();
     return pageItems.map(match => {
       const matchKey = match.key || `${match.homeTeamName}_${match.awayTeamName}_unscheduled`;
+      
+      // Get display names for teams
+      const homeTeamDisplay = this.getTeamDisplayName(match.homeTeamName);
+      const awayTeamDisplay = this.getTeamDisplayName(match.awayTeamName);
+      
       let warningSymbol = '';
       let warningClass = '';
       let tooltipText = '';
@@ -338,7 +377,7 @@ class LeagueMatchesAttention extends HTMLElement {
         <div class="match-item list-item-shared">
           ${warningSpan}
           <a href="#" class="match-link list-item-text-primary" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
-            ${match.homeTeamName} vs ${match.awayTeamName}
+            ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}
           </a>
         </div>
       `;
@@ -390,12 +429,14 @@ class LeagueMatchesAttention extends HTMLElement {
       link.onclick = (e) => {
         e.preventDefault();
         const matchKey = link.dataset.matchKey;
+        const attentionReason = link.dataset.attentionReason;
         const match = this._getMatchesRequiringAttention().find(m => m.key === matchKey);
         if (match) {
-          console.log('[LeagueMatchesAttention] Dispatching matchClick event for match:', match);
+          console.log('[LeagueMatchesAttention] Dispatching matchClick event for match:', match, 'Reason:', attentionReason);
           this.dispatchEvent(new LeagueMatchesAttentionEvent({
             type: 'matchClick',
-            match: match
+            match: match,
+            attentionReason: attentionReason
           }));
         }
       };
