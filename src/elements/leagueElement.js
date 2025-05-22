@@ -844,7 +844,13 @@ class LeagueElement extends HTMLElement {
 
     this.dispatchEvent(new LeagueEvent({console: [name, oldValue, newValue]}));
 
-    if (name === 'data') {
+    if (name === 'lovebowls-teams') {
+      this.parseLovebowlsTeams(newValue);
+      // If data is already loaded, re-render to apply the new team names
+      if (this.data) {
+        this.render();
+      }
+    } else if (name === 'data') {
       this.data = newValue;
       if (newValue) {
         this.loadLeagueData(newValue);
@@ -866,8 +872,6 @@ class LeagueElement extends HTMLElement {
       }
     } else if (name === 'is-mobile') {
       this.render();
-    } else if (name === 'lovebowls-teams') {
-      this.parseLovebowlsTeams(newValue);
     }
   }
 
@@ -1136,9 +1140,9 @@ class LeagueElement extends HTMLElement {
     if (this.matchModalOpen) {
       // ADDED CONSOLE LOG
       console.log('[LeagueElement - render] Modal rendering. this.matchModalOpen is true.');
-      console.log('[LeagueElement - render] Current this.matchModalData before modal creation:', JSON.parse(JSON.stringify(this.matchModalData)));
-      console.log('[LeagueElement - render] Current this.matchModalTeams before modal creation:', JSON.parse(JSON.stringify(this.matchModalTeams)));
-      console.log('[LeagueElement - render] Current this.lovebowlsTeams before modal creation:', JSON.parse(JSON.stringify(this.lovebowlsTeams)));
+      console.log('[LeagueElement - render] Current this.matchModalData before modal creation:', this.matchModalData);
+      console.log('[LeagueElement - render] Current this.matchModalTeams before modal creation:', this.matchModalTeams);
+      console.log('[LeagueElement - render] Current this.lovebowlsTeams before modal creation:', this.lovebowlsTeams);
 
       // Remove any existing modal first
       let modal = this.shadow.querySelector('league-match');
@@ -1166,7 +1170,7 @@ class LeagueElement extends HTMLElement {
           }));
       }
       // ADDED CONSOLE LOG
-      console.log('[LeagueElement - render] finalTeamsForModal (mapped {value, label}):', JSON.parse(JSON.stringify(finalTeamsForModal)));
+      console.log('[LeagueElement - render] finalTeamsForModal (mapped {value, label}):', finalTeamsForModal);
       modal.teams = finalTeamsForModal;
       
       // Pass the lovebowls teams data to the modal for reference if needed
@@ -1177,17 +1181,23 @@ class LeagueElement extends HTMLElement {
       
       modal.open = true; // This line sets the property
       modal.isMobile = this.getAttribute('is-mobile') === 'true';
+      modal.setAttribute('is-mobile', this.getAttribute('is-mobile') === 'true' ? 'true' : 'false');
       modal.mode = this.matchModalMode;
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;
       }
 
+      // ADDED: Debug logging
+      console.log('[LeagueElement] Match modal created with isMobile:', modal.isMobile, 
+                  'attribute:', modal.getAttribute('is-mobile'),
+                  'parent is-mobile attribute:', this.getAttribute('is-mobile'));
+
       // ADDED CONSOLE LOGS - Check properties after assignment to modal instance
       console.log('[LeagueElement - render] Modal instance properties after assignment:');
-      console.log('[LeagueElement - render] modal.match:', JSON.parse(JSON.stringify(modal.match)));
-      console.log('[LeagueElement - render] modal.teams:', JSON.parse(JSON.stringify(modal.teams)));
-      console.log('[LeagueElement - render] modal.lovebowlsTeams:', JSON.parse(JSON.stringify(modal.lovebowlsTeams)));
+      console.log('[LeagueElement - render] modal.match:', modal.match);
+      console.log('[LeagueElement - render] modal.teams:', modal.teams);
+      console.log('[LeagueElement - render] modal.lovebowlsTeams:', modal.lovebowlsTeams);
       console.log('[LeagueElement - render] modal.mode:', modal.mode);
       console.log('[LeagueElement - render] modal.open:', modal.open);
 
@@ -2480,9 +2490,9 @@ class LeagueElement extends HTMLElement {
     // ADDED CONSOLE LOGS
     console.log('[LeagueElement - openMatchModal] Opening modal with:');
     console.log('[LeagueElement - openMatchModal] Mode:', mode);
-    console.log('[LeagueElement - openMatchModal] Match Data (this.matchModalData):', JSON.parse(JSON.stringify(this.matchModalData)));
-    console.log('[LeagueElement - openMatchModal] Teams for dropdown (this.matchModalTeams):', JSON.parse(JSON.stringify(this.matchModalTeams)));
-    console.log('[LeagueElement - openMatchModal] lovebowlsTeams available:', JSON.parse(JSON.stringify(this.lovebowlsTeams)));
+    console.log('[LeagueElement - openMatchModal] Match Data (this.matchModalData):', this.matchModalData);
+    console.log('[LeagueElement - openMatchModal] Teams for dropdown (this.matchModalTeams):', this.matchModalTeams);
+    console.log('[LeagueElement - openMatchModal] lovebowlsTeams available:', this.lovebowlsTeams);
 
     this.render();
   }

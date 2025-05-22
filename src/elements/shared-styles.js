@@ -130,6 +130,13 @@ export const modalStyles = `
     flex-direction: column;
   }
 
+  /* Specific styles for mobile-view class, used by leagueMatch.js */
+  .modal-shared-content.mobile-view {
+    margin: 5% auto; /* Less margin from top on mobile */
+    width: var(--le-modal-width-mobile, 95%); /* Even wider on mobile */
+    max-width: var(--le-modal-max-width-mobile, 650px); /* Increased max-width for mobile */
+  }
+
   .modal-shared-header {
     /* Utilizes .panel-header-shared for base styling if desired, or define fully here */
     /* This example assumes it might be combined with .panel-header-shared or similar */

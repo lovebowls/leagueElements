@@ -1175,11 +1175,18 @@ class LeagueAdminElement extends HTMLElement {
       modal.teams = this.matchModalTeams;
       modal.open = true;
       modal.isMobile = this.getAttribute('is-mobile') === 'true';
+      modal.setAttribute('is-mobile', this.getAttribute('is-mobile') === 'true' ? 'true' : 'false');
       modal.mode = this.matchModalMode;
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;
       }
+      
+      // ADDED: Debug logging
+      console.log('[LeagueAdminElement] Match modal created with isMobile:', modal.isMobile, 
+                  'attribute:', modal.getAttribute('is-mobile'),
+                  'parent is-mobile attribute:', this.getAttribute('is-mobile'));
+      
       modal.addEventListener('match-save', (e) => {
         // Save match to league
         const match = e.detail.match;

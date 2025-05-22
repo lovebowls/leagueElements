@@ -71,10 +71,127 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       }
       /* Responsive adjustment for mobile */
       @media (max-width: 480px) {
-        .score-inputs input[type="number"] {
-          width: 70px; /* Slightly smaller on mobile but still big enough */
-          min-width: 70px;
+        .modal-shared-content {
+          width: 90% !important; /* Override any fixed width from shared styles */
+          max-width: 90% !important;
+          margin: 10px auto;
+          font-size: 20px !important; /* Base font size increase */
         }
+        .modal-shared-header {
+          padding: 15px;
+          font-size: 18px !important;
+        }
+        .modal-shared-body {
+          padding: 15px;
+        }
+        .modal-shared-footer {
+          padding: 15px;
+        }
+        .form-label-shared {
+          font-size: 16px !important;
+          margin-bottom: 8px;
+        }
+        .form-input-shared, 
+        .form-select-shared {
+          font-size: 16px !important;
+          padding: 10px !important;
+          height: auto !important;
+        }
+        .form-checkbox-label-shared {
+          font-size: 16px !important;
+        }
+        .score-inputs {
+          gap: 10px;
+        }
+        .score-inputs input[type="number"] {
+          width: 90px; /* Wider on mobile for touch targets */
+          min-width: 90px;
+          font-size: 16px !important;
+          padding: 10px !important;
+        }
+        .score-inputs span {
+          font-size: 18px;
+          font-weight: bold;
+        }
+        .button-shared {
+          font-size: 16px !important;
+          padding: 10px 15px !important;
+          min-height: 44px; /* Better touch target */
+          margin: 5px;
+        }
+        #error-message-match-modal {
+          font-size: 14px !important;
+          padding: 10px;
+        }
+        .attention-banner {
+          font-size: 14px !important;
+          padding: 10px;
+        }
+      }
+      
+      /* Also add styles for when mobile-view class is applied regardless of screen size */
+      .modal-shared-content.mobile-view {
+        width: 90% !important; /* Override any fixed width from shared styles */
+        max-width: 90% !important;
+        min-width: 280px !important;
+        margin: 10px auto;
+        font-size: 16px !important; /* Base font size increase */
+        transform: scale(1.05);
+      }
+      .mobile-view .modal-shared-header {
+        padding: 15px;
+        font-size: 20px !important;
+      }
+      .mobile-view .modal-shared-body {
+        padding: 15px;
+      }
+      .mobile-view .modal-shared-footer {
+        padding: 15px;
+      }
+      .mobile-view .form-label-shared {
+        font-size: 16px !important;
+        margin-bottom: 10px;
+      }
+      .mobile-view .form-input-shared, 
+      .mobile-view .form-select-shared {
+        font-size: 16px !important;
+        padding: 12px !important;
+        height: auto !important;
+        border-radius: 6px !important;
+      }
+      .mobile-view .form-checkbox-label-shared {
+        font-size: 16px !important;
+        margin: 5px 0;
+      }
+      .mobile-view .score-inputs {
+        gap: 15px;
+        margin-top: 10px;
+      }
+      .mobile-view .score-inputs input[type="number"] {
+        width: 100px; /* Wider on mobile for touch targets */
+        min-width: 100px;
+        font-size: 18px !important;
+        padding: 12px !important;
+        border-radius: 6px !important;
+      }
+      .mobile-view .score-inputs span {
+        font-size: 20px;
+        font-weight: bold;
+      }
+      .mobile-view .button-shared {
+        font-size: 18px !important;
+        padding: 12px 20px !important;
+        min-height: 50px; /* Better touch target */
+        margin: 5px;
+        border-radius: 6px !important;
+      }
+      .mobile-view #error-message-match-modal {
+        font-size: 16px !important;
+        padding: 12px;
+      }
+      .mobile-view .attention-banner {
+        font-size: 16px !important;
+        padding: 12px;
       }
       #error-message-match-modal {
         color: var(--le-text-color-error, #D8000C);
@@ -164,9 +281,13 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
    * @param {boolean} value
    */
   set isMobile(value) {
+    const oldValue = this._isMobile;
     this._isMobile = !!value;
-    this.setAttribute('is-mobile', this._isMobile);
-    this.render();
+    console.log('[LeagueMatch] set isMobile property called with:', value, 'converted to:', this._isMobile, 'old value was:', oldValue);
+    this.setAttribute('is-mobile', this._isMobile ? 'true' : 'false');
+    if (oldValue !== this._isMobile) {
+      this.render();
+    }
   }
   get isMobile() { return this._isMobile; }
 
@@ -204,8 +325,16 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       }
     }
     if (name === 'is-mobile') {
-      this._isMobile = newValue !== null && newValue !== 'false';
-      shouldRender = true;
+      const newIsMobileState = newValue !== null && newValue !== 'false';
+      console.log('[LeagueMatch] attributeChangedCallback for is-mobile:', 
+                 'oldValue:', oldValue, 
+                 'newValue:', newValue, 
+                 'converted to boolean:', newIsMobileState, 
+                 'current _isMobile:', this._isMobile);
+      if (this._isMobile !== newIsMobileState) {
+        this._isMobile = newIsMobileState;
+        shouldRender = true;
+      }
     }
     if (name === 'mode') {
       this._mode = newValue === 'edit' ? 'edit' : 'new';
@@ -346,6 +475,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
 
   render() {
     console.log('[LeagueMatch] render() called. Current _open state:', this._open);
+    
+    const isMobileView = this._isMobile || false;
+    console.log('[LeagueMatch] render() mobile check - attribute isMobile:', this._isMobile);
+    
     // Determine if host itself should act as overlay or if it contains an overlay div.
     // For this example, host itself will be the overlay when open.
     // The actual dialog box will be modal-shared-content.
@@ -365,11 +498,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       ? `<div class="attention-banner">${this._escapeHtml(this._attentionReason)}</div>`
       : '';
 
+    // MODIFIED: Add mobile class to modal content
     this.shadow.innerHTML = `
       <style>
         ${LeagueMatch.BASE_STYLES}
       </style>
-      <div class="modal-shared-content ${this._open ? 'modal-is-open' : 'modal-is-closed'}" 
+      <div class="modal-shared-content ${this._open ? 'modal-is-open' : 'modal-is-closed'} ${isMobileView ? 'mobile-view' : ''}" 
            role="dialog" 
            aria-labelledby="match-modal-title" 
            aria-modal="true"

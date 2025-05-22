@@ -85,7 +85,21 @@
       log.innerHTML += `<div>${message}</div>`;
     }
     
-    // Initialize with saved or default data
+    // Set is-mobile attribute based on device detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    el.setAttribute('is-mobile', isMobile ? 'true' : 'false');
+    
+    // IMPORTANT: Set the lovebowls teams attribute FIRST before setting data
+    el.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));
+    
+    // Pass team mapping directly for sub-components
+    const teamMap = {};
+    lovebowlsTeamsData.forEach(team => {
+      teamMap[team.value] = team.label;
+    });
+    el.setAttribute('team-map', JSON.stringify(teamMap));
+    
+    // Initialize with saved or default data - AFTER setting lovebowls-teams
     const initialData = loadLeagueData();
     el.setAttribute('data', JSON.stringify(initialData));
     
@@ -97,20 +111,6 @@
       el.setAttribute('data', JSON.stringify(freshData));
       logEvent('Data reset to default with fresh test data');
     });
-    
-    // Set is-mobile attribute based on device detection
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-    el.setAttribute('is-mobile', isMobile ? 'true' : 'false');
-    
-    // Pass lovebowls teams data to the element for team name display
-    el.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));
-    
-    // Pass team mapping directly for sub-components
-    const teamMap = {};
-    lovebowlsTeamsData.forEach(team => {
-      teamMap[team.value] = team.label;
-    });
-    el.setAttribute('team-map', JSON.stringify(teamMap));
     
     // Listen for league update events from leagueElement.js
     el.addEventListener('league-event', (e) => {
