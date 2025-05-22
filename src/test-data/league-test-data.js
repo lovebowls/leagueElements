@@ -91,11 +91,26 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 3, leagu
     }
   }
   
-  // Create and return the complete league object
+  // Create and return the complete league object with proper structure
   return {
     _id: leagueId,
     name: leagueName,
-    teams,
+    table: {
+      leagueData: teams.map(team => ({
+        teamName: team.value,
+        teamDisplayName: team.label,
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        shotsFor: 0,
+        shotsAgainst: 0,
+        shotDifference: 0,
+        points: 0,
+        matches: [],
+        allMatchesForTooltip: []
+      }))
+    },
     matches,
     settings: {
       pointsForWin: 3,
