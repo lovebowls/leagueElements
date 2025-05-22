@@ -462,8 +462,13 @@ class LeagueElement extends HTMLElement {
         background: var(--le-background-color-host); 
         border: none;
         border-radius: 0;
-        /* Redefine font sizes for mobile if needed, or let em units scale from a potentially larger base */
-        /* --le-font-size-base: 1.1em; /* Example: if mobile needs a slightly larger base */
+        /* Redefine font sizes for mobile to improve readability */
+        --le-font-size-base: 1.2em; /* Increased base font size for mobile */
+        --le-font-size-small: 1em; /* Increased small font size for mobile */
+        --le-font-size-medium: 1.2em; /* Increased medium font size for mobile */
+        --le-font-size-large: 1.4em; /* Increased large font size for mobile */
+        --le-font-size-xlarge: 1.7em; /* Increased extra large font size for mobile */
+        --le-font-size-page-title: 1.5em; /* Increased page title font size for mobile */
       }
       .dashboard-mobile {
         display: flex;
@@ -491,6 +496,7 @@ class LeagueElement extends HTMLElement {
       }
       .settings-icon {
         font-size: var(--le-font-size-large); /* Match mobile title size */
+        padding: var(--le-padding-s) var(--le-padding-s); /* Increased touch target */
       }
       .content { /* Content area for table/matrix/trends */
         padding: 0;
@@ -502,7 +508,7 @@ class LeagueElement extends HTMLElement {
         border-collapse: collapse;
       }
       th, td {
-        padding: var(--le-padding-s); 
+        padding: var(--le-padding-s) var(--le-padding-xs); /* Adjusted padding */
         /* font-size inherited from BASE_STYLES using --le-font-size-base */
       }
       th:nth-child(3),
@@ -511,11 +517,11 @@ class LeagueElement extends HTMLElement {
       }
       .panel-header { /* Header within the right-side panels (Upcoming, Recent, Attention) */
         font-size: var(--le-font-size-medium); 
-        margin-bottom: var(--le-padding-xs); 
+        margin-bottom: var(--le-padding-s); 
         color: var(--le-text-color-primary); 
       }
       .match-item { /* For items within Upcoming, Recent, Attention */
-        padding: var(--le-padding-xs) var(--le-padding-xs); /* MODIFIED - Mobile specific padding */
+        padding: var(--le-padding-s) var(--le-padding-s); /* Increased padding */
         /* border-bottom inherited from BASE_STYLES */
         /* font-size inherited from BASE_STYLES using --le-font-size-base */
       }
@@ -526,6 +532,22 @@ class LeagueElement extends HTMLElement {
       .matrix-container { 
         overflow-x: auto;
         overflow-y: hidden;
+      }
+      .tab-button {
+        padding: var(--le-padding-s) var(--le-padding-m); /* Increased padding for better touch targets */
+        font-size: var(--le-font-size-medium);
+      }
+      /* Make form icons more visible */
+      .form-icon {
+        display: inline-block;
+        width: 8px; /* Increased size */
+        height: 16px; /* Increased size */
+        margin: 0 2px 0 2px; /* Increased margin */
+      }
+      /* Increased spacing for select dropdowns in mobile */
+      .table-view-filter {
+        padding: var(--le-padding-s) var(--le-padding-m);
+        font-size: var(--le-font-size-medium);
       }
     `;
   }

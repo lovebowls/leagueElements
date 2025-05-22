@@ -14,7 +14,7 @@ export const utilityStyles = `
 
 export const panelStyles = `
   .panel-header-shared {
-    padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em); /* Using --le- as a placeholder for theme variables */
+    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
     border-bottom: 1px solid var(--le-border-color-medium, #eee);
     font-weight: bold;
     color: var(--le-text-color-primary, #333);
@@ -25,7 +25,7 @@ export const panelStyles = `
   }
 
   .panel-content-shared {
-    padding: var(--le-padding-m, 1em);
+    padding: var(--le-padding-m, 1.25em);
     background-color: var(--le-background-color-panel, #fff);
     /* Common border for content area if needed
     border: 1px solid var(--le-border-color-light, #f0f0f0);
@@ -35,13 +35,13 @@ export const panelStyles = `
 
 export const buttonStyles = `
   .button-shared {
-    padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
+    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
     border: 1px solid var(--le-border-color-medium, #ccc);
     background-color: var(--le-background-color-button, #f0f0f0);
     color: var(--le-text-color-primary, #333); /* Ensure text color contrasts with button background */
     cursor: pointer;
     border-radius: var(--le-border-radius-standard, 4px);
-    font-size: var(--le-font-size-medium, 1em); /* Base button font size, can be overridden */
+    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
     text-decoration: none;
     display: inline-block;
     text-align: center;
@@ -74,8 +74,8 @@ export const buttonStyles = `
 
   /* Small button variant */
   .button-shared.button-sm {
-    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-s, 0.5rem);
-    font-size: var(--le-font-size-small, 0.9em);
+    padding: var(--le-padding-xs, 0.4rem) var(--le-padding-s, 0.75rem); /* Increased padding */
+    font-size: var(--le-font-size-small, 1em); /* Increased small font size */
     /* line-height can be tighter if needed for small buttons */
     /* line-height: 1.2; */
   }
@@ -122,7 +122,7 @@ export const modalStyles = `
     margin: var(--le-modal-margin-top, 10%) auto; /* Default to 10% from top, centered */
     padding: 0; /* Remove padding, header/body/footer will handle it */
     border: 1px solid var(--le-border-color-dark, #ccc);
-    width: var(--le-modal-width, 80%);
+    width: var(--le-modal-width, 90%); /* Increased width for mobile */
     max-width: var(--le-modal-max-width, 600px);
     border-radius: var(--le-border-radius-large, 8px);
     box-shadow: var(--le-shadow-modal, 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19));
@@ -133,7 +133,7 @@ export const modalStyles = `
   .modal-shared-header {
     /* Utilizes .panel-header-shared for base styling if desired, or define fully here */
     /* This example assumes it might be combined with .panel-header-shared or similar */
-    padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
+    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
     border-bottom: 1px solid var(--le-border-color-medium, #eee);
     font-weight: bold;
     color: var(--le-text-color-primary, #333);
@@ -141,14 +141,14 @@ export const modalStyles = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: var(--le-font-size-large, 1.2em);
+    font-size: var(--le-font-size-large, 1.4em); /* Increased large font size */
     border-top-left-radius: var(--le-border-radius-large, 8px); /* Match content radius */
     border-top-right-radius: var(--le-border-radius-large, 8px); /* Match content radius */
   }
 
   .modal-shared-header .close-button-shared { /* Specific styling for a close button if needed */
     color: var(--le-text-color-secondary, #aaa);
-    font-size: 1.5em;
+    font-size: 1.75em; /* Increased size */
     font-weight: bold;
     background: none;
     border: none;
@@ -162,13 +162,13 @@ export const modalStyles = `
   }
   
   .modal-shared-body {
-    padding: var(--le-padding-m, 1em);
+    padding: var(--le-padding-m, 1.25em); /* Increased padding */
     overflow-y: auto; /* Allow body to scroll if content is too long */
     flex-grow: 1; /* Allows body to take up available space if modal has fixed height */
   }
 
   .modal-shared-footer {
-    padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
+    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
     text-align: right;
     border-top: 1px solid var(--le-border-color-medium, #eee);
     background-color: var(--le-background-color-header, #f9f9f9); /* Optional: footer background */
@@ -177,32 +177,32 @@ export const modalStyles = `
   }
 
   .modal-shared-footer .button-shared + .button-shared { /* Spacing between buttons in footer */
-    margin-left: var(--le-padding-s, 0.5em);
+    margin-left: var(--le-padding-s, 0.75em); /* Increased margin */
   }
 `;
 
 export const formStyles = `
   .form-group-shared {
-    margin-bottom: var(--le-padding-m, 1em);
+    margin-bottom: var(--le-padding-m, 1.25em); /* Increased margin */
   }
 
   .form-label-shared {
     display: block;
-    margin-bottom: var(--le-padding-xs, 0.25em);
+    margin-bottom: var(--le-padding-xs, 0.4em); /* Increased margin */
     font-weight: bold;
     color: var(--le-text-color-primary, #333);
-    font-size: var(--le-font-size-medium, 1em);
+    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
   }
 
   .form-input-shared,
   .form-textarea-shared,
   .form-select-shared {
     width: 100%;
-    padding: var(--le-padding-s, 0.5em);
+    padding: var(--le-padding-s, 0.75em); /* Increased padding */
     border: 1px solid var(--le-border-color-dark, #ccc);
     border-radius: var(--le-border-radius-standard, 4px);
     box-sizing: border-box;
-    font-size: var(--le-font-size-medium, 1em);
+    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
     color: var(--le-text-color-primary, #333);
     background-color: var(--le-background-color-panel, #fff);
   }
@@ -220,12 +220,12 @@ export const formStyles = `
     display: flex; /* Changed to flex for better alignment */
     align-items: center;
     font-weight: normal; /* Typically labels for checkboxes are not bold by default */
-    font-size: var(--le-font-size-medium, 1em);
+    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
     color: var(--le-text-color-primary, #333);
   }
 
   .form-checkbox-label-shared input[type="checkbox"] {
-    margin-right: var(--le-padding-s, 0.5em);
+    margin-right: var(--le-padding-s, 0.75em); /* Increased margin */
     /* Consider custom styling for checkboxes if desired, or rely on browser defaults */
     /* For consistent appearance across browsers, custom checkbox styling can be complex */
     /* For now, using default with adjusted margin */
@@ -246,12 +246,12 @@ export const formStyles = `
 
 export const listItemStyles = `
   .list-item-shared {
-    padding: var(--le-padding-s, 0.5em) var(--le-padding-xs, 0.25em); /* Vertical padding S, horizontal XS by default */
+    padding: var(--le-padding-s, 0.75em) var(--le-padding-xs, 0.4em); /* Increased padding */
     border-bottom: 1px solid var(--le-border-color-light, #eee);
     display: flex;
     align-items: center;
     justify-content: space-between; /* Common for items with actions on the right */
-    gap: var(--le-padding-s, 0.5em); /* Gap between items if they wrap or have multiple elements */
+    gap: var(--le-padding-s, 0.75em); /* Increased gap */
   }
 
   .list-item-shared:last-child {
@@ -261,6 +261,7 @@ export const listItemStyles = `
   /* Example of a text part within a list item that should grow */
   .list-item-shared .list-item-text-primary {
     flex-grow: 1;
+    font-size: var(--le-font-size-medium, 1.15em); /* Added explicit font size */
     /* Potentially add text overflow properties if needed */
     /* white-space: nowrap; */
     /* overflow: hidden; */
@@ -271,6 +272,6 @@ export const listItemStyles = `
   .list-item-shared .list-item-actions {
     flex-shrink: 0; /* Prevent actions from shrinking */
     display: flex;
-    gap: var(--le-padding-xs, 0.25em);
+    gap: var(--le-padding-xs, 0.4em); /* Increased gap */
   }
 `; 
