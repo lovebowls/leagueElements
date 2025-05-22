@@ -6,7 +6,7 @@
 </head>
 <body>
   <h1>Test: &lt;league-matches-recent&gt;</h1>
-  <league-matches-recent id="test-league-matches-recent" data='{"_id":"league1","name":"Spring Bowls League","settings":{"pointsForWin":2,"pointsForDraw":1,"pointsForLoss":0,"promotionPositions":1,"relegationPositions":1,"timesTeamsPlayOther":2,"rinkPoints":{"pointsPerRinkWin":1,"pointsPerRinkDraw":0.5,"defaultRinks":4,"enabled":true}},"teams":[{"name":"Team A"},{"name":"Team B"},{"name":"Team C"}],"matches":[{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}],"table":{"leagueData":[{"teamName":"Team A"},{"teamName":"Team B"},{"teamName":"Team C"}],"metaData":{"promotionPlaces":1,"relegationPlaces":1}},"createdAt":"2025-01-01T12:00:00Z","updatedAt":"2025-05-01T12:00:00Z"}'></league-matches-recent>
+  <league-matches-recent id="test-league-matches-recent" data='{"_id":"league1","name":"Spring Bowls League","settings":{"pointsForWin":2,"pointsForDraw":1,"pointsForLoss":0,"promotionPositions":1,"relegationPositions":1,"timesTeamsPlayOther":2,"rinkPoints":{"pointsPerRinkWin":1,"pointsPerRinkDraw":0.5,"defaultRinks":4,"enabled":true}},"teams":[{"value":"Team A","label":"Team A"},{"value":"Team B","label":"Team B"},{"value":"Team C","label":"Team C"}],"matches":[{"key":"m1","homeTeamName":"Team A","awayTeamName":"Team B","date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeamName":"Team B","awayTeamName":"Team C","date":"2025-05-22","result":null},{"key":"m3","homeTeamName":"Team C","awayTeamName":"Team A","date":"2025-05-29","result":null}],"table":{"leagueData":[{"teamName":"Team A"},{"teamName":"Team B"},{"teamName":"Team C"}],"metaData":{"promotionPlaces":1,"relegationPlaces":1}},"createdAt":"2025-01-01T12:00:00Z","updatedAt":"2025-05-01T12:00:00Z"}'></league-matches-recent>
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../src/elements/LeagueMatchesRecent.js';
@@ -15,6 +15,14 @@
     // Set is-mobile attribute based on device detection
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
     el.setAttribute('is-mobile', isMobile);
+    
+    // Set team mapping for display names
+    const teamMapping = [
+      { value: "Team A", label: "Team A Display" },
+      { value: "Team B", label: "Team B Display" },
+      { value: "Team C", label: "Team C Display" }
+    ];
+    el.setAttribute('team-mapping', JSON.stringify(teamMapping));
     
     // Create a proxy to intercept all events
     const eventProxy = new Proxy(el, {

@@ -18,7 +18,7 @@ import { panelStyles, buttonStyles, listItemStyles } from './shared-styles.js';
  * @attr {string} data - JSON stringified array of match objects
  * @attr {string} [filter-date] - ISO date string (YYYY-MM-DD) to filter fixtures by date
  * @attr {boolean} [is-mobile] - Whether to use mobile styles
- * @attr {string} [team-mapping] - JSON stringified array of team mapping objects
+ * @attr {string} [team-mapping] - JSON stringified array of {value, label} objects mapping team values to display names
  *
  * Emits 'league-matches-upcoming-event' with detail { type: 'matchClick', match }
  */
@@ -135,7 +135,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
     this.currentPage = 0;
     this.itemsPerPage = 5;
     this._filterDate = null; // Store parsed filter date object
-    this.teamMapping = [];
+    this.teamMapping = {};
   }
 
   static get observedAttributes() {
@@ -193,13 +193,25 @@ class LeagueMatchesUpcoming extends HTMLElement {
   _setTeamMapping(mappingData) {
     try {
       if (mappingData && mappingData !== 'null' && mappingData !== 'undefined') {
-        this.teamMapping = JSON.parse(mappingData);
+        const teamMap = {};
+        const teams = JSON.parse(mappingData);
+        
+        // Convert array of {value, label} objects to simple lookup object
+        if (Array.isArray(teams)) {
+          teams.forEach(team => {
+            if (team && team.value && team.label) {
+              teamMap[team.value] = team.label;
+            }
+          });
+        }
+        
+        this.teamMapping = teamMap;
       } else {
-        this.teamMapping = [];
+        this.teamMapping = {};
       }
     } catch (error) {
       console.error('[LeagueMatchesUpcoming] Error parsing team mapping:', error);
-      this.teamMapping = [];
+      this.teamMapping = {};
     }
   }
 
@@ -280,17 +292,18 @@ class LeagueMatchesUpcoming extends HTMLElement {
     return (this.currentPage + 1) * this.itemsPerPage < list.length;
   }
 
-  getTeamDisplayName(teamName) {
-    if (!teamName || !this.teamMapping || !Array.isArray(this.teamMapping)) {
-      return teamName;
+  getTeamDisplayName(teamValue) {
+    if (!teamValue || !this.teamMapping) {
+      return teamValue;
     }
     
-    const mapping = this.teamMapping.find(m => m.id === teamName);
-    if (mapping && mapping.displayName) {
-      return mapping.displayName;
+    // With standardized team model, teamMapping is a simple object map of value -> label
+    const teamObj = this.teamMapping[teamValue];
+    if (teamObj) {
+      return teamObj;
     }
     
-    return teamName;
+    return teamValue;
   }
 
   renderUpcomingFixtures() {

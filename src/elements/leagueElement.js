@@ -1112,6 +1112,12 @@ class LeagueElement extends HTMLElement {
 
     // After main content rendering:
     if (this.matchModalOpen) {
+      // ADDED CONSOLE LOG
+      console.log('[LeagueElement - render] Modal rendering. this.matchModalOpen is true.');
+      console.log('[LeagueElement - render] Current this.matchModalData before modal creation:', JSON.parse(JSON.stringify(this.matchModalData)));
+      console.log('[LeagueElement - render] Current this.matchModalTeams before modal creation:', JSON.parse(JSON.stringify(this.matchModalTeams)));
+      console.log('[LeagueElement - render] Current this.lovebowlsTeams before modal creation:', JSON.parse(JSON.stringify(this.lovebowlsTeams)));
+
       // Remove any existing modal first
       let modal = this.shadow.querySelector('league-match');
       if (modal) modal.remove();
@@ -1129,24 +1135,22 @@ class LeagueElement extends HTMLElement {
       
       modal.match = this.matchModalData;
       
-      // Create teams array with display names (if we're using the original teamName strings)
-      if (this.data && this.data.table && Array.isArray(this.data.table.leagueData)) {
-        const teamsWithDisplay = this.data.table.leagueData.map(team => {
-          return {
-            id: team.teamName,
-            displayName: this.getTeamDisplayName(team.teamName)
-          };
-        });
-        
-        // Set the teams property with the mapped display names
-        modal.teams = teamsWithDisplay;
-        
-        // Pass the lovebowls teams data to the modal for reference if needed
-        if (this.lovebowlsTeams && this.lovebowlsTeams.length > 0) {
-          modal.lovebowlsTeams = this.lovebowlsTeams;
-        }
-      } else {
-        modal.teams = this.matchModalTeams || [];
+      // Consistently map this.matchModalTeams to the {value, label} format
+      let finalTeamsForModal = [];
+      if (this.matchModalTeams && Array.isArray(this.matchModalTeams)) {
+          finalTeamsForModal = this.matchModalTeams.map(teamName => ({
+              value: teamName, // Use the original name/GUID as the ID
+              label: this.getTeamDisplayName(teamName) // Get the display name
+          }));
+      }
+      // ADDED CONSOLE LOG
+      console.log('[LeagueElement - render] finalTeamsForModal (mapped {value, label}):', JSON.parse(JSON.stringify(finalTeamsForModal)));
+      modal.teams = finalTeamsForModal;
+      
+      // Pass the lovebowls teams data to the modal for reference if needed
+      // This is separate from the 'teams' prop which is for the dropdown options
+      if (this.lovebowlsTeams && this.lovebowlsTeams.length > 0) {
+        modal.lovebowlsTeams = this.lovebowlsTeams;
       }
       
       modal.open = true; // This line sets the property
@@ -1156,6 +1160,15 @@ class LeagueElement extends HTMLElement {
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;
       }
+
+      // ADDED CONSOLE LOGS - Check properties after assignment to modal instance
+      console.log('[LeagueElement - render] Modal instance properties after assignment:');
+      console.log('[LeagueElement - render] modal.match:', JSON.parse(JSON.stringify(modal.match)));
+      console.log('[LeagueElement - render] modal.teams:', JSON.parse(JSON.stringify(modal.teams)));
+      console.log('[LeagueElement - render] modal.lovebowlsTeams:', JSON.parse(JSON.stringify(modal.lovebowlsTeams)));
+      console.log('[LeagueElement - render] modal.mode:', modal.mode);
+      console.log('[LeagueElement - render] modal.open:', modal.open);
+
       modal.addEventListener('match-save', (e) => {
         const savedMatch = e.detail.match;
         if (!this.data || !this.data.matches) {
@@ -2441,6 +2454,14 @@ class LeagueElement extends HTMLElement {
     this.matchModalData = matchData;
     this.matchModalTeams = teams;
     this.matchModalMode = mode;
+
+    // ADDED CONSOLE LOGS
+    console.log('[LeagueElement - openMatchModal] Opening modal with:');
+    console.log('[LeagueElement - openMatchModal] Mode:', mode);
+    console.log('[LeagueElement - openMatchModal] Match Data (this.matchModalData):', JSON.parse(JSON.stringify(this.matchModalData)));
+    console.log('[LeagueElement - openMatchModal] Teams for dropdown (this.matchModalTeams):', JSON.parse(JSON.stringify(this.matchModalTeams)));
+    console.log('[LeagueElement - openMatchModal] lovebowlsTeams available:', JSON.parse(JSON.stringify(this.lovebowlsTeams)));
+
     this.render();
   }
 
@@ -2592,47 +2613,57 @@ class LeagueElement extends HTMLElement {
   // Add this new method to parse lovebowls teams
   parseLovebowlsTeams(teamsData) {
     try {
-      if (typeof teamsData === 'string') {
-        this.lovebowlsTeams = JSON.parse(teamsData);
-      } else if (Array.isArray(teamsData)) {
-        this.lovebowlsTeams = teamsData;
-      } else {
-        console.warn('Invalid lovebowls teams data format');
-        this.lovebowlsTeams = [];
+      if (teamsData) {
+        const data = JSON.parse(teamsData);
+        if (Array.isArray(data)) {
+          this._lovebowlsTeams = data;
+          // Create a simple lookup map for team names
+          this._teamNameMap = {};
+          data.forEach(team => {
+            if (team.value && team.label) {
+              this._teamNameMap[team.value] = team.label;
+            }
+          });
+        }
       }
-      console.log('Parsed lovebowls teams:', this.lovebowlsTeams);
-      this.render(); // Re-render to reflect the new team names
     } catch (error) {
       console.error('Error parsing lovebowls teams:', error);
-      this.lovebowlsTeams = [];
     }
   }
 
-  // Add utility method to get display name for a team
-  getTeamDisplayName(teamName) {
-    if (!teamName || !this.lovebowlsTeams || !this.lovebowlsTeams.length) {
-      return teamName;
+  // Get team display name (using standardized model)
+  getTeamDisplayName(teamValue) {
+    if (!teamValue) return '';
+    
+    // Check team name map first
+    if (this._teamNameMap && this._teamNameMap[teamValue]) {
+      return this._teamNameMap[teamValue];
     }
     
-    // Check if this team name is a GUID from a lovebowls team
-    const lovebowlsTeam = this.lovebowlsTeams.find(lt => lt.value === teamName);
-    if (lovebowlsTeam) {
-      return lovebowlsTeam.label;
-    }
-    
-    return teamName;
+    // If not found, return the value as the display name
+    return teamValue;
   }
 
-  // Create a mapping array for team display names that can be passed to subcomponents
+  // Create team mapping as an array of {value, label} objects
   createTeamMappingArray() {
-    if (!this.data || !this.data.table || !this.data.table.leagueData || !Array.isArray(this.data.table.leagueData)) {
-      return [];
+    const mapping = [];
+    if (this.data && this.data.teams && Array.isArray(this.data.teams)) {
+      this.data.teams.forEach(team => {
+        mapping.push({
+          value: team.value,
+          label: team.label || this.getTeamDisplayName(team.value)
+        });
+      });
+    } else if (this.data && this.data.table && this.data.table.leagueData) {
+      // If teams aren't directly available, create from table data
+      this.data.table.leagueData.forEach(team => {
+        mapping.push({
+          value: team.teamName,
+          label: this.getTeamDisplayName(team.teamName)
+        });
+      });
     }
-
-    return this.data.table.leagueData.map(team => ({
-      id: team.teamName,
-      displayName: this.getTeamDisplayName(team.teamName)
-    }));
+    return mapping;
   }
 }
 

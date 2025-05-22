@@ -1,126 +1,138 @@
 // league-test-data.js - Test data for league element testing
 
 /**
- * Generates test data for a league, optionally incorporating lovebowls teams
- * @param {Array} [lovebowlsTeams=[]] - Array of lovebowls teams objects with {value, label} properties
- * @param {number} [lovebowlsTeamCount=3] - Number of lovebowls teams to include
- * @param {string} [leagueName="2023-24 Bowls League"] - Custom name for the league
- * @returns {Object} Test league data
+ * Generate a unique ID for test purposes
+ * @returns {string} A unique ID
  */
-export function generateTestLeagueData(lovebowlsTeams = [], lovebowlsTeamCount = 3, leagueName = "2023-24 Bowls League") {
-  // Generate 8 teams - some may be replaced with lovebowls teams
-  const defaultTeams = [
-    { name: "Oakwood BC" },
-    { name: "Riverdale BC" },
-    { name: "Meadowbrook BC" },
-    { name: "Hillside BC" },
-    { name: "Valley Green BC" },
-    { name: "Lakeside BC" },
-    { name: "Pinehurst BC" },
-    { name: "Westfield BC" }
-  ];
+function generateUniqueId() {
+  return `id-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+}
 
-  // Create the teams array, possibly incorporating lovebowls teams
-  const teams = [...defaultTeams]; // Start with a copy of the default teams
+/**
+ * Generate a test match object for testing
+ * @param {string} homeTeamValue - Value of the home team
+ * @param {string} awayTeamValue - Value of the away team
+ * @param {string} homeTeamLabel - Label of the home team
+ * @param {string} awayTeamLabel - Label of the away team
+ * @param {number} index - Index to help create unique dates
+ * @returns {Object} A test match object
+ */
+export function generateTestMatch(homeTeamValue, awayTeamValue, homeTeamLabel, awayTeamLabel, index = 0) {
+  // Create date for the match, adding index days to a base date
+  const baseDate = new Date('2024-01-01');
+  baseDate.setDate(baseDate.getDate() + index);
+  const dateString = baseDate.toISOString().split('T')[0]; // YYYY-MM-DD
   
-  // Replace the first X teams with lovebowls teams if available
-  if (lovebowlsTeams && lovebowlsTeams.length > 0) {
-    const actualLbCount = Math.min(lovebowlsTeamCount, lovebowlsTeams.length, teams.length);
-    console.log(`Including ${actualLbCount} lovebowls teams in test data`);
-    
-    for (let i = 0; i < actualLbCount; i++) {
-      // Replace the team name with the lovebowls team GUID
-      teams[i] = { name: lovebowlsTeams[i].value };
-      console.log(`Team ${i+1} set to lovebowls team: ${lovebowlsTeams[i].label} (${lovebowlsTeams[i].value})`);
-    }
-  }
-
-  // Calculate today and yesterday using standard Date
-  const nowDate = new Date();
-  const today = nowDate.toISOString().slice(0, 10);
-  
-  const yesterdayDate = new Date();
-  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = yesterdayDate.toISOString().slice(0, 10);
-  
-  // Generate all matches (each team plays every other team home and away)
-  const matches = [];
-  let matchKey = 1;
-  
-  // Create matches where each team plays every other team twice (home and away)
-  for (let i = 0; i < teams.length; i++) {
-    for (let j = 0; j < teams.length; j++) {
-      // Skip if same team
-      if (i === j) continue;
-      
-      // Calculate match date (go back 7 days for each match)
-      const matchDateObj = new Date(yesterdayDate);
-      matchDateObj.setDate(matchDateObj.getDate() - ((matchKey - 1) * 7));
-      const currentMatchDate = matchDateObj.toISOString().slice(0, 10);
-      
-      // Generate random scores with average around 15
-      const homeScore = Math.max(5, Math.floor(Math.random() * 20) + 5);
-      const awayScore = Math.max(5, Math.floor(Math.random() * 20) + 5);
-      
-      // Add the match
-      matches.push({
-        key: `m${matchKey}`,
-        homeTeamName: teams[i].name,
-        awayTeamName: teams[j].name,
-        date: currentMatchDate,
-        result: {
-          homeScore,
-          awayScore,
-          homeRinkScores: generateRinkScores(4),
-          awayRinkScores: generateRinkScores(4)
-        }
-      });
-      
-      matchKey++;
-    }
-  }
-  
-  // Sort matches by date (newest first)
-  matches.sort((a, b) => {
-    // Simple string comparison works for ISO date format (YYYY-MM-DD)
-    return b.date.localeCompare(a.date);
-  });
-  
-  // Generate league table data
-  const leagueData = teams.map(team => {
-    return {
-      teamName: team.name,
-      // Will be calculated by the component
-    };
-  });
-  
+  // Return a match with randomized properties
   return {
-    _id: "league" + Date.now() + Math.floor(Math.random() * 1000), // Generate unique IDs for each league
+    key: `match-${generateUniqueId()}`,
+    date: dateString,
+    homeTeamName: homeTeamValue,
+    awayTeamName: awayTeamValue,
+    homeTeamLabel: homeTeamLabel,
+    awayTeamLabel: awayTeamLabel,
+    result: Math.random() > 0.3 ? {
+      homeScore: Math.floor(Math.random() * 21),
+      awayScore: Math.floor(Math.random() * 21)
+    } : null // 30% chance of having no result
+  };
+}
+
+/**
+ * Generate test league data for testing
+ * @param {Array} lovebowlsTeams - Array of lovebowls teams to use
+ * @param {number} [teamCount=3] - Number of teams to include
+ * @param {string} [leagueName='Test League'] - Name for the test league
+ * @returns {Object} A complete test league object
+ */
+export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 3, leagueName = 'Test League') {
+  // Create a unique ID for the league
+  const leagueId = generateUniqueId();
+  
+  // Create teams for the league
+  const teams = [];
+  
+  // Use lovebowls teams first
+  const lovebowlsTeamsToUse = lovebowlsTeams.slice(0, teamCount);
+  
+  // Add lovebowls teams
+  teams.push(...lovebowlsTeamsToUse);
+  
+  // Add custom teams if needed to reach teamCount
+  for (let i = lovebowlsTeamsToUse.length; i < teamCount; i++) {
+    teams.push({
+      value: `team-${i}-${generateUniqueId()}`,
+      label: `Custom Team ${i + 1}`
+    });
+  }
+  
+  // Generate matches between all teams
+  const matches = [];
+  
+  for (let i = 0; i < teams.length; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      // Create a match between teams[i] and teams[j]
+      matches.push(generateTestMatch(
+        teams[i].value, 
+        teams[j].value, 
+        teams[i].label,
+        teams[j].label,
+        matches.length
+      ));
+      
+      // Create a reversed match (away fixture)
+      matches.push(generateTestMatch(
+        teams[j].value, 
+        teams[i].value, 
+        teams[j].label,
+        teams[i].label,
+        matches.length
+      ));
+    }
+  }
+  
+  // Create and return the complete league object
+  return {
+    _id: leagueId,
     name: leagueName,
-    settings: {
-      pointsForWin: 2,
-      pointsForDraw: 1,
-      pointsForLoss: 0,
-      timesTeamsPlayOther: 2,
-      rinkPoints: {
-        pointsPerRinkWin: 1,
-        pointsPerRinkDraw: 0.5,
-        defaultRinks: 4,
-        enabled: true
-      }
-    },
     teams,
     matches,
-    table: {
-      leagueData,
-      metaData: {
-        promotionPlaces: 1,
-        relegationPlaces: 1
+    settings: {
+      pointsForWin: 3,
+      pointsForDraw: 1,
+      pointsForLoss: 0,
+      promotionPositions: 1,
+      relegationPositions: 1,
+      timesTeamsPlayOther: 2,
+      rinkPoints: {
+        enabled: Math.random() > 0.5, // 50% chance of rink points being enabled
+        pointsPerRinkWin: 2,
+        pointsPerRinkDraw: 1,
+        defaultRinks: 4
       }
-    },
-    createdAt: "2023-08-01T12:00:00Z",
-    updatedAt: today + "T12:00:00Z"
+    }
   };
+}
+
+/**
+ * Generate multiple test leagues for testing
+ * @param {Array} lovebowlsTeams - Array of lovebowls teams to use
+ * @param {number} [leagueCount=3] - Number of leagues to generate
+ * @returns {Array} An array of test league objects
+ */
+export function generateMultipleTestLeagues(lovebowlsTeams = [], leagueCount = 3) {
+  const leagues = [];
+  
+  for (let i = 0; i < leagueCount; i++) {
+    const teamCount = Math.floor(Math.random() * 3) + 3; // 3-5 teams per league
+    leagues.push(generateTestLeagueData(
+      lovebowlsTeams,
+      teamCount,
+      `Test League ${i + 1}`
+    ));
+  }
+  
+  return leagues;
 }
 
 // Helper function to generate random rink scores

@@ -358,9 +358,8 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     const awayScore = this._match?.result?.awayScore !== undefined && this._match?.result?.awayScore !== null ? this._match.result.awayScore : '';
     const isPlayed = this._match?.result?.played !== undefined ? this._match.result.played : (homeScore !== '' || awayScore !== '');
 
-    const teamOptions = this._teams.map(team => 
-        `<option value="${this._escapeHtml(team)}" ?selected="${team === homeTeamName || team === awayTeamName}">${this._escapeHtml(team)}</option>`
-    ).join('');
+    // ADDED CONSOLE LOG to inspect _teams structure
+    console.log('[LeagueMatch] render - _teams received by modal:', JSON.stringify(this._teams));
 
     const attentionBannerHTML = this._attentionReason
       ? `<div class="attention-banner">${this._escapeHtml(this._attentionReason)}</div>`
@@ -386,14 +385,22 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
             <label for="homeTeam" class="form-label-shared">Home Team</label>
             <select id="homeTeam" class="form-select-shared">
               <option value="">Select Home Team</option>
-              ${this._teams.map(team => `<option value="${this._escapeHtml(team)}" ${team === homeTeamName ? 'selected' : ''}>${this._escapeHtml(team)}</option>`).join('')}
+              ${this._teams.map(team => {
+                // ADDED CONSOLE LOG to inspect each team object during mapping
+                console.log('[LeagueMatch] render - mapping homeTeam option:', JSON.stringify(team));
+                return `<option value="${this._escapeHtml(team.value)}" ${team.value === homeTeamName ? 'selected' : ''}>${this._escapeHtml(team.label)}</option>`;
+              }).join('')}
             </select>
           </div>
           <div class="form-group-shared">
             <label for="awayTeam" class="form-label-shared">Away Team</label>
             <select id="awayTeam" class="form-select-shared">
               <option value="">Select Away Team</option>
-              ${this._teams.map(team => `<option value="${this._escapeHtml(team)}" ${team === awayTeamName ? 'selected' : ''}>${this._escapeHtml(team)}</option>`).join('')}
+              ${this._teams.map(team => {
+                // ADDED CONSOLE LOG to inspect each team object during mapping
+                console.log('[LeagueMatch] render - mapping awayTeam option:', JSON.stringify(team));
+                return `<option value="${this._escapeHtml(team.value)}" ${team.value === awayTeamName ? 'selected' : ''}>${this._escapeHtml(team.label)}</option>`;
+              }).join('')}
             </select>
           </div>
           <div class="form-group-shared">

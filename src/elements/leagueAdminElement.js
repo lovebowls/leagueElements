@@ -837,16 +837,15 @@ class LeagueAdminElement extends HTMLElement {
     this._leagues = [];
     this._selectedLeagueId = null; // Store ID of the selected league
     this._currentLeagueId = null; // Store ID of the league to be pre-selected
-    this._selectedTeamName = null; // ADDED: To track selected team
+    this._selectedTeamValue = null; // CHANGED: Track selected team by value instead of name
     this._isModalVisible = false;
     this._modalMode = 'new'; // 'new', 'edit', 'copy'
     this._data = null; // To store the raw data from attribute
     
     // New properties for team management
     this._teamModalMode = null; // 'new' or 'edit'
-    this._teamBeingEdited = null; // Store the team being edited
-    this._existingTeams = []; // ADDED: To store existing teams for selection
-    this._lovebowlsTeams = []; // ADDED: Store lovebowls teams data
+    this._teamBeingEdited = null; // Store the team being edited as {value, label}
+    this._lovebowlsTeams = []; // CHANGED: Store lovebowls teams data as [{value, label}] objects
     
     // New properties for match management
     this.matchModalOpen = false;
@@ -854,13 +853,11 @@ class LeagueAdminElement extends HTMLElement {
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
 
-    // Bind the document click handler for the actions dropdown
-    // this._boundHandleDocumentClickForActionsDropdown = this._handleDocumentClickForActionsDropdown.bind(this); // REMOVED as the method and its functionality are removed
-    this._boundHandleDocumentClickForGlobalMenu = null; // ADDED: For global menu closing
+    this._boundHandleDocumentClickForGlobalMenu = null; // For global menu closing
   }
 
   static get observedAttributes() {
-    return ['elementTitle', 'data', 'is-mobile', 'current-league-id', 'lovebowls-teams']; // ADDED lovebowls-teams
+    return ['elementTitle', 'data', 'is-mobile', 'current-league-id', 'lovebowls-teams']; 
   }
 
   connectedCallback() {
@@ -871,14 +868,11 @@ class LeagueAdminElement extends HTMLElement {
     if (rawData) {
         this._parseAndLoadData(rawData);
     }
-    // document.addEventListener('click', this._boundHandleDocumentClickForActionsDropdown); // REMOVED old handler
     this.render();
   }
 
   disconnectedCallback() {
-    // Cleanup event listeners if any were added directly to document or window
-    // document.removeEventListener('click', this._boundHandleDocumentClickForActionsDropdown); // REMOVED old handler
-    // Ensure global menu handler is also cleaned up if active
+    // Ensure global menu handler is cleaned up if active
     if (this._boundHandleDocumentClickForGlobalMenu) {
         document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
         this._boundHandleDocumentClickForGlobalMenu = null;
@@ -913,7 +907,7 @@ class LeagueAdminElement extends HTMLElement {
       } else {
        console.log(this.LOG_PREFIX + `attributeChangedCallback('current-league-id'): No leagues or empty _leagues array, skipping _applyCurrentLeagueIdSelection.`);
       }
-    } else if (name === 'lovebowls-teams') { // ADDED: Handle lovebowls-teams attribute
+    } else if (name === 'lovebowls-teams') { 
       this._parseLovebowlsTeamsData(newValue);
       // No need to re-render here unless the modal is already open
     }
@@ -928,23 +922,22 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _parseAndLoadData(dataString) {
-    // ADD LOGS
     console.log(this.LOG_PREFIX + `_parseAndLoadData: CALLED. Initial _selectedLeagueId = ${this._selectedLeagueId}`);
     this.clearError();
 
-    // Forcefully reset interaction states to mimic a fresher load when data is externally changed.
-    console.log(this.LOG_PREFIX + `_parseAndLoadData: Forcefully resetting _selectedLeagueId, _selectedTeamName, and hiding global menu.`);
-    const oldSelectedIdBeforeForceReset = this._selectedLeagueId;
-    this._selectedLeagueId = null;
-    this._selectedTeamName = null; 
-    this._hideGlobalLeagueMenu(); // This clears _currentLeagueIdForMenu and its listener
-    console.log(this.LOG_PREFIX + `_parseAndLoadData: _selectedLeagueId was ${oldSelectedIdBeforeForceReset}, now null. Menu hidden.`);
+    // Store the current selection state before any changes
+    const previouslySelectedLeagueId = this._selectedLeagueId;
+    console.log(this.LOG_PREFIX + `_parseAndLoadData: Stored previouslySelectedLeagueId = ${previouslySelectedLeagueId}`);
+
+    // Reset team selection and menu, but NOT the league selection yet
+    this._selectedTeamValue = null;
+    this._hideGlobalLeagueMenu();
 
     if (!dataString) {
         console.log(this.LOG_PREFIX + `_parseAndLoadData: dataString is empty. Clearing leagues.`);
         this._leagues = [];
         this._data = null;
-        this._selectedLeagueId = null; // Ensure cleared if data is cleared
+        this._selectedLeagueId = null; // Clear selection if no data
         console.log(this.LOG_PREFIX + `_parseAndLoadData: dataString empty, SET _selectedLeagueId to null.`);
         this.dispatchEvent(new LeagueAdminElementEvent('dataProcessed', { status: 'success', message: 'Data cleared.' }));
         return;
@@ -957,27 +950,45 @@ class LeagueAdminElement extends HTMLElement {
       
       const parsedData = JSON.parse(dataString);
       if (Array.isArray(parsedData)) {
-        this._leagues = parsedData;
-        this._data = parsedData; // Store the raw parsed data
-
-        const oldSelectedIdDefensive = this._selectedLeagueId;
-        if (this._selectedLeagueId) {
-          const selectedLeagueStillExists = this._leagues.some(l => (l._id || l.name) === this._selectedLeagueId);
-          if (!selectedLeagueStillExists) {
-            console.warn(this.LOG_PREFIX + `_parseAndLoadData (Defensive Check): Previously selected league ${this._selectedLeagueId} no longer found in new data. Deselecting.`);
-            this._selectedLeagueId = null;
-            this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId: null }));
-          } else {
-            console.log(this.LOG_PREFIX + `_parseAndLoadData (Defensive Check): Previously selected league ${this._selectedLeagueId} still exists.`);
+        // Standardize team format in the parsed leagues data
+        this._leagues = parsedData.map(league => {
+          // Make a copy of the league to avoid modifying the original
+          const standardizedLeague = {...league};
+          
+          // Ensure teams array always exists and has the proper format {value, label}
+          if (!Array.isArray(standardizedLeague.teams)) {
+            standardizedLeague.teams = [];
           }
+          
+          return standardizedLeague;
+        });
+        
+        this._data = this._leagues; // Store the standardized data
+
+        // Check if previously selected league still exists in the new data
+        const previousLeagueStillExists = previouslySelectedLeagueId && 
+                                         this._leagues.some(l => (l._id || l.name) === previouslySelectedLeagueId);
+
+        // If the previously selected league still exists, keep it selected
+        if (previousLeagueStillExists) {
+          console.log(this.LOG_PREFIX + `_parseAndLoadData: Previously selected league ${previouslySelectedLeagueId} still exists. Keeping it selected.`);
+          this._selectedLeagueId = previouslySelectedLeagueId;
+        } else {
+          console.log(this.LOG_PREFIX + `_parseAndLoadData: Previously selected league ${previouslySelectedLeagueId} not found in new data.`);
+          this._selectedLeagueId = null;
+          
+          // Try to apply current-league-id selection as a fallback
+          const oldSelectedIdApply = this._selectedLeagueId;
+          this._applyCurrentLeagueIdSelection();
+          console.log(this.LOG_PREFIX + `_parseAndLoadData: After _applyCurrentLeagueIdSelection. _selectedLeagueId changed from ${oldSelectedIdApply} to ${this._selectedLeagueId}.`);
         }
-        console.log(this.LOG_PREFIX + `_parseAndLoadData: After Defensive Check. _selectedLeagueId changed from ${oldSelectedIdDefensive} to ${this._selectedLeagueId}.`);
 
         this.dispatchEvent(new LeagueAdminElementEvent('dataLoaded', { leagues: this._leagues }));
         
-        const oldSelectedIdApply = this._selectedLeagueId;
-        this._applyCurrentLeagueIdSelection();
-        console.log(this.LOG_PREFIX + `_parseAndLoadData: After _applyCurrentLeagueIdSelection. _selectedLeagueId changed from ${oldSelectedIdApply} to ${this._selectedLeagueId}.`);
+        // If selection changed due to league being removed, dispatch an event
+        if (previouslySelectedLeagueId !== this._selectedLeagueId) {
+          this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId: this._selectedLeagueId }));
+        }
       } else {
         this.showError('Invalid data format: Expected an array of leagues.');
         this._leagues = [];
@@ -995,7 +1006,7 @@ class LeagueAdminElement extends HTMLElement {
     }
   }
 
-  // ADDED: Parse lovebowls teams data from attribute
+  // Parse lovebowls teams data from attribute - expects {value, label} format
   _parseLovebowlsTeamsData(dataString) {
     if (!dataString) {
       this._lovebowlsTeams = [];
@@ -1324,11 +1335,11 @@ class LeagueAdminElement extends HTMLElement {
       // AFTER setting _selectedLeagueId
       console.log(this.LOG_PREFIX + `_handleLeagueSelect: SET _selectedLeagueId from ${oldId} to ${this._selectedLeagueId}`);
       this._showLeagueSpecificPanels();
-      this._selectedTeamName = null;
+      this._selectedTeamValue = null;
     } else {
       // League not found in list, effectively deselecting
       this._selectedLeagueId = null;
-      this._selectedTeamName = null; // ADDED: Reset selected team
+      this._selectedTeamValue = null; // ADDED: Reset selected team
       this._hideLeagueSpecificPanels();
       const oldId = this._selectedLeagueId;
       this._selectedLeagueId = null;
@@ -1378,7 +1389,7 @@ class LeagueAdminElement extends HTMLElement {
   _hideLeagueSpecificPanels() { // Renamed from _hideSelectedLeaguePanel
     const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Changed selector
     if (attentionContainer) attentionContainer.style.display = 'none';
-    this._selectedTeamName = null; // ADDED: Reset selected team
+    this._selectedTeamValue = null; // CHANGED: Reset selected team value
 
     const teamsPanelRight = this.shadow.querySelector('#teams-panel');
     
@@ -1412,29 +1423,20 @@ class LeagueAdminElement extends HTMLElement {
       const li = document.createElement('li');
       li.classList.add('team-item', 'list-item-shared');
       
-      // Determine the display name for the team and if it's a lovebowls team
-      let displayName = team.name;
-      let isLovebowlsTeam = false;
+      // Use team.value as the identifier and team.label for display
+      li.dataset.teamValue = team.value; // CHANGED: Use value as the identifier
       
-      // Check if the name field contains a GUID matching a lovebowls team
-      if (this._lovebowlsTeams && this._lovebowlsTeams.length > 0) {
-        const lovebowlsTeam = this._lovebowlsTeams.find(lt => lt.value === team.name);
-        if (lovebowlsTeam) {
-          displayName = lovebowlsTeam.label;
-          isLovebowlsTeam = true;
-          console.log(`[Team List] Found lovebowls team: ${lovebowlsTeam.label} for ID: ${team.name}`);
-        }
+      // Check if this team is the selected one
+      if (this._selectedTeamValue === team.value) {
+        li.classList.add('selected-team');
       }
-      
-      // Store the team name for selection lookup
-      li.dataset.teamName = team.name; 
       
       const nameSpan = document.createElement('span');
       nameSpan.classList.add('team-name', 'list-item-text-primary');
-      nameSpan.textContent = displayName;
+      nameSpan.textContent = team.label; // CHANGED: Display the label instead of name
       
-      // Add a small indicator if this is a lovebowls team
-      if (isLovebowlsTeam) {
+      // Add a small indicator if this is a lovebowls team (optional - can check if value != label)
+      if (team.value !== team.label) {
         const indicator = document.createElement('small');
         indicator.style.marginLeft = '0.5em';
         indicator.style.opacity = '0.7';
@@ -1450,7 +1452,6 @@ class LeagueAdminElement extends HTMLElement {
 
       // Add click listener to the list item itself
       li.addEventListener('click', (e) => {
-        // Prevent click from propagating to league selection if teams list is inside league item
         e.stopPropagation(); 
         this._handleTeamSelect(team); // Pass the whole team object
       });
@@ -1463,8 +1464,73 @@ class LeagueAdminElement extends HTMLElement {
         });
       }
       
+      // If this is the selected team, add action buttons
+      if (this._selectedTeamValue === team.value) {
+        this._createAndAppendTeamActions(actionsDiv, team);
+      }
+      
       teamsList.appendChild(li);
     });
+  }
+
+  _handleTeamSelect(team) {
+    const teamValue = team.value; // CHANGED: Use value as identifier
+
+    // Deselect previously selected team item
+    if (this._selectedTeamValue && this._selectedTeamValue !== teamValue) {
+      const prevSelectedLi = this.shadow.querySelector(`.team-item[data-team-value="${this._selectedTeamValue}"]`);
+      if (prevSelectedLi) {
+        prevSelectedLi.classList.remove('selected-team');
+        const prevActionsDiv = prevSelectedLi.querySelector('.team-actions');
+        if (prevActionsDiv) {
+          prevActionsDiv.innerHTML = ''; // Clear its buttons
+        }
+      }
+    }
+
+    // Handle new selection
+    const currentSelectedLi = this.shadow.querySelector(`.team-item[data-team-value="${teamValue}"]`);
+    if (!currentSelectedLi) return; // Should not happen if click is on an item
+
+    if (this._selectedTeamValue === teamValue) {
+      // Clicked on already selected team: toggle visibility (hide actions)
+      currentSelectedLi.classList.remove('selected-team');
+      const actionsDiv = currentSelectedLi.querySelector('.team-actions');
+      if (actionsDiv) {
+        actionsDiv.innerHTML = '';
+      }
+      this._selectedTeamValue = null;
+    } else {
+      // Clicked on a new team: show actions
+      currentSelectedLi.classList.add('selected-team');
+      this._selectedTeamValue = teamValue;
+      const actionsDiv = currentSelectedLi.querySelector('.team-actions');
+      if (actionsDiv) {
+        this._createAndAppendTeamActions(actionsDiv, team);
+      }
+    }
+  }
+
+  _createAndAppendTeamActions(actionsContainer, team) {
+    actionsContainer.innerHTML = ''; // Clear previous buttons
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.classList.add('button-shared', 'button-sm');
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent li click handler
+      this._handleEditTeam(team);
+    });
+    actionsContainer.appendChild(editBtn);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.classList.add('button-shared', 'button-sm');
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent li click handler
+      this._handleRemoveTeam(team);
+    });
+    actionsContainer.appendChild(removeBtn);
   }
 
   _updateButtonStates() {
@@ -1601,13 +1667,13 @@ class LeagueAdminElement extends HTMLElement {
   // Team Management Methods
   _handleAddTeam() {
     if (!this._selectedLeagueId) return;
-    // Use the lovebowls teams data passed in via attribute instead of mock data
+    // Use the lovebowls teams data passed in via attribute
     this._showTeamModal('new', null, this._lovebowlsTeams);
   }
   
   _handleEditTeam(team) {
     if (!team) return;
-    // Pass the lovebowls teams when editing so the checkbox can be enabled
+    // Pass the team object to edit and the lovebowls teams for reference
     this._showTeamModal('edit', team, this._lovebowlsTeams);
   }
   
@@ -1617,10 +1683,32 @@ class LeagueAdminElement extends HTMLElement {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
     
+    console.log('[Team Remove] Removing team with value:', team.value, 'label:', team.label);
+    
+    // Clear the team selection since we're removing it
+    if (this._selectedTeamValue === team.value) {
+      this._selectedTeamValue = null;
+      console.log('[Team Remove] Cleared _selectedTeamValue because we are removing the selected team');
+    }
+    
+    // Optimistically update the UI by removing the team locally
+    const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === this._selectedLeagueId);
+    if (leagueIndex !== -1) {
+      const updatedTeams = this._leagues[leagueIndex].teams.filter(t => t.value !== team.value);
+      this._leagues[leagueIndex] = {
+        ...this._leagues[leagueIndex],
+        teams: updatedTeams
+      };
+      console.log('[Team Remove] Updated local league data by removing team');
+      
+      // Re-render the teams list to reflect the change immediately
+      this._renderTeamsList();
+    }
+    
     this.dispatchEvent(new LeagueAdminElementEvent('requestRemoveTeam', { 
       leagueId: this._selectedLeagueId,
-      teamId: team._id || team.name, // Use ID if available, otherwise name
-      teamName: team.name
+      teamValue: team.value, // CHANGED: Use value as the team identifier
+      teamLabel: team.label  // CHANGED: Include label for display purposes
     }));
   }
   
@@ -1642,14 +1730,19 @@ class LeagueAdminElement extends HTMLElement {
       case 'new':
         title = 'Add Team';
         currentTeamData = { 
-          name: '', 
-          useExistingTeam: false, // ADDED
-          selectedTeamValue: ''   // ADDED
+          value: '', 
+          label: '',
+          useExistingTeam: false
         };
         break;
       case 'edit':
         title = 'Edit Team';
-        currentTeamData = JSON.parse(JSON.stringify(teamData)); // Deep copy
+        // We expect teamData to already be in {value, label} format
+        currentTeamData = {
+          value: teamData.value,
+          label: teamData.label,
+          useExistingTeam: teamData.value !== teamData.label // If value != label, assume it's a Lovebowls team
+        };
         break;
       default:
         return;
@@ -1659,7 +1752,7 @@ class LeagueAdminElement extends HTMLElement {
     this._teamBeingEdited = currentTeamData;
     
     modalTitle.textContent = title;
-    this._populateTeamModalForm(modalBody, currentTeamData, existingTeams); // MODIFIED
+    this._populateTeamModalForm(modalBody, currentTeamData, existingTeams);
     modal.style.display = 'block';
   }
   
@@ -1676,35 +1769,40 @@ class LeagueAdminElement extends HTMLElement {
   _populateTeamModalForm(modalBody, teamData, existingTeams = []) {
     const isEditMode = this._teamModalMode === 'edit';
     
-    // Check if the team is a lovebowls team (name is a GUID that matches a lovebowls team)
-    let isLovebowlsTeam = false;
-    let selectedValue = '';
-    let displayName = teamData.name || '';
+    // Determine if it's a Lovebowls team (value different from label)
+    let isLovebowlsTeam = teamData.useExistingTeam;
     
-    if (existingTeams && existingTeams.length > 0 && teamData.name) {
-      const lovebowlsTeam = existingTeams.find(lt => lt.value === teamData.name);
-      if (lovebowlsTeam) {
-        isLovebowlsTeam = true;
-        selectedValue = lovebowlsTeam.value;
-        displayName = lovebowlsTeam.label;
-        console.log(`[Team Modal] Found lovebowls team: ${lovebowlsTeam.label} for ID: ${teamData.name}`);
-      }
-    }
-
-    // Set the checkbox label based on whether it's a new team, an existing Lovebowls team, or a non-Lovebowls team being edited
+    // Set the checkbox label based on mode
     const checkboxLabel = (isEditMode && !isLovebowlsTeam) 
       ? "Replace with team from lovebowls.co.uk" 
       : "Team from lovebowls";
 
+    // Get the selected league to filter out teams that already exist in it
+    const selectedLeague = this._getSelectedLeague();
+    
+    // Filter out lovebowls teams that are already part of the league
+    let filteredTeams = existingTeams;
+    if (selectedLeague && selectedLeague.teams && Array.isArray(selectedLeague.teams)) {
+      // If in edit mode, don't filter out the team we're currently editing
+      const teamValuesToExclude = isEditMode 
+        ? selectedLeague.teams.filter(t => t.value !== teamData.value).map(t => t.value)
+        : selectedLeague.teams.map(t => t.value);
+      
+      filteredTeams = existingTeams.filter(team => !teamValuesToExclude.includes(team.value));
+      
+      // Log the filtering for debugging
+      console.log(`[Team Modal] Filtered ${existingTeams.length - filteredTeams.length} teams that are already in the league`);
+    }
+
     let optionsHtml = '';
-    if (existingTeams && existingTeams.length > 0) {
-      optionsHtml = existingTeams.map(team => 
-        `<option value="${team.value}" ${selectedValue === team.value ? 'selected' : ''}>${team.label}</option>`
+    if (filteredTeams && filteredTeams.length > 0) {
+      optionsHtml = filteredTeams.map(team => 
+        `<option value="${team.value}" ${teamData.value === team.value ? 'selected' : ''}>${team.label}</option>`
       ).join('');
     }
 
     modalBody.innerHTML = `
-      <!-- Added error banner for the modal -->
+      <!-- Error banner for the modal -->
       <div id="team-modal-error" class="form-error-shared" style="display: none; margin-bottom: var(--lae-padding-s); color: var(--lae-text-color-error); background-color: var(--lae-background-color-error); padding: var(--lae-padding-s); border: 1px solid var(--lae-border-color-error); border-radius: var(--lae-border-radius-standard);"></div>
       
       <div class="form-group-shared">
@@ -1720,11 +1818,12 @@ class LeagueAdminElement extends HTMLElement {
           <option value="">-- Select a Team --</option>
           ${optionsHtml}
         </select>
+        ${filteredTeams.length === 0 ? '<div style="color: var(--lae-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
       </div>
 
       <div id="newTeamNameGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'none' : 'block'};">
         <label for="teamName" class="form-label-shared">Team Name</label>
-        <input type="text" id="teamName" class="form-input-shared" value="${isLovebowlsTeam ? '' : displayName}" ${isLovebowlsTeam ? 'disabled' : ''}>
+        <input type="text" id="teamName" class="form-input-shared" value="${isLovebowlsTeam ? '' : teamData.label}" ${isLovebowlsTeam ? 'disabled' : ''}>
       </div>
     `;
 
@@ -1737,7 +1836,7 @@ class LeagueAdminElement extends HTMLElement {
     if (useExistingTeamCheckbox && existingTeamSelectGroup && newTeamNameGroup && teamNameInput && existingTeamSelect) {
       useExistingTeamCheckbox.addEventListener('change', (e) => {
         const isChecked = e.target.checked;
-        if (existingTeams && existingTeams.length > 0) {
+        if (filteredTeams && filteredTeams.length > 0) {
           existingTeamSelectGroup.style.display = isChecked ? 'block' : 'none';
           newTeamNameGroup.style.display = isChecked ? 'none' : 'block';
           teamNameInput.disabled = isChecked;
@@ -1748,22 +1847,22 @@ class LeagueAdminElement extends HTMLElement {
             existingTeamSelect.value = ''; // Clear selection when switching
           }
         } else {
-          // If no existing teams, checkbox effectively does nothing to visibility of select
+          // If no available filtered teams, checkbox effectively does nothing to visibility of select
           existingTeamSelectGroup.style.display = 'none';
           newTeamNameGroup.style.display = 'block';
           teamNameInput.disabled = false;
+          // Uncheck the box since there are no available teams
+          if (isChecked && filteredTeams.length === 0) {
+            useExistingTeamCheckbox.checked = false;
+          }
         }
       });
       
       // Initial state based on mode and available teams
-      if (!existingTeams || existingTeams.length === 0) {
-        // Allow checkbox in edit mode even with no teams, but warn user
-        if (isEditMode) {
-          useExistingTeamCheckbox.disabled = false;
-          useExistingTeamCheckbox.title = "No lovebowls teams available";
-        } else {
-          useExistingTeamCheckbox.disabled = true; // Disable only in new mode with no teams
-        }
+      if (!filteredTeams || filteredTeams.length === 0) {
+        // Disable checkbox if no Lovebowls teams are available
+        useExistingTeamCheckbox.disabled = true;
+        useExistingTeamCheckbox.title = filteredTeams.length === 0 ? "All lovebowls teams are already in this league" : "No lovebowls teams available";
         useExistingTeamCheckbox.checked = false;
         existingTeamSelectGroup.style.display = 'none';
         newTeamNameGroup.style.display = 'block';
@@ -1799,9 +1898,9 @@ class LeagueAdminElement extends HTMLElement {
     const existingTeamSelect = modalBody.querySelector('#existingTeamSelect');
     const teamNameInput = modalBody.querySelector('#teamName');
     
-    let teamName = '';
-    let originalTeamName = this._teamBeingEdited ? this._teamBeingEdited.name : '';
-
+    let teamValue = '';
+    let teamLabel = '';
+    
     // For debugging
     console.log('[Team Save] Mode:', this._teamModalMode);
     console.log('[Team Save] Original team being edited:', this._teamBeingEdited);
@@ -1809,64 +1908,54 @@ class LeagueAdminElement extends HTMLElement {
 
     if (useExistingTeamCheckbox && useExistingTeamCheckbox.checked && existingTeamSelect) {
       if (existingTeamSelect.value) {
-        // For lovebowls teams, store the GUID as the name
-        teamName = existingTeamSelect.value; // Store the GUID directly in name field
-        console.log('[Team Save] Selected lovebowls team GUID as name:', teamName);
+        // For lovebowls teams, get both value and label
+        teamValue = existingTeamSelect.value;
+        // Find the label from the selected lovebowls team
+        const selectedTeam = this._lovebowlsTeams.find(t => t.value === teamValue);
+        teamLabel = selectedTeam ? selectedTeam.label : teamValue;
+        console.log('[Team Save] Selected lovebowls team:', teamValue, 'with label:', teamLabel);
       } else {
         this._showTeamModalError('Please select a team from the dropdown.');
         return;
       }
     } else if (teamNameInput && teamNameInput.value.trim()) {
-      teamName = teamNameInput.value.trim();
-      console.log('[Team Save] Using text input team name:', teamName);
+      // For simple teams, value and label are the same
+      teamValue = teamNameInput.value.trim();
+      teamLabel = teamValue;
+      console.log('[Team Save] Using text input for both team value and label:', teamValue);
     } else {
       this._showTeamModalError('Team Name is required, either by typing a new name or selecting an existing team.');
       return;
     }
 
-    if (!teamName) {
+    if (!teamValue) {
       this._showTeamModalError('Team Name is required.');
       return;
     }
     
-    // Check for duplicate team names in the current league
+    // Check for duplicate team values in the current league
     const selectedLeague = this._getSelectedLeague();
     if (selectedLeague && selectedLeague.teams) {
       // Only consider it a duplicate if it's not the team we're currently editing
       const isEditing = this._teamModalMode === 'edit' && this._teamBeingEdited;
       const isDuplicate = selectedLeague.teams.some(team => {
         // If we're editing, ignore the team we're currently editing
-        if (isEditing && this._teamBeingEdited._id && team._id === this._teamBeingEdited._id) {
+        if (isEditing && team.value === this._teamBeingEdited.value) {
           return false;
         }
-        return team.name === teamName;
+        return team.value === teamValue;
       });
       
       if (isDuplicate) {
-        // Get display name for error message
-        let displayName = teamName;
-        if (useExistingTeamCheckbox && useExistingTeamCheckbox.checked) {
-          const lovebowlsTeam = this._lovebowlsTeams.find(lt => lt.value === teamName);
-          if (lovebowlsTeam) {
-            displayName = lovebowlsTeam.label;
-          }
-        }
-        this._showTeamModalError(`A team named "${displayName}" already exists in this league.`);
+        this._showTeamModalError(`A team with identifier "${teamValue}" already exists in this league.`);
         return;
       }
     }
     
     const teamData = {
-      name: teamName
+      value: teamValue,
+      label: teamLabel
     };
-    
-    // Preserve ID if editing - this is important for identifying the team to update
-    if (this._teamModalMode === 'edit' && this._teamBeingEdited) {
-      if (this._teamBeingEdited._id) {
-        teamData._id = this._teamBeingEdited._id;
-      }
-      console.log('[Team Save] Edit mode - updating existing team with ID:', teamData._id);
-    }
     
     let eventType = this._teamModalMode === 'new' ? 'requestAddTeam' : 'requestUpdateTeam';
     
@@ -1875,16 +1964,12 @@ class LeagueAdminElement extends HTMLElement {
     // Update local data first for immediate UI response
     if (this._teamModalMode === 'edit' && selectedLeague && selectedLeague.teams) {
       const teamIndex = selectedLeague.teams.findIndex(t => 
-        (this._teamBeingEdited._id && t._id === this._teamBeingEdited._id) || 
-        t.name === originalTeamName
+        t.value === this._teamBeingEdited.value
       );
       
       if (teamIndex !== -1) {
         const updatedTeams = [...selectedLeague.teams];
-        updatedTeams[teamIndex] = {
-          ...updatedTeams[teamIndex],
-          ...teamData
-        };
+        updatedTeams[teamIndex] = teamData;
         
         // Find the league in the leagues array and update it
         const leagueIndex = this._leagues.findIndex(l => l._id === this._selectedLeagueId || l.name === this._selectedLeagueId);
@@ -1897,6 +1982,10 @@ class LeagueAdminElement extends HTMLElement {
         }
       }
     }
+    
+    // Set the newly created/edited team as the selected team
+    this._selectedTeamValue = teamValue;
+    console.log('[Team Save] Set _selectedTeamValue to newly saved team value:', teamValue);
     
     this.dispatchEvent(new LeagueAdminElementEvent(eventType, {
       leagueId: this._selectedLeagueId,
@@ -2198,7 +2287,9 @@ class LeagueAdminElement extends HTMLElement {
     if (!this._selectedLeagueId) return;
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
-    const teams = (selectedLeague.teams || []).map(t => t.name);
+    
+    // Pass teams as array of {value, label} objects
+    const teams = selectedLeague.teams || [];
     this.openMatchModal({ date: '', homeTeamName: '', awayTeamName: '', result: null }, teams, 'new');
   }
   
@@ -2220,11 +2311,13 @@ class LeagueAdminElement extends HTMLElement {
         return;
     }
 
-    const teams = (selectedLeague.teams || []).map(t => t.name);
+    // Pass teams as array of {value, label} objects
+    const teams = selectedLeague.teams || [];
     this.openMatchModal(currentMatchObject, teams, 'edit');
   }
   
   openMatchModal(matchData, teams, mode = 'edit') {
+    // Teams are already in {value, label} format from selectedLeague.teams
     this.matchModalOpen = true;
     this.matchModalData = matchData;
     this.matchModalTeams = teams;
@@ -2274,14 +2367,27 @@ class LeagueAdminElement extends HTMLElement {
   _updateAttentionPanel(isMobile, leagueToUse) {
     const selectedLeague = leagueToUse || this._getSelectedLeague();
     const attentionMatchesElement = this.shadow.querySelector('#admin-attention-matches');
-    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Now points to the panel wrapper
+    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container');
     if (!selectedLeague || !attentionMatchesElement || !attentionContainer) {
       if (attentionContainer) attentionContainer.style.display = 'none';
       return;
     }
-    attentionMatchesElement.setAttribute('is-mobile', String(isMobile)); // Ensure boolean is stringified
+    
+    // Convert the teams array to a format that LeagueMatchesAttention can use for team name display
+    const teamMap = {};
+    if (selectedLeague.teams && Array.isArray(selectedLeague.teams)) {
+      selectedLeague.teams.forEach(team => {
+        teamMap[team.value] = team.label;
+      });
+    }
+    
+    attentionMatchesElement.setAttribute('is-mobile', String(isMobile));
     attentionMatchesElement.setAttribute('data', JSON.stringify(selectedLeague.matches || []));
-    attentionContainer.style.display = ''; // Show the panel
+    // Pass the team name mapping as an additional attribute if your LeagueMatchesAttention component supports it
+    if (Object.keys(teamMap).length > 0) {
+      attentionMatchesElement.setAttribute('team-map', JSON.stringify(teamMap));
+    }
+    attentionContainer.style.display = '';
 
     // Ensure event listener is attached (and only once)
     if (!this._handleAdminAttentionMatchClickBound) {
@@ -2295,7 +2401,9 @@ class LeagueAdminElement extends HTMLElement {
     if (e.detail.type === 'matchClick' && e.detail.match) {
         const selectedLeague = this._getSelectedLeague();
         if (!selectedLeague) return;
-        const teams = (selectedLeague.teams || []).map(t => t.name);
+        
+        // Pass teams as array of {value, label} objects
+        const teams = selectedLeague.teams || [];
         const matchData = { ...e.detail.match }; // Clone to avoid modifying original event detail
         if (e.detail.attentionReason) {
             matchData.attentionReason = e.detail.attentionReason;
@@ -2305,12 +2413,12 @@ class LeagueAdminElement extends HTMLElement {
   }
 
 
-  _handleTeamSelect(teamObject) {
-    const teamName = teamObject.name; // Assuming team name is unique identifier for now
+  _handleTeamSelect(team) {
+    const teamValue = team.value; // CHANGED: Use value as identifier
 
     // Deselect previously selected team item
-    if (this._selectedTeamName && this._selectedTeamName !== teamName) {
-      const prevSelectedLi = this.shadow.querySelector(`.team-item[data-team-name="${this._selectedTeamName}"]`);
+    if (this._selectedTeamValue && this._selectedTeamValue !== teamValue) {
+      const prevSelectedLi = this.shadow.querySelector(`.team-item[data-team-value="${this._selectedTeamValue}"]`);
       if (prevSelectedLi) {
         prevSelectedLi.classList.remove('selected-team');
         const prevActionsDiv = prevSelectedLi.querySelector('.team-actions');
@@ -2321,29 +2429,29 @@ class LeagueAdminElement extends HTMLElement {
     }
 
     // Handle new selection
-    const currentSelectedLi = this.shadow.querySelector(`.team-item[data-team-name="${teamName}"]`);
+    const currentSelectedLi = this.shadow.querySelector(`.team-item[data-team-value="${teamValue}"]`);
     if (!currentSelectedLi) return; // Should not happen if click is on an item
 
-    if (this._selectedTeamName === teamName) {
+    if (this._selectedTeamValue === teamValue) {
       // Clicked on already selected team: toggle visibility (hide actions)
       currentSelectedLi.classList.remove('selected-team');
       const actionsDiv = currentSelectedLi.querySelector('.team-actions');
       if (actionsDiv) {
         actionsDiv.innerHTML = '';
       }
-      this._selectedTeamName = null;
+      this._selectedTeamValue = null;
     } else {
       // Clicked on a new team: show actions
       currentSelectedLi.classList.add('selected-team');
-      this._selectedTeamName = teamName;
+      this._selectedTeamValue = teamValue;
       const actionsDiv = currentSelectedLi.querySelector('.team-actions');
       if (actionsDiv) {
-        this._createAndAppendTeamActions(actionsDiv, teamObject);
+        this._createAndAppendTeamActions(actionsDiv, team);
       }
     }
   }
 
-  _createAndAppendTeamActions(actionsContainer, teamObject) {
+  _createAndAppendTeamActions(actionsContainer, team) {
     actionsContainer.innerHTML = ''; // Clear previous buttons
 
     const editBtn = document.createElement('button');
@@ -2351,7 +2459,7 @@ class LeagueAdminElement extends HTMLElement {
     editBtn.classList.add('button-shared', 'button-sm');
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent li click handler
-      this._handleEditTeam(teamObject);
+      this._handleEditTeam(team);
     });
     actionsContainer.appendChild(editBtn);
 
@@ -2360,7 +2468,7 @@ class LeagueAdminElement extends HTMLElement {
     removeBtn.classList.add('button-shared', 'button-sm');
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent li click handler
-      this._handleRemoveTeam(teamObject);
+      this._handleRemoveTeam(team);
     });
     actionsContainer.appendChild(removeBtn);
   }

@@ -159,7 +159,7 @@
       logEvent(`League with ID ${leagueId} delete request processed, data attribute updated.`);
     });
     
-    // ADDED: Handle team events (add/update/remove)
+    // Handle team events (add/update/remove) with standardized team model
     el.addEventListener('requestAddTeam', (e) => {
       const { leagueId, teamData } = e.detail;
       const currentData = loadLeagueData();
@@ -173,7 +173,7 @@
           if (!updatedLeague.teams) {
             updatedLeague.teams = [];
           }
-          // Add the new team
+          // Add the new team with {value, label} format
           updatedLeague.teams.push(teamData);
           return updatedLeague;
         }
@@ -184,7 +184,7 @@
       saveLeagueData(updatedLeagues);
       el.setAttribute('data', JSON.stringify(updatedLeagues));
       
-      logEvent(`Team "${teamData.name}" added to league and saved`);
+      logEvent(`Team "${teamData.label}" added to league and saved`);
     });
     
     el.addEventListener('requestUpdateTeam', (e) => {
@@ -196,10 +196,9 @@
         if (league._id === leagueId || league.name === leagueId) {
           const updatedLeague = { ...league };
           if (updatedLeague.teams) {
-            // Find and update the specific team by _id or name
+            // Find and update the specific team by value 
             updatedLeague.teams = updatedLeague.teams.map(team => {
-              if ((teamData._id && team._id === teamData._id) || 
-                  (team.name === teamData.name)) {
+              if (team.value === teamData.value) {
                 return teamData;
               }
               return team;
@@ -213,11 +212,11 @@
       saveLeagueData(updatedLeagues);
       el.setAttribute('data', JSON.stringify(updatedLeagues));
       
-      logEvent(`Team "${teamData.name}" updated and saved`);
+      logEvent(`Team "${teamData.label}" updated and saved`);
     });
     
     el.addEventListener('requestRemoveTeam', (e) => {
-      const { leagueId, teamId, teamName } = e.detail;
+      const { leagueId, teamValue, teamLabel } = e.detail;
       const currentData = loadLeagueData();
       
       // Find the league and remove the specific team
@@ -225,9 +224,9 @@
         if (league._id === leagueId || league.name === leagueId) {
           const updatedLeague = { ...league };
           if (updatedLeague.teams) {
-            // Filter out the team to remove
+            // Filter out the team to remove by value
             updatedLeague.teams = updatedLeague.teams.filter(team => 
-              !((teamId && team._id === teamId) || team.name === teamName)
+              team.value !== teamValue
             );
           }
           return updatedLeague;
@@ -238,7 +237,7 @@
       saveLeagueData(updatedLeagues);
       el.setAttribute('data', JSON.stringify(updatedLeagues));
       
-      logEvent(`Team "${teamName}" removed and data saved`);
+      logEvent(`Team "${teamLabel}" removed and data saved`);
     });
     
     // Listen for other events for logging

@@ -124,11 +124,11 @@ class LeagueMatchesRecent extends HTMLElement {
     this.currentPage = 0;
     this.itemsPerPage = 5;
     this._filterDate = null;
-    this.teamMapping = [];
+    this.teamMapping = {};
   }
 
   static get observedAttributes() {
-    return ['data', 'is-mobile', 'filter-date', 'team-mapping'];
+    return ['data', 'filter-date', 'is-mobile', 'team-mapping'];
   }
 
   connectedCallback() {
@@ -175,28 +175,41 @@ class LeagueMatchesRecent extends HTMLElement {
   _setTeamMapping(mappingData) {
     try {
       if (mappingData && mappingData !== 'null' && mappingData !== 'undefined') {
-        this.teamMapping = JSON.parse(mappingData);
+        const teamMap = {};
+        const teams = JSON.parse(mappingData);
+        
+        // Convert array of {value, label} objects to simple lookup object
+        if (Array.isArray(teams)) {
+          teams.forEach(team => {
+            if (team && team.value && team.label) {
+              teamMap[team.value] = team.label;
+            }
+          });
+        }
+        
+        this.teamMapping = teamMap;
       } else {
-        this.teamMapping = [];
+        this.teamMapping = {};
       }
     } catch (error) {
       console.error('[LeagueMatchesRecent] Error parsing team mapping:', error);
-      this.teamMapping = [];
+      this.teamMapping = {};
     }
   }
 
   // Add a utility method to get display name for a team
-  getTeamDisplayName(teamName) {
-    if (!teamName || !this.teamMapping || !Array.isArray(this.teamMapping)) {
-      return teamName;
+  getTeamDisplayName(teamValue) {
+    if (!teamValue || !this.teamMapping) {
+      return teamValue;
     }
     
-    const mapping = this.teamMapping.find(m => m.id === teamName);
-    if (mapping && mapping.displayName) {
-      return mapping.displayName;
+    // With standardized team model, teamMapping is a simple object map of value -> label
+    const teamObj = this.teamMapping[teamValue];
+    if (teamObj) {
+      return teamObj;
     }
     
-    return teamName;
+    return teamValue;
   }
 
   async loadData(data) {
