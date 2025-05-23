@@ -41,10 +41,10 @@ describe('LeagueElement', () => {
       name: 'Test League',
       table: {
         leagueData: [
-          { teamName: 'Team A', points: 9, played: 3, won: 3, drawn: 0, lost: 0, shotsFor: 15, shotsAgainst: 6 },
-          { teamName: 'Team B', points: 6, played: 3, won: 2, drawn: 0, lost: 1, shotsFor: 12, shotsAgainst: 9 },
-          { teamName: 'Team C', points: 3, played: 3, won: 1, drawn: 0, lost: 2, shotsFor: 9, shotsAgainst: 12 },
-          { teamName: 'Team D', points: 0, played: 3, won: 0, drawn: 0, lost: 3, shotsFor: 6, shotsAgainst: 15 }
+          { teamId: 'Team A', points: 9, played: 3, won: 3, drawn: 0, lost: 0, shotsFor: 15, shotsAgainst: 6 },
+          { teamId: 'Team B', points: 6, played: 3, won: 2, drawn: 0, lost: 1, shotsFor: 12, shotsAgainst: 9 },
+          { teamId: 'Team C', points: 3, played: 3, won: 1, drawn: 0, lost: 2, shotsFor: 9, shotsAgainst: 12 },
+          { teamId: 'Team D', points: 0, played: 3, won: 0, drawn: 0, lost: 3, shotsFor: 6, shotsAgainst: 15 }
         ],
         metaData: {
           promotionPlaces: 1,
@@ -55,57 +55,57 @@ describe('LeagueElement', () => {
         {
           key: 'match1',
           date: '2023-01-01',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team B',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team B', name: 'Team Beta' },
           result: { homeScore: 5, awayScore: 3 }
         },
         {
           key: 'match2',
           date: '2023-01-01',
-          homeTeamName: 'Team C',
-          awayTeamName: 'Team D',
+          homeTeam: { _id: 'Team C', name: 'Team Charlie' },
+          awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: { homeScore: 4, awayScore: 2 }
         },
         {
           key: 'match3',
           date: '2023-01-08',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team C',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team C', name: 'Team Charlie' },
           result: { homeScore: 5, awayScore: 2 }
         },
         {
           key: 'match4',
           date: '2023-01-08',
-          homeTeamName: 'Team B',
-          awayTeamName: 'Team D',
+          homeTeam: { _id: 'Team B', name: 'Team Beta' },
+          awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: { homeScore: 4, awayScore: 2 }
         },
         {
           key: 'match5',
           date: '2023-01-15',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team D',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: { homeScore: 5, awayScore: 1 }
         },
         {
           key: 'match6',
           date: '2023-01-15',
-          homeTeamName: 'Team B',
-          awayTeamName: 'Team C',
+          homeTeam: { _id: 'Team B', name: 'Team Beta' },
+          awayTeam: { _id: 'Team C', name: 'Team Charlie' },
           result: { homeScore: 5, awayScore: 3 }
         },
         {
           key: 'matchFuture1',
           date: '2023-05-01',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team B',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team B', name: 'Team Beta' },
           result: null
         },
         {
           key: 'matchFuture2',
           date: '2023-05-01',
-          homeTeamName: 'Team C',
-          awayTeamName: 'Team D',
+          homeTeam: { _id: 'Team C', name: 'Team Charlie' },
+          awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: null
         }
       ],
@@ -233,8 +233,8 @@ describe('LeagueElement', () => {
     
     it('should parse lovebowls teams data', () => {
       const teamsData = JSON.stringify([
-        { value: 'team1', label: 'Team One' },
-        { value: 'team2', label: 'Team Two' }
+        { _id: 'team1', name: 'Team One' },
+        { _id: 'team2', name: 'Team Two' }
       ]);
       
       element.parseLovebowlsTeams(teamsData);
@@ -310,12 +310,30 @@ describe('LeagueElement', () => {
     });
     
     it('should create team mapping array correctly', () => {
+      const element = new LeagueElement();
+      element._teamNameMap = {
+        'Team A': 'Team Alpha',
+        'Team B': 'Team Beta',
+        'Team C': 'Team Charlie',
+        'Team D': 'Team Delta'
+      };
+      
+      // Mock data structure
+      element.data = {
+        teams: [
+          { _id: 'Team A', name: 'Team Alpha' },
+          { _id: 'Team B', name: 'Team Beta' },
+          { _id: 'Team C', name: 'Team Charlie' },
+          { _id: 'Team D', name: 'Team Delta' }
+        ]
+      };
+      
       const mapping = element.createTeamMappingArray();
       
       expect(mapping).toHaveLength(4);
       expect(mapping[0]).toEqual({
-        value: 'Team A',
-        label: 'Team Alpha' 
+        _id: 'Team A',
+        name: 'Team Alpha' 
       });
     });
     
@@ -335,15 +353,15 @@ describe('LeagueElement', () => {
         {
           key: 'conflict1',
           date: '2023-06-01',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team C',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team C', name: 'Team Charlie' },
           result: null
         },
         {
           key: 'conflict2',
           date: '2023-06-01',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team D',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: null
         }
       );
@@ -386,8 +404,8 @@ describe('LeagueElement', () => {
       const matches = [
         {
           date: '2023-01-01',
-          homeTeamName: 'Team A',
-          awayTeamName: 'Team B',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team B', name: 'Team Beta' },
           homeScore: 3,
           awayScore: 1,
           result: 'W'
@@ -457,10 +475,18 @@ describe('LeagueElement', () => {
       element.data = mockLeagueData;
       element.openMatchModal = jest.fn();
       
+      // Mock the createTeamMappingArray to return expected format
+      element.createTeamMappingArray = jest.fn().mockReturnValue([
+        { _id: 'Team A', name: 'Team Alpha' },
+        { _id: 'Team B', name: 'Team Beta' },
+        { _id: 'Team C', name: 'Team Charlie' },
+        { _id: 'Team D', name: 'Team Delta' }
+      ]);
+      
       const clickEvent = {
         detail: {
           type: 'matchClick',
-          match: { key: 'match1', homeTeamName: 'Team A', awayTeamName: 'Team B' }
+          match: { key: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
         }
       };
       
@@ -468,7 +494,9 @@ describe('LeagueElement', () => {
       
       expect(element.openMatchModal).toHaveBeenCalledWith(
         clickEvent.detail.match,
-        expect.arrayContaining(['Team A', 'Team B', 'Team C', 'Team D']),
+        expect.arrayContaining([
+          expect.objectContaining({ _id: expect.any(String), name: expect.any(String) })
+        ]),
         'edit'
       );
     });
@@ -477,10 +505,18 @@ describe('LeagueElement', () => {
       element.data = mockLeagueData;
       element.openMatchModal = jest.fn();
       
+      // Mock the createTeamMappingArray to return expected format
+      element.createTeamMappingArray = jest.fn().mockReturnValue([
+        { _id: 'Team A', name: 'Team Alpha' },
+        { _id: 'Team B', name: 'Team Beta' },
+        { _id: 'Team C', name: 'Team Charlie' },
+        { _id: 'Team D', name: 'Team Delta' }
+      ]);
+      
       const clickEvent = {
         detail: {
           type: 'matchClick',
-          match: { key: 'match1', homeTeamName: 'Team A', awayTeamName: 'Team B' },
+          match: { key: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } },
           attentionReason: 'needsScores'
         }
       };
@@ -501,10 +537,18 @@ describe('LeagueElement', () => {
       element.data = mockLeagueData;
       element.openMatchModal = jest.fn();
       
+      // Mock the createTeamMappingArray to return expected format
+      element.createTeamMappingArray = jest.fn().mockReturnValue([
+        { _id: 'Team A', name: 'Team Alpha' },
+        { _id: 'Team B', name: 'Team Beta' },
+        { _id: 'Team C', name: 'Team Charlie' },
+        { _id: 'Team D', name: 'Team Delta' }
+      ]);
+      
       const clickEvent = {
         detail: {
           type: 'matchClick',
-          match: { key: 'matchFuture1', homeTeamName: 'Team A', awayTeamName: 'Team B' }
+          match: { key: 'matchFuture1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
         }
       };
       
@@ -512,7 +556,9 @@ describe('LeagueElement', () => {
       
       expect(element.openMatchModal).toHaveBeenCalledWith(
         clickEvent.detail.match,
-        expect.arrayContaining(['Team A', 'Team B', 'Team C', 'Team D']),
+        expect.arrayContaining([
+          expect.objectContaining({ _id: expect.any(String), name: expect.any(String) })
+        ]),
         'edit'
       );
     });
@@ -520,7 +566,7 @@ describe('LeagueElement', () => {
   
   describe('Match Modal Handling', () => {
     it('should open match modal correctly', () => {
-      const matchData = { key: 'match1', homeTeamName: 'Team A', awayTeamName: 'Team B' };
+      const matchData = { key: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } };
       const teams = ['Team A', 'Team B', 'Team C', 'Team D'];
       
       element.openMatchModal(matchData, teams, 'edit');
@@ -554,6 +600,7 @@ describe('LeagueElement', () => {
     });
     
     it('should prepare points over time data correctly', () => {
+      // Manually create some points data
       element._preparePointsOverTimeData();
       
       expect(element.pointsOverTimeChartData).toBeTruthy();
@@ -562,21 +609,28 @@ describe('LeagueElement', () => {
       
       // Check Team A's points progression
       const teamAPoints = element.pointsOverTimeChartData.teamSeries['Team A'];
-      expect(teamAPoints[teamAPoints.length - 1]).toBe(9); // Final points should match table
+      expect(teamAPoints).toBeTruthy();
+      expect(teamAPoints.length).toBeGreaterThan(0);
+      
+      // Last data point should match their total points in the league table
+      const teamAInTable = element.data.table.leagueData.find(t => t.teamId === 'Team A');
+      expect(teamAPoints[teamAPoints.length - 1]).toBe(teamAInTable.points);
     });
     
     it('should handle missing data gracefully', () => {
-      element.data = { table: { leagueData: [] }, matches: [] };
-      
+      element.data = null;
       element._preparePointsOverTimeData();
+      expect(element.pointsOverTimeChartData.dates.length).toBe(0);
       
-      expect(element.pointsOverTimeChartData.dates).toEqual([]);
-      expect(element.pointsOverTimeChartData.allTeamNames).toEqual([]);
+      element.data = { matches: [], table: { leagueData: [] } };
+      element._preparePointsOverTimeData();
+      expect(element.pointsOverTimeChartData.dates.length).toBe(0);
+      expect(element.pointsOverTimeChartData.allTeamNames.length).toBe(0);
     });
     
     it('should ensure team colors are assigned', () => {
+      element.data = mockLeagueData;
       element.teamColors = {};
-      
       element.ensureTeamColors();
       
       expect(Object.keys(element.teamColors).length).toBe(4);

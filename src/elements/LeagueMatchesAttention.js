@@ -159,22 +159,26 @@ class LeagueMatchesAttention extends HTMLElement {
 
   _setTeamMapping(mappingData) {
     try {
-      if (mappingData && mappingData !== 'null' && mappingData !== 'undefined') {
-        const teamMap = {};
-        const teams = JSON.parse(mappingData);
-        
-        // Convert array of {value, label} objects to simple lookup object
-        if (Array.isArray(teams)) {
-          teams.forEach(team => {
-            if (team && team.value && team.label) {
-              teamMap[team.value] = team.label;
-            }
-          });
-        }
-        
-        this.teamMapping = teamMap;
-      } else {
+      if (!mappingData) {
         this.teamMapping = {};
+        return;
+      }
+      
+      // Parse mapping from the attribute string
+      const dataObj = typeof mappingData === 'string' ? JSON.parse(mappingData) : mappingData;
+      
+      // Handle either array of {_id, name} objects or direct _id -> name mapping object
+      if (Array.isArray(dataObj)) {
+        // Convert array of objects to a simple map
+        this.teamMapping = {};
+        dataObj.forEach(team => {
+          if (team._id) {
+            this.teamMapping[team._id] = team.name || team._id;
+          }
+        });
+      } else {
+        // Assume we already have a direct mapping object
+        this.teamMapping = dataObj;
       }
     } catch (error) {
       console.error('[LeagueMatchesAttention] Error parsing team mapping:', error);
@@ -183,18 +187,18 @@ class LeagueMatchesAttention extends HTMLElement {
   }
 
   // Add a utility method to get display name for a team
-  getTeamDisplayName(teamValue) {
-    if (!teamValue || !this.teamMapping) {
-      return teamValue;
+  getTeamDisplayName(teamId) {
+    if (!teamId || !this.teamMapping) {
+      return teamId;
     }
     
-    // With standardized team model, teamMapping is a simple object map of value -> label
-    const teamObj = this.teamMapping[teamValue];
-    if (teamObj) {
-      return teamObj;
+    // With standardized team model, teamMapping is a simple object map of _id -> name
+    const teamName = this.teamMapping[teamId];
+    if (teamName) {
+      return teamName;
     }
     
-    return teamValue;
+    return teamId;
   }
 
   /**
@@ -272,10 +276,10 @@ class LeagueMatchesAttention extends HTMLElement {
         const priorityA = getPriority(a);
         const priorityB = getPriority(b);
         if (priorityA !== priorityB) return priorityA - priorityB;
-        const homeTeamA = a.homeTeamName || '';
-        const homeTeamB = b.homeTeamName || '';
-        const awayTeamA = a.awayTeamName || '';
-        const awayTeamB = b.awayTeamName || '';
+        const homeTeamA = a.homeTeam?.name || '';
+        const homeTeamB = b.homeTeam?.name || '';
+        const awayTeamA = a.awayTeam?.name || '';
+        const awayTeamB = b.awayTeam?.name || '';
         const homeCompare = homeTeamA.localeCompare(homeTeamB);
         if (homeCompare !== 0) return homeCompare;
         return awayTeamA.localeCompare(awayTeamB);
@@ -311,13 +315,18 @@ class LeagueMatchesAttention extends HTMLElement {
       if (matchesOnDay.length < 2) continue;
       const teamCounts = {};
       matchesOnDay.forEach(match => {
-        teamCounts[match.homeTeamName] = (teamCounts[match.homeTeamName] || 0) + 1;
-        teamCounts[match.awayTeamName] = (teamCounts[match.awayTeamName] || 0) + 1;
+        const homeTeamId = match.homeTeam?._id;
+        const awayTeamId = match.awayTeam?._id;
+        if (homeTeamId) teamCounts[homeTeamId] = (teamCounts[homeTeamId] || 0) + 1;
+        if (awayTeamId) teamCounts[awayTeamId] = (teamCounts[awayTeamId] || 0) + 1;
       });
-      const conflictingTeams = Object.keys(teamCounts).filter(team => teamCounts[team] > 1);
+      const conflictingTeams = Object.keys(teamCounts).filter(teamId => teamCounts[teamId] > 1);
       if (conflictingTeams.length > 0) {
         matchesOnDay.forEach(match => {
-          if (conflictingTeams.includes(match.homeTeamName) || conflictingTeams.includes(match.awayTeamName)) {
+          const homeTeamId = match.homeTeam?._id;
+          const awayTeamId = match.awayTeam?._id;
+          if ((homeTeamId && conflictingTeams.includes(homeTeamId)) || 
+              (awayTeamId && conflictingTeams.includes(awayTeamId))) {
             conflictingKeys.add(match.key);
           }
         });
@@ -349,11 +358,14 @@ class LeagueMatchesAttention extends HTMLElement {
     today.setHours(0, 0, 0, 0);
     const conflictingKeys = this._getConflictingMatchKeys();
     return pageItems.map(match => {
-      const matchKey = match.key || `${match.homeTeamName}_${match.awayTeamName}_unscheduled`;
+      // Use team object _id properties if available, or generate a default key
+      const homeTeamId = match.homeTeam?._id || '';
+      const awayTeamId = match.awayTeam?._id || '';
+      const matchKey = match.key || `${homeTeamId}_${awayTeamId}_unscheduled`;
       
       // Get display names for teams
-      const homeTeamDisplay = this.getTeamDisplayName(match.homeTeamName);
-      const awayTeamDisplay = this.getTeamDisplayName(match.awayTeamName);
+      const homeTeamDisplay = match.homeTeam?.name || this.getTeamDisplayName(homeTeamId);
+      const awayTeamDisplay = match.awayTeam?.name || this.getTeamDisplayName(awayTeamId);
       
       let warningSymbol = '';
       let warningClass = '';

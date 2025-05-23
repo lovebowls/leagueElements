@@ -1151,26 +1151,29 @@ class LeagueElement extends HTMLElement {
       
       // Add display names to match data for UI presentation if they don't exist
       if (this.matchModalData) {
-        if (!this.matchModalData.homeTeamDisplay && this.matchModalData.homeTeamName) {
-          this.matchModalData.homeTeamDisplay = this.getTeamDisplayName(this.matchModalData.homeTeamName);
+        const homeTeamId = this.matchModalData.homeTeam._id;
+        const awayTeamId = this.matchModalData.awayTeam._id;
+        
+        if (!this.matchModalData.homeTeamDisplay && homeTeamId) {
+          this.matchModalData.homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
         }
-        if (!this.matchModalData.awayTeamDisplay && this.matchModalData.awayTeamName) {
-          this.matchModalData.awayTeamDisplay = this.getTeamDisplayName(this.matchModalData.awayTeamName);
+        if (!this.matchModalData.awayTeamDisplay && awayTeamId) {
+          this.matchModalData.awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
         }
       }
       
       modal.match = this.matchModalData;
       
-      // Consistently map this.matchModalTeams to the {value, label} format
+      // Consistently map this.matchModalTeams to the {_id, name} format
       let finalTeamsForModal = [];
       if (this.matchModalTeams && Array.isArray(this.matchModalTeams)) {
-          finalTeamsForModal = this.matchModalTeams.map(teamName => ({
-              value: teamName, // Use the original name/GUID as the ID
-              label: this.getTeamDisplayName(teamName) // Get the display name
+          finalTeamsForModal = this.matchModalTeams.map(teamId => ({
+              _id: teamId, // Use the original ID as the ID
+              name: this.getTeamDisplayName(teamId) // Get the display name
           }));
       }
       // ADDED CONSOLE LOG
-      console.log('[LeagueElement - render] finalTeamsForModal (mapped {value, label}):', finalTeamsForModal);
+      console.log('[LeagueElement - render] finalTeamsForModal (mapped {_id, name}):', finalTeamsForModal);
       modal.teams = finalTeamsForModal;
       
       // Pass the lovebowls teams data to the modal for reference if needed
@@ -1423,13 +1426,19 @@ class LeagueElement extends HTMLElement {
     filtered = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const tooltipContent = filtered.map(match => {
-      if (!match || !match.result || !match.date || !match.homeTeamName || !match.awayTeamName || typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
+      if (!match || !match.result || !match.date || 
+          !match.homeTeam || !match.awayTeam || 
+          typeof match.homeScore !== 'number' || 
+          typeof match.awayScore !== 'number') {
         return 'Invalid match data for tooltip';
       }
       
       // Use display names if available, fall back to team names
-      const homeTeamDisplay = match.homeTeamDisplayName || this.getTeamDisplayName(match.homeTeamName) || match.homeTeamName;
-      const awayTeamDisplay = match.awayTeamDisplayName || this.getTeamDisplayName(match.awayTeamName) || match.awayTeamName;
+      const homeTeamId = match.homeTeam._id;
+      const awayTeamId = match.awayTeam._id;
+      
+      const homeTeamDisplay = match.homeTeamDisplayName || this.getTeamDisplayName(homeTeamId) || homeTeamId;
+      const awayTeamDisplay = match.awayTeamDisplayName || this.getTeamDisplayName(awayTeamId) || awayTeamId;
       
       let resultVerb = '';
       if (match.result.toUpperCase() === 'W') resultVerb = 'Won';
@@ -1488,8 +1497,8 @@ class LeagueElement extends HTMLElement {
 
         const teamCounts = {};
         matchesOnDay.forEach(match => {
-            teamCounts[match.homeTeamName] = (teamCounts[match.homeTeamName] || 0) + 1;
-            teamCounts[match.awayTeamName] = (teamCounts[match.awayTeamName] || 0) + 1;
+            teamCounts[match.homeTeam._id] = (teamCounts[match.homeTeam._id] || 0) + 1;
+            teamCounts[match.awayTeam._id] = (teamCounts[match.awayTeam._id] || 0) + 1;
         });
 
         // Find teams playing more than once on this day
@@ -1498,7 +1507,7 @@ class LeagueElement extends HTMLElement {
         // If conflicts exist, add keys of all matches involving those teams on that day
         if (conflictingTeams.length > 0) {
             matchesOnDay.forEach(match => {
-                if (conflictingTeams.includes(match.homeTeamName) || conflictingTeams.includes(match.awayTeamName)) {
+                if (conflictingTeams.includes(match.homeTeam._id) || conflictingTeams.includes(match.awayTeam._id)) {
                     conflictingKeys.add(match.key);
                 }
             });
@@ -1561,13 +1570,17 @@ class LeagueElement extends HTMLElement {
       return null;
     }
 
-    const teams = [...new Set(this.data.table.leagueData.map(t => t.teamName))].sort();
+    // Get team IDs from the league data
+    const teams = [...new Set(this.data.table.leagueData.map(t => t.teamId))].sort();
     const matchesMap = new Map();
+    
     this.data.matches.forEach(match => {
-      // Ensure matches are mapped consistently, e.g., always home vs away based on names
-      // This simple keying assumes homeTeamName and awayTeamName are reliably present.
-      if (match.homeTeamName && match.awayTeamName) {
-        matchesMap.set(`${match.homeTeamName}_vs_${match.awayTeamName}`, match);
+      const homeTeamId = match.homeTeam._id;
+      const awayTeamId = match.awayTeam._id;
+      
+      // Ensure matches are mapped consistently using team IDs
+      if (homeTeamId && awayTeamId) {
+        matchesMap.set(`${homeTeamId}_vs_${awayTeamId}`, match);
       }
     });
 
@@ -1587,14 +1600,29 @@ class LeagueElement extends HTMLElement {
           match = matchesMap.get(matchKey);
           if (match.result && typeof match.result.homeScore === 'number' && typeof match.result.awayScore === 'number') {
             status = 'played';
-            tooltip = `${new Date(match.date).toLocaleDateString()}: ${match.homeTeamName} ${match.result.homeScore} - ${match.result.awayScore} ${match.awayTeamName}`;
+            
+            // Get display names for tooltip
+            const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
+            const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
+            
+            tooltip = `${new Date(match.date).toLocaleDateString()}: ${homeTeamDisplay} ${match.result.homeScore} - ${match.result.awayScore} ${awayTeamDisplay}`;
           } else {
             status = 'scheduled';
-            tooltip = match.date ? `Scheduled: ${new Date(match.date).toLocaleDateString()}` : 'Scheduled (No date)';
+            
+            // Get display names for tooltip
+            const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
+            const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
+            
+            tooltip = match.date ? `Scheduled: ${new Date(match.date).toLocaleDateString()} - ${homeTeamDisplay} vs ${awayTeamDisplay}` : `Scheduled: ${homeTeamDisplay} vs ${awayTeamDisplay} (No date)`;
           }
         } else {
           status = 'none';
-          tooltip = `${homeTeam} vs ${awayTeam} - No match scheduled`;
+          
+          // Get display names for tooltip
+          const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
+          const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
+          
+          tooltip = `${homeTeamDisplay} vs ${awayTeamDisplay} - No match scheduled`;
         }
         matrix[homeTeam][awayTeam] = { match, status, tooltip };
       });
@@ -1651,8 +1679,11 @@ class LeagueElement extends HTMLElement {
         // Update tooltip text to use display names
         let tooltipText = cellData.tooltip;
         if (cellData.match) {
-          const homeTeamDisplay = this.getTeamDisplayName(cellData.match.homeTeamName);
-          const awayTeamDisplay = this.getTeamDisplayName(cellData.match.awayTeamName);
+          const homeTeamId = cellData.match.homeTeam._id;
+          const awayTeamId = cellData.match.awayTeam._id;
+          
+          const homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
+          const awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
           
           if (cellData.status === 'played') {
             tooltipText = `${new Date(cellData.match.date).toLocaleDateString()}: ${homeTeamDisplay} ${cellData.match.result.homeScore} - ${cellData.match.result.awayScore} ${awayTeamDisplay}`;
@@ -1693,19 +1724,19 @@ class LeagueElement extends HTMLElement {
     const matrixCells = this.shadow.querySelectorAll('.matrix-grid .matrix-cell:not(.matrix-header-cell)');
     matrixCells.forEach(cell => {
       cell.onclick = () => {
-        const homeTeamName = cell.dataset.homeTeam;
-        const awayTeamName = cell.dataset.awayTeam;
-        if (homeTeamName === awayTeamName) return;
+        const homeTeamId = cell.dataset.homeTeam;
+        const awayTeamId = cell.dataset.awayTeam;
+        if (homeTeamId === awayTeamId) return;
         const matrixData = this._prepareMatrixData();
-        if (!matrixData || !matrixData.matrix[homeTeamName] || !matrixData.matrix[homeTeamName][awayTeamName]) return;
-        let matchObject = matrixData.matrix[homeTeamName][awayTeamName].match;
+        if (!matrixData || !matrixData.matrix[homeTeamId] || !matrixData.matrix[homeTeamId][awayTeamId]) return;
+        let matchObject = matrixData.matrix[homeTeamId][awayTeamId].match;
         if (!matchObject) {
           matchObject = {
-            homeTeamName: homeTeamName,
-            awayTeamName: awayTeamName,
+            homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
+            awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
             date: null,
             result: null,
-            key: `temp_${homeTeamName}_vs_${awayTeamName}_${Date.now()}`
+            key: `temp_${homeTeamId}_vs_${awayTeamId}_${Date.now()}`
           };
         }
         // Use openMatchModal instead of event
@@ -1774,8 +1805,8 @@ class LeagueElement extends HTMLElement {
       return;
     }
 
-    const allTeamNames = this.data.table.leagueData.map(team => team.teamName);
-    if (allTeamNames.length === 0) {
+    const allTeamIds = this.data.table.leagueData.map(team => team.teamId);
+    if (allTeamIds.length === 0) {
       console.warn('_preparePointsOverTimeData: No teams found in leagueData. Clearing chart data.');
       this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: [] };
       return;
@@ -1786,16 +1817,15 @@ class LeagueElement extends HTMLElement {
              match.result && 
              typeof match.result.homeScore === 'number' && 
              typeof match.result.awayScore === 'number' &&
-             allTeamNames.includes(match.homeTeamName) &&
-             allTeamNames.includes(match.awayTeamName);
+             allTeamIds.includes(match.homeTeam._id) &&
+             allTeamIds.includes(match.awayTeam._id);
     });
 
     if (validMatches.length === 0) {
       console.warn('_preparePointsOverTimeData: No valid matches with results found for trend analysis.');
-      this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: allTeamNames };
-      // Initialize series for all teams with empty points array if no dates
-      allTeamNames.forEach(teamName => {
-        this.pointsOverTimeChartData.teamSeries[teamName] = [];
+      this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: allTeamIds };
+      allTeamIds.forEach(teamId => {
+        this.pointsOverTimeChartData.teamSeries[teamId] = [];
       });
       return;
     }
@@ -1810,9 +1840,9 @@ class LeagueElement extends HTMLElement {
 
     if (uniqueDateTimestamps.length === 0) {
       // Should be caught by validMatches.length === 0, but as a safeguard
-      this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: allTeamNames };
-      allTeamNames.forEach(teamName => {
-        this.pointsOverTimeChartData.teamSeries[teamName] = [];
+      this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: allTeamIds };
+      allTeamIds.forEach(teamId => {
+        this.pointsOverTimeChartData.teamSeries[teamId] = [];
       });
       return;
     }
@@ -1820,16 +1850,16 @@ class LeagueElement extends HTMLElement {
     this.pointsOverTimeChartData = {
       dates: uniqueDateTimestamps,
       teamSeries: {},
-      allTeamNames: allTeamNames
+      allTeamNames: allTeamIds
     };
 
-    allTeamNames.forEach(teamName => {
-      this.pointsOverTimeChartData.teamSeries[teamName] = Array(uniqueDateTimestamps.length).fill(0);
+    allTeamIds.forEach(teamId => {
+      this.pointsOverTimeChartData.teamSeries[teamId] = Array(uniqueDateTimestamps.length).fill(0);
     });
 
     const currentTeamPoints = {};
-    allTeamNames.forEach(teamName => {
-      currentTeamPoints[teamName] = 0;
+    allTeamIds.forEach(teamId => {
+      currentTeamPoints[teamId] = 0;
     });
 
     uniqueDateTimestamps.forEach((dateTimestamp, dateIndex) => {
@@ -1839,25 +1869,25 @@ class LeagueElement extends HTMLElement {
         const matchTimestamp = matchDate.getTime();
 
         if (matchTimestamp === dateTimestamp) {
-          const homeTeam = match.homeTeamName;
-          const awayTeam = match.awayTeamName;
+          const homeTeamId = match.homeTeam._id;
+          const awayTeamId = match.awayTeam._id;
           const homeScore = match.result.homeScore;
           const awayScore = match.result.awayScore;
 
           if (homeScore > awayScore) {
-            currentTeamPoints[homeTeam] += 3;
+            currentTeamPoints[homeTeamId] += 3;
           } else if (awayScore > homeScore) {
-            currentTeamPoints[awayTeam] += 3;
+            currentTeamPoints[awayTeamId] += 3;
           } else { // Draw
-            currentTeamPoints[homeTeam] += 1;
-            currentTeamPoints[awayTeam] += 1;
+            currentTeamPoints[homeTeamId] += 1;
+            currentTeamPoints[awayTeamId] += 1;
           }
         }
       });
 
       // After processing all matches for this dateTimestamp, store the cumulative points
-      allTeamNames.forEach(teamName => {
-        this.pointsOverTimeChartData.teamSeries[teamName][dateIndex] = currentTeamPoints[teamName];
+      allTeamIds.forEach(teamId => {
+        this.pointsOverTimeChartData.teamSeries[teamId][dateIndex] = currentTeamPoints[teamId];
       });
     });
   }
@@ -1896,17 +1926,17 @@ class LeagueElement extends HTMLElement {
     // For a fresh assignment, the loop below is key.
 
     teams.forEach(team => {
-      if (!this.teamColors[team.teamName]) {
-        this.teamColors[team.teamName] = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
+      if (!this.teamColors[team.teamId]) {
+        this.teamColors[team.teamId] = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
         colorIndex++;
       }
     });
 
     // Ensure any team in selectedTeamsForGraph (even if not in current leagueData, though unlikely) has a color
     // This is a defensive step.
-    this.selectedTeamsForGraph.forEach(teamName => {
-      if (!this.teamColors[teamName]) {
-        this.teamColors[teamName] = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
+    this.selectedTeamsForGraph.forEach(teamId => {
+      if (!this.teamColors[teamId]) {
+        this.teamColors[teamId] = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
         colorIndex++;
       }
     });
@@ -2154,12 +2184,16 @@ class LeagueElement extends HTMLElement {
       return [];
     }
 
-    const allTeamNamesInLeague = this.data.table.leagueData.map(t => t.teamName);
-    const allMatchesWithResults = this.data.matches.filter(m => m.result && typeof m.result.homeScore === 'number' && typeof m.result.awayScore === 'number');
+    // Get team IDs from league data
+    const allTeamIdsInLeague = this.data.table.leagueData.map(t => t.teamId);
+    const allMatchesWithResults = this.data.matches.filter(m => 
+      m.result && 
+      typeof m.result.homeScore === 'number' && 
+      typeof m.result.awayScore === 'number'
+    );
 
-    // First, calculate the full current league table based on this.tableFilter
-    // This logic remains largely the same, generating stats for each team
-    const currentFilteredLeague = allTeamNamesInLeague.map(teamName => {
+    // Calculate the full current league table based on this.tableFilter
+    const currentFilteredLeague = allTeamIdsInLeague.map(teamId => {
       let played = 0;
       let won = 0;
       let drawn = 0;
@@ -2174,12 +2208,20 @@ class LeagueElement extends HTMLElement {
           return; // Skip matches without results
         }
 
+        // Get team IDs from match
+        const homeTeamId = match.homeTeam._id;
+        const awayTeamId = match.awayTeam._id;
+        
+        if (!homeTeamId || !awayTeamId) {
+          return; // Skip if team IDs are missing
+        }
+
         const homeScore = match.result.homeScore;
         const awayScore = match.result.awayScore;
         let matchResultForTeam = ''; // W, D, L for the current team in this match
 
         if (this.tableFilter === 'home') {
-          if (match.homeTeamName === teamName) {
+          if (homeTeamId === teamId) {
             played++;
             shotsFor += homeScore;
             shotsAgainst += awayScore;
@@ -2193,17 +2235,17 @@ class LeagueElement extends HTMLElement {
             teamFilteredMatches.push({ 
               result: matchResultForTeam, 
               date: match.date, 
-              homeTeamName: match.homeTeamName, 
-              awayTeamName: match.awayTeamName, 
+              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
+              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
               homeScore, 
               awayScore,
               // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
-              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
+              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
             });
           }
         } else if (this.tableFilter === 'away') {
-          if (match.awayTeamName === teamName) {
+          if (awayTeamId === teamId) {
             played++;
             shotsFor += awayScore;
             shotsAgainst += homeScore;
@@ -2217,17 +2259,17 @@ class LeagueElement extends HTMLElement {
             teamFilteredMatches.push({ 
               result: matchResultForTeam, 
               date: match.date, 
-              homeTeamName: match.homeTeamName, 
-              awayTeamName: match.awayTeamName, 
+              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
+              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
               homeScore, 
               awayScore,
               // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
-              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
+              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
             });
           }
         } else { // 'overall'
-          if (match.homeTeamName === teamName) {
+          if (homeTeamId === teamId) {
             played++;
             shotsFor += homeScore;
             shotsAgainst += awayScore;
@@ -2241,15 +2283,15 @@ class LeagueElement extends HTMLElement {
             teamFilteredMatches.push({ 
               result: matchResultForTeam, 
               date: match.date, 
-              homeTeamName: match.homeTeamName, 
-              awayTeamName: match.awayTeamName, 
+              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
+              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
               homeScore, 
               awayScore,
               // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
-              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
+              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
             });
-          } else if (match.awayTeamName === teamName) {
+          } else if (awayTeamId === teamId) {
             played++;
             shotsFor += awayScore;
             shotsAgainst += homeScore;
@@ -2263,13 +2305,13 @@ class LeagueElement extends HTMLElement {
             teamFilteredMatches.push({ 
               result: matchResultForTeam, 
               date: match.date, 
-              homeTeamName: match.homeTeamName, 
-              awayTeamName: match.awayTeamName, 
+              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
+              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
               homeScore, 
               awayScore,
               // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(match.homeTeamName),
-              awayTeamDisplayName: this.getTeamDisplayName(match.awayTeamName)
+              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
+              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
             });
           }
         }
@@ -2278,8 +2320,9 @@ class LeagueElement extends HTMLElement {
       teamFilteredMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       return {
-        teamName,
-        teamDisplayName: this.getTeamDisplayName(teamName), // Add display name for the team
+        teamId: teamId, // Store the team ID
+        teamName: teamId, // Legacy support
+        teamDisplayName: this.getTeamDisplayName(teamId), // Add display name for the team
         played,
         won,
         drawn,
@@ -2329,7 +2372,7 @@ class LeagueElement extends HTMLElement {
               return matchDateTimestamp < lastActualMatchDayTimestamp;
           });
           if (matchesForBaseline.length > 0) {
-              effectivePreviousRanks = this._calculateRanksFromMatches(matchesForBaseline, allTeamNamesInLeague);
+              effectivePreviousRanks = this._calculateRanksFromMatches(matchesForBaseline, allTeamIdsInLeague);
           }
       }
       // If uniqueResultDates < 2 or matchesForBaseline is empty, effectivePreviousRanks remains null.
@@ -2337,8 +2380,8 @@ class LeagueElement extends HTMLElement {
       // Apply movement and promotion/relegation to the currentFilteredLeague (which is already sorted for 'overall')
       currentFilteredLeague.forEach(team => {
         // currentRank is already set from the main sort
-        if (effectivePreviousRanks && effectivePreviousRanks[team.teamName] !== undefined) {
-          const previousRank = effectivePreviousRanks[team.teamName];
+        if (effectivePreviousRanks && effectivePreviousRanks[team.teamId] !== undefined) {
+          const previousRank = effectivePreviousRanks[team.teamId];
           team.rankMovement = previousRank - team.currentRank;
         } else {
           team.rankMovement = 0; // No previous data or team not in baseline
@@ -2364,8 +2407,6 @@ class LeagueElement extends HTMLElement {
       });
     }
     
-    // The promotion/relegation logic was moved inside the loop above
-    // to use the calculated currentRank directly.
     return currentFilteredLeague;
   }
 
@@ -2404,15 +2445,15 @@ class LeagueElement extends HTMLElement {
 
   /**
    * @param {Array<Object>} matchesSubset - Array of match objects to calculate ranks from.
-   * @param {Array<string>} allTeamNamesInLeague - Array of all team names in the league.
-   * @returns {Object|null} A map of { teamName: rank }, or null if calculation isn't possible.
+   * @param {Array<string>} allTeamIdsInLeague - Array of all team IDs in the league.
+   * @returns {Object|null} A map of { teamId: rank }, or null if calculation isn't possible.
    */
-  _calculateRanksFromMatches(matchesSubset, allTeamNamesInLeague) {
-    if (!matchesSubset || matchesSubset.length === 0 || !allTeamNamesInLeague || allTeamNamesInLeague.length === 0) {
+  _calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague) {
+    if (!matchesSubset || matchesSubset.length === 0 || !allTeamIdsInLeague || allTeamIdsInLeague.length === 0) {
       return null;
     }
 
-    const stats = allTeamNamesInLeague.map(teamName => {
+    const stats = allTeamIdsInLeague.map(teamId => {
       let played = 0;
       let won = 0;
       let drawn = 0;
@@ -2427,17 +2468,25 @@ class LeagueElement extends HTMLElement {
           return; 
         }
         
+        // Get team IDs from match
+        const homeTeamId = match.homeTeam._id;
+        const awayTeamId = match.awayTeam._id;
+        
+        if (!homeTeamId || !awayTeamId) {
+          return; // Skip if team IDs are missing
+        }
+        
         const homeScore = match.result.homeScore;
         const awayScore = match.result.awayScore;
 
-        if (match.homeTeamName === teamName) {
+        if (homeTeamId === teamId) {
           played++;
           shotsFor += homeScore;
           shotsAgainst += awayScore;
           if (homeScore > awayScore) { won++; points += 3; }
           else if (homeScore === awayScore) { drawn++; points += 1; }
           else { lost++; }
-        } else if (match.awayTeamName === teamName) {
+        } else if (awayTeamId === teamId) {
           played++;
           shotsFor += awayScore;
           shotsAgainst += homeScore;
@@ -2447,7 +2496,8 @@ class LeagueElement extends HTMLElement {
         }
       });
       return {
-        teamName,
+        teamId,
+        teamDisplayName: this.getTeamDisplayName(teamId),
         played,
         won,
         drawn,
@@ -2464,12 +2514,12 @@ class LeagueElement extends HTMLElement {
       if (b.points !== a.points) return b.points - a.points;
       if (b.shotDifference !== a.shotDifference) return b.shotDifference - a.shotDifference;
       if (b.shotsFor !== a.shotsFor) return b.shotsFor - a.shotsFor;
-      return a.teamName.localeCompare(b.teamName);
+      return a.teamDisplayName.localeCompare(b.teamDisplayName);
     });
 
     const rankMap = {};
     stats.forEach((team, index) => {
-      rankMap[team.teamName] = index + 1; // 1-indexed rank
+      rankMap[team.teamId] = index + 1; // 1-indexed rank
     });
     
     return rankMap;
@@ -2478,7 +2528,7 @@ class LeagueElement extends HTMLElement {
   /**
    * Open the match modal dialog.
    * @param {Object} matchData
-   * @param {Array<string>} teams
+   * @param {Array<string>} teams - Array of team IDs
    * @param {'edit'|'new'} mode
    */
   openMatchModal(matchData, teams, mode = 'edit') {
@@ -2510,18 +2560,16 @@ class LeagueElement extends HTMLElement {
 
   _handleRecentMatchClick(e) {
     if (e.detail.type === 'matchClick' && e.detail.match) {
-      const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
-                        ? this.data.table.leagueData.map(t => t.teamName)
-                        : [];
+      // Get team mapping array with correct format
+      const teamsArray = this.createTeamMappingArray();
       this.openMatchModal(e.detail.match, teamsArray, 'edit');
     }
   }
 
   _handleAttentionMatchClick(e) {
     if (e.detail.type === 'matchClick' && e.detail.match) {
-      const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
-                        ? this.data.table.leagueData.map(t => t.teamName)
-                        : [];
+      // Get team mapping array with correct format
+      const teamsArray = this.createTeamMappingArray();
       const matchData = { ...e.detail.match }; // Clone to avoid modifying original event detail
       if (e.detail.attentionReason) {
           matchData.attentionReason = e.detail.attentionReason;
@@ -2534,10 +2582,9 @@ class LeagueElement extends HTMLElement {
   _handleUpcomingMatchClick(e) {
     // Check if the event is specifically a matchClick event
     if (e.detail.type === 'matchClick' && e.detail.match) {
-        const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
-                            ? this.data.table.leagueData.map(t => t.teamName)
-                            : [];
-        this.openMatchModal(e.detail.match, teamsArray, 'edit');
+      // Get team mapping array with correct format
+      const teamsArray = this.createTeamMappingArray();
+      this.openMatchModal(e.detail.match, teamsArray, 'edit');
     }
   }
 
@@ -2652,8 +2699,8 @@ class LeagueElement extends HTMLElement {
           // Create a simple lookup map for team names
           this._teamNameMap = {};
           data.forEach(team => {
-            if (team.value && team.label) {
-              this._teamNameMap[team.value] = team.label;
+            if (team._id && team.name) {
+              this._teamNameMap[team._id] = team.name;
             }
           });
         }
@@ -2664,34 +2711,34 @@ class LeagueElement extends HTMLElement {
   }
 
   // Get team display name (using standardized model)
-  getTeamDisplayName(teamValue) {
-    if (!teamValue) return '';
+  getTeamDisplayName(teamId) {
+    if (!teamId) return '';
     
     // Check team name map first
-    if (this._teamNameMap && this._teamNameMap[teamValue]) {
-      return this._teamNameMap[teamValue];
+    if (this._teamNameMap && this._teamNameMap[teamId]) {
+      return this._teamNameMap[teamId];
     }
     
-    // If not found, return the value as the display name
-    return teamValue;
+    // If not found, return the id as the display name
+    return teamId;
   }
 
-  // Create team mapping as an array of {value, label} objects
+  // Create team mapping as an array of {_id, name} objects
   createTeamMappingArray() {
     const mapping = [];
     if (this.data && this.data.teams && Array.isArray(this.data.teams)) {
       this.data.teams.forEach(team => {
         mapping.push({
-          value: team.value,
-          label: team.label || this.getTeamDisplayName(team.value)
+          _id: team._id,
+          name: team.name || this.getTeamDisplayName(team._id)
         });
       });
     } else if (this.data && this.data.table && this.data.table.leagueData) {
       // If teams aren't directly available, create from table data
       this.data.table.leagueData.forEach(team => {
         mapping.push({
-          value: team.teamName,
-          label: this.getTeamDisplayName(team.teamName)
+          _id: team.teamId,
+          name: this.getTeamDisplayName(team.teamId)
         });
       });
     }

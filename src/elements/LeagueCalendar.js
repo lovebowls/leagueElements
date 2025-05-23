@@ -687,12 +687,12 @@ class LeagueCalendar extends HTMLElement {
         let tooltipLines = [];
         if (dayResults.length > 0) {
           tooltipLines.push('Results:');
-          tooltipLines.push(...dayResults.map(m => `${this.escapeHtml(m.homeTeamName)} ${m.result.homeScore}-${m.result.awayScore} ${this.escapeHtml(m.awayTeamName)}`));
+          tooltipLines.push(...dayResults.map(m => `${this.escapeHtml(m.homeTeam?.name || '')} ${m.result.homeScore}-${m.result.awayScore} ${this.escapeHtml(m.awayTeam?.name || '')}`));
         }
         if (dayFixtures.length > 0) {
           if (dayResults.length > 0) tooltipLines.push(''); 
           tooltipLines.push('Fixtures:');
-          tooltipLines.push(...dayFixtures.map(m => `${this.escapeHtml(m.homeTeamName)} vs ${this.escapeHtml(m.awayTeamName)}`));
+          tooltipLines.push(...dayFixtures.map(m => `${this.escapeHtml(m.homeTeam?.name || '')} vs ${this.escapeHtml(m.awayTeam?.name || '')}`));
         }
         if (tooltipLines.length > 0) {
           tooltipContent = `<div class="calendar-tooltip">${tooltipLines.join('<br>')}</div>`;

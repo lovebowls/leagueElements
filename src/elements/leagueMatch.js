@@ -75,7 +75,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
           width: 90% !important; /* Override any fixed width from shared styles */
           max-width: 90% !important;
           margin: 10px auto;
-          font-size: 20px !important; /* Base font size increase */
+          font-size: 16px !important; /* Base font size increase */
         }
         .modal-shared-header {
           padding: 15px;
@@ -372,90 +372,81 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   }
 
   /**
-   * Handle Ok button click: validate and emit 'match-save' event.
+   * Handle OK button click: validate and emit 'match-save' event.
    * @private
    */
   _onOk() {
-    // Values must be read BEFORE clearError, as clearError can cause a re-render
-    const dateInput = this.shadowRoot.getElementById('matchDate');
-    const homeTeamSelect = this.shadowRoot.getElementById('homeTeam');
-    const awayTeamSelect = this.shadowRoot.getElementById('awayTeam');
-    const homeShotsInput = this.shadowRoot.getElementById('homeScore');
-    const awayShotsInput = this.shadowRoot.getElementById('awayScore');
-
-    // Extremely verbose logging for these two elements:
-    if (homeShotsInput) {
-        // console.log('[LeagueMatch _onOk] Home Shots Input Element:', homeShotsInput); // Keep for debug if needed
-        // console.log('[LeagueMatch _onOk] Home Shots Input value attribute:', homeShotsInput.getAttribute('value'));
-        // console.log('[LeagueMatch _onOk] Home Shots Input .value property:', homeShotsInput.value);
-    } else {
-        // console.error('[LeagueMatch _onOk] Home Shots Input Element NOT FOUND'); // Keep for debug
-    }
-
-    if (awayShotsInput) {
-        // console.log('[LeagueMatch _onOk] Away Shots Input Element:', awayShotsInput); // Keep for debug
-        // console.log('[LeagueMatch _onOk] Away Shots Input value attribute:', awayShotsInput.getAttribute('value'));
-        // console.log('[LeagueMatch _onOk] Away Shots Input .value property:', awayShotsInput.value);
-    } else {
-        // console.error('[LeagueMatch _onOk] Away Shots Input Element NOT FOUND'); // Keep for debug
-    }
-
-    if (!dateInput || !homeTeamSelect || !awayTeamSelect || !homeShotsInput || !awayShotsInput) {
-        console.error("[LeagueMatch _onOk] Critical form element not found (overall check).");
-        // No error shown yet, as clearError hasn't run. If we proceed to showError, it will render.
-        // So, if elements are missing, it's best to just stop and log.
-        return; 
-    }
-
-    const date = dateInput.value;
-    const homeTeam = homeTeamSelect.value;
-    const awayTeam = awayTeamSelect.value;
-    const homeShotsStr = homeShotsInput.value.trim(); 
-    const awayShotsStr = awayShotsInput.value.trim();
-
-    this.clearError(); // Now it's safe to clear any previous error, as values are captured.
+    this.clearError();
     
-    // console.log('[LeagueMatch _onOk] homeShotsStr from .value:', homeShotsStr, 'awayShotsStr from .value:', awayShotsStr); // Keep for debug
-
-    // Validation for date and teams
-    if (!date) return this.showError('Date is required.');
-    if (!homeTeam || !awayTeam) return this.showError('Both teams must be selected.');
-    if (homeTeam === awayTeam) return this.showError('Home and away teams must be different.');
-
-    const match = {
-      ...(this._match || {}),
-      date: date,
-      homeTeamName: homeTeam,
-      awayTeamName: awayTeam,
-      result: null // Default to null, will be updated if scores are validly entered
+    // Get values from form
+    const homeTeamSelect = this.shadow.querySelector('#homeTeam');
+    const awayTeamSelect = this.shadow.querySelector('#awayTeam');
+    const matchDateInput = this.shadow.querySelector('#matchDate');
+    const isPlayedCheckbox = this.shadow.querySelector('#isPlayed');
+    const homeScoreInput = this.shadow.querySelector('#homeScore');
+    const awayScoreInput = this.shadow.querySelector('#awayScore');
+    
+    const homeTeamId = homeTeamSelect.value;
+    const awayTeamId = awayTeamSelect.value;
+    const matchDate = matchDateInput.value;
+    const isPlayed = isPlayedCheckbox.checked;
+    const homeScore = isPlayed ? parseInt(homeScoreInput.value, 10) : null;
+    const awayScore = isPlayed ? parseInt(awayScoreInput.value, 10) : null;
+    
+    // Validation
+    let valid = true;
+    
+    if (!homeTeamId) {
+      this.showError('Please select a home team');
+      valid = false;
+    } else if (!awayTeamId) {
+      this.showError('Please select an away team');
+      valid = false;
+    } else if (homeTeamId === awayTeamId) {
+      this.showError('Home and away teams cannot be the same');
+      valid = false;
+    } else if (!matchDate) {
+      this.showError('Please enter a match date');
+      valid = false;
+    } else if (isPlayed && (isNaN(homeScore) || isNaN(awayScore))) {
+      this.showError('Please enter valid scores');
+      valid = false;
+    }
+    
+    if (!valid) return;
+    
+    // Create match object
+    const match = { ...this._match } || {};
+    
+    // Find the team objects from their IDs to get their names
+    const homeTeam = this._teams.find(team => team._id === homeTeamId);
+    const awayTeam = this._teams.find(team => team._id === awayTeamId);
+    
+    match.homeTeam = {
+      _id: homeTeamId,
+      name: homeTeam ? homeTeam.name : homeTeamId  // Use name if available, fallback to ID
     };
-
-    // If both input strings are empty, result remains null (no score submitted).
-    if (homeShotsStr === '' && awayShotsStr === '') {
-      console.log('[LeagueMatch _onOk] Both shot inputs empty, result remains null.');
-      // match.result is already null, proceed to dispatch
+    
+    match.awayTeam = {
+      _id: awayTeamId,
+      name: awayTeam ? awayTeam.name : awayTeamId  // Use name if available, fallback to ID
+    };
+    
+    match.date = matchDate;
+    
+    // Handle result
+    if (isPlayed) {
+      console.log('[LeagueMatch _onOk] Played match score inputs:', homeScoreInput.value, awayScoreInput.value);
+      // Only update result if both scores are valid numbers, otherwise preserve any existing result
+      if (!isNaN(homeScore) && !isNaN(awayScore)) {
+        match.result = { 
+          homeScore: homeScore,
+          awayScore: awayScore 
+        };
+      }
     } else {
-      // At least one score field was not empty. Parse them, treating blank as 0.
-      let homeScore = 0; // Default to 0
-      if (homeShotsStr !== '') {
-        homeScore = Number(homeShotsStr);
-        if (isNaN(homeScore)) {
-          return this.showError('Home shots must be a number.');
-        }
-      }
-
-      let awayScore = 0; // Default to 0
-      if (awayShotsStr !== '') {
-        awayScore = Number(awayShotsStr);
-        if (isNaN(awayScore)) {
-          return this.showError('Away shots must be a number.');
-        }
-      }
-      console.log('[LeagueMatch _onOk] Calculated scores - homeScore:', homeScore, 'awayScore:', awayScore);
-      match.result = { 
-        homeScore: homeScore,
-        awayScore: awayScore 
-      };
+      // If match is not played, keep date but clear result
+      match.result = null;
     }
     
     console.log('[LeagueMatch _onOk] Final match object before dispatch:', JSON.parse(JSON.stringify(match)));
@@ -484,8 +475,8 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     // The actual dialog box will be modal-shared-content.
 
     const title = this._mode === 'edit' ? 'Edit Match' : 'Add Match';
-    const homeTeamName = this._match?.homeTeamName || '';
-    const awayTeamName = this._match?.awayTeamName || '';
+    const homeTeamId = this._match?.homeTeam?._id || '';
+    const awayTeamId = this._match?.awayTeam?._id || '';
     const matchDate = this._match?.date ? new Date(this._match.date).toISOString().split('T')[0] : '';
     const homeScore = this._match?.result?.homeScore !== undefined && this._match?.result?.homeScore !== null ? this._match.result.homeScore : '';
     const awayScore = this._match?.result?.awayScore !== undefined && this._match?.result?.awayScore !== null ? this._match.result.awayScore : '';
@@ -522,7 +513,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
               ${this._teams.map(team => {
                 // ADDED CONSOLE LOG to inspect each team object during mapping
                 console.log('[LeagueMatch] render - mapping homeTeam option:', JSON.stringify(team));
-                return `<option value="${this._escapeHtml(team.value)}" ${team.value === homeTeamName ? 'selected' : ''}>${this._escapeHtml(team.label)}</option>`;
+                return `<option value="${this._escapeHtml(team._id)}" ${team._id === homeTeamId ? 'selected' : ''}>${this._escapeHtml(team.name)}</option>`;
               }).join('')}
             </select>
           </div>
@@ -533,7 +524,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
               ${this._teams.map(team => {
                 // ADDED CONSOLE LOG to inspect each team object during mapping
                 console.log('[LeagueMatch] render - mapping awayTeam option:', JSON.stringify(team));
-                return `<option value="${this._escapeHtml(team.value)}" ${team.value === awayTeamName ? 'selected' : ''}>${this._escapeHtml(team.label)}</option>`;
+                return `<option value="${this._escapeHtml(team._id)}" ${team._id === awayTeamId ? 'selected' : ''}>${this._escapeHtml(team.name)}</option>`;
               }).join('')}
             </select>
           </div>

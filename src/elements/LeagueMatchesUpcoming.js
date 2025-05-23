@@ -306,6 +306,29 @@ class LeagueMatchesUpcoming extends HTMLElement {
     return teamValue;
   }
 
+  /**
+   * Gets the team ID and display name from match data.
+   * @param {Object} match - The match object
+   * @param {string} teamType - Either 'home' or 'away'
+   * @returns {Object} An object with id and displayName
+   */
+  getTeamDataFromMatch(match, teamType = 'home') {
+    const isHome = teamType === 'home';
+    let teamId = '';
+    let displayName = '';
+    
+    // Match has homeTeam/awayTeam objects with _id and name
+    if (isHome && match.homeTeam && match.homeTeam._id) {
+      teamId = match.homeTeam._id;
+      displayName = match.homeTeam.name || this.getTeamDisplayName(teamId);
+    } else if (!isHome && match.awayTeam && match.awayTeam._id) {
+      teamId = match.awayTeam._id;
+      displayName = match.awayTeam.name || this.getTeamDisplayName(teamId);
+    }
+    
+    return { id: teamId, displayName };
+  }
+
   renderUpcomingFixtures() {
     const list = this._upcomingFixturesList();
     const start = this.currentPage * this.itemsPerPage;
@@ -325,9 +348,9 @@ class LeagueMatchesUpcoming extends HTMLElement {
     }
     let lastDate = null;
     return pageItems.map(match => {
-      // Get display names for teams
-      const homeTeamDisplay = this.getTeamDisplayName(match.homeTeamName);
-      const awayTeamDisplay = this.getTeamDisplayName(match.awayTeamName);
+      // Get display names for teams using new helper method
+      const homeTeam = this.getTeamDataFromMatch(match, 'home');
+      const awayTeam = this.getTeamDataFromMatch(match, 'away');
       
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0);
@@ -341,7 +364,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
       <div class="match-item">
         ${dateDisplay}
         <a href="#" class="match-link" data-match-key="${match.key}">
-          ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}
+          ${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}
         </a>
       </div>
     `}).join('');

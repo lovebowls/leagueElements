@@ -10,14 +10,14 @@ function generateUniqueId() {
 
 /**
  * Generate a test match object for testing
- * @param {string} homeTeamValue - Value of the home team
- * @param {string} awayTeamValue - Value of the away team
- * @param {string} homeTeamLabel - Label of the home team
- * @param {string} awayTeamLabel - Label of the away team
+ * @param {string} homeTeamId - ID of the home team
+ * @param {string} awayTeamId - ID of the away team
+ * @param {string} homeTeamName - Name of the home team
+ * @param {string} awayTeamName - Name of the away team
  * @param {number} index - Index to help create unique dates
  * @returns {Object} A test match object
  */
-export function generateTestMatch(homeTeamValue, awayTeamValue, homeTeamLabel, awayTeamLabel, index = 0) {
+export function generateTestMatch(homeTeamId, awayTeamId, homeTeamName, awayTeamName, index = 0) {
   // Create date for the match, adding index days to a base date
   const baseDate = new Date('2024-01-01');
   baseDate.setDate(baseDate.getDate() + index);
@@ -27,10 +27,15 @@ export function generateTestMatch(homeTeamValue, awayTeamValue, homeTeamLabel, a
   return {
     key: `match-${generateUniqueId()}`,
     date: dateString,
-    homeTeamName: homeTeamValue,
-    awayTeamName: awayTeamValue,
-    homeTeamLabel: homeTeamLabel,
-    awayTeamLabel: awayTeamLabel,
+    // Use new format: homeTeam and awayTeam objects with _id
+    homeTeam: {
+      _id: homeTeamId,
+      name: homeTeamName
+    },
+    awayTeam: {
+      _id: awayTeamId,
+      name: awayTeamName
+    },
     result: Math.random() > 0.3 ? {
       homeScore: Math.floor(Math.random() * 21),
       awayScore: Math.floor(Math.random() * 21)
@@ -61,8 +66,8 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 3, leagu
   // Add custom teams if needed to reach teamCount
   for (let i = lovebowlsTeamsToUse.length; i < teamCount; i++) {
     teams.push({
-      value: `team-${i}-${generateUniqueId()}`,
-      label: `Custom Team ${i + 1}`
+      _id: `team-${i}-${generateUniqueId()}`,
+      name: `Custom Team ${i + 1}`
     });
   }
   
@@ -73,19 +78,19 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 3, leagu
     for (let j = i + 1; j < teams.length; j++) {
       // Create a match between teams[i] and teams[j]
       matches.push(generateTestMatch(
-        teams[i].value, 
-        teams[j].value, 
-        teams[i].label,
-        teams[j].label,
+        teams[i]._id, 
+        teams[j]._id, 
+        teams[i].name,
+        teams[j].name,
         matches.length
       ));
       
       // Create a reversed match (away fixture)
       matches.push(generateTestMatch(
-        teams[j].value, 
-        teams[i].value, 
-        teams[j].label,
-        teams[i].label,
+        teams[j]._id, 
+        teams[i]._id, 
+        teams[j].name,
+        teams[i].name,
         matches.length
       ));
     }
@@ -97,8 +102,8 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 3, leagu
     name: leagueName,
     table: {
       leagueData: teams.map(team => ({
-        teamName: team.value,
-        teamDisplayName: team.label,
+        teamId: team._id,
+        teamDisplayName: team.name,
         played: 0,
         won: 0,
         drawn: 0,
@@ -125,7 +130,12 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 3, leagu
         pointsPerRinkDraw: 1,
         defaultRinks: 4
       }
-    }
+    },
+    // Include the team list in standardized format
+    teams: teams.map(team => ({
+      _id: team._id,
+      name: team.name
+    }))
   };
 }
 

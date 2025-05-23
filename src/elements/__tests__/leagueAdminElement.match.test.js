@@ -189,8 +189,8 @@ describe('LeagueAdminElement - Match Management', () => {
       const matchData = {
         key: 'm1',
         date: '2024-01-01',
-        homeTeamName: 'Team A',
-        awayTeamName: 'Team B',
+        homeTeam: { _id: 'Team A', name: 'Team A' },
+        awayTeam: { _id: 'Team B', name: 'Team B' },
         result: {
           homeScore: 10,
           awayScore: 5
@@ -209,8 +209,8 @@ describe('LeagueAdminElement - Match Management', () => {
           {
             key: 'm1',
             date: '2024-01-01',
-            homeTeamName: 'Team A',
-            awayTeamName: 'Team B',
+            homeTeam: { _id: 'Team A', name: 'Team A' },
+            awayTeam: { _id: 'Team B', name: 'Team B' },
             result: {
               homeScore: 5,
               awayScore: 5
@@ -402,8 +402,8 @@ describe('LeagueAdminElement - Match Management', () => {
       const mockMatch = {
         key: 'm1',
         date: '2024-01-01',
-        homeTeamName: 'Team A',
-        awayTeamName: 'Team B'
+        homeTeam: { _id: 'Team A', name: 'Team A' },
+        awayTeam: { _id: 'Team B', name: 'Team B' }
       };
       
       const mockEvent = {

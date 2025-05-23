@@ -212,6 +212,29 @@ class LeagueMatchesRecent extends HTMLElement {
     return teamValue;
   }
 
+  /**
+   * Gets the team ID and display name from match data.
+   * @param {Object} match - The match object
+   * @param {string} teamType - Either 'home' or 'away'
+   * @returns {Object} An object with id and displayName
+   */
+  getTeamDataFromMatch(match, teamType = 'home') {
+    const isHome = teamType === 'home';
+    let teamId = '';
+    let displayName = '';
+    
+    // Match has homeTeam/awayTeam objects with _id and name
+    if (isHome && match.homeTeam && match.homeTeam._id) {
+      teamId = match.homeTeam._id;
+      displayName = match.homeTeam.name || this.getTeamDisplayName(teamId);
+    } else if (!isHome && match.awayTeam && match.awayTeam._id) {
+      teamId = match.awayTeam._id;
+      displayName = match.awayTeam.name || this.getTeamDisplayName(teamId);
+    }
+    
+    return { id: teamId, displayName };
+  }
+
   async loadData(data) {
     try {
       if (typeof data === 'string') {
@@ -307,9 +330,9 @@ class LeagueMatchesRecent extends HTMLElement {
         else if (homeScore < awayScore) { homeScoreClass = 'score-l'; awayScoreClass = 'score-w'; }
       }
       
-      // Get display names for teams
-      const homeTeamDisplay = this.getTeamDisplayName(match.homeTeamName);
-      const awayTeamDisplay = this.getTeamDisplayName(match.awayTeamName);
+      // Get display names for teams using new helper method
+      const homeTeam = this.getTeamDataFromMatch(match, 'home');
+      const awayTeam = this.getTeamDataFromMatch(match, 'away');
       
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0); 
@@ -324,7 +347,7 @@ class LeagueMatchesRecent extends HTMLElement {
         ${dateDisplayHtml}
         <div class="match-item list-item-shared" data-match-key="${match.key}">
           <a href="#" class="match-link list-item-text-primary">
-            ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}
+            ${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}
           </a>
           <div class="list-item-actions match-score-container">
             <span class="match-score ${homeScoreClass}">${homeScore}</span>
