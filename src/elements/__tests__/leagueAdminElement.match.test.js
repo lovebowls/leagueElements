@@ -5,7 +5,6 @@ import { jest } from '@jest/globals';
 
 // Mock the imports
 jest.mock('../shared-styles.js', () => ({
-  utilityStyles: '',
   panelStyles: '',
   buttonStyles: '',
   modalStyles: '',

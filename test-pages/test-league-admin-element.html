@@ -11,7 +11,7 @@
   </div>
   <!-- Removed hardcoded data attribute; we'll set it via JavaScript after checking session storage -->
   <league-admin-element id="test-league-admin" current-league-id="">
-  <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc;"><b>Event Log:</b><br></div>
+  <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../src/elements/leagueAdminElement.js?v=2';
     import { generateTestLeagueData } from '../src/test-data/league-test-data.js';
@@ -20,11 +20,11 @@
     
     // ADDED: Set lovebowls teams data first
     const lovebowlsTeamsData = [
-      { value: "lb-guid-a123", label: "Lovebowls Club Alpha" },
-      { value: "lb-guid-b456", label: "Lovebowls Club Beta" },
-      { value: "lb-guid-c789", label: "Lovebowls Club Gamma" },
-      { value: "lb-guid-d012", label: "Lovebowls Club Delta" },
-      { value: "lb-guid-e345", label: "Lovebowls Club Epsilon" }
+      { _id: "lb-guid-a123", name: "Lovebowls Club Alpha" },
+      { _id: "lb-guid-b456", name: "Lovebowls Club Beta" },
+      { _id: "lb-guid-c789", name: "Lovebowls Club Gamma" },
+      { _id: "lb-guid-d012", name: "Lovebowls Club Delta" },
+      { _id: "lb-guid-e345", name: "Lovebowls Club Epsilon" }
     ];
     
     // Generate default league data using our test data generator with lovebowls teams

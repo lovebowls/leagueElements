@@ -12,7 +12,6 @@ class LeagueAdminElementEvent extends CustomEvent {
 
 // Mock the imports
 jest.mock('../shared-styles.js', () => ({
-  utilityStyles: '',
   panelStyles: '',
   buttonStyles: '',
   modalStyles: '',
@@ -35,12 +34,12 @@ describe('LeagueAdminElement - Advanced Features', () => {
   // Setup before each test
   beforeEach(() => {
     // Setup lovebowls test data matching the test page
-    lovebowlsTeamsData = [
-      { value: "lb-guid-a123", label: "Lovebowls Club Alpha" },
-      { value: "lb-guid-b456", label: "Lovebowls Club Beta" },
-      { value: "lb-guid-c789", label: "Lovebowls Club Gamma" },
-      { value: "lb-guid-d012", label: "Lovebowls Club Delta" },
-      { value: "lb-guid-e345", label: "Lovebowls Club Epsilon" }
+    const lovebowlsTeamsData = [
+      { _id: "lb-guid-a123", name: "Lovebowls Club Alpha" },
+      { _id: "lb-guid-b456", name: "Lovebowls Club Beta" },
+      { _id: "lb-guid-c789", name: "Lovebowls Club Gamma" },
+      { _id: "lb-guid-d012", name: "Lovebowls Club Delta" },
+      { _id: "lb-guid-e345", name: "Lovebowls Club Epsilon" }
     ];
 
     // Generate test league data matching the test page
@@ -215,9 +214,9 @@ describe('LeagueAdminElement - Advanced Features', () => {
           };
           
           this.dispatchEvent(new CustomEvent('requestUpdateTeam', {
-            detail: {
+          detail: {
               leagueId: this._selectedLeagueId,
-              teamData: updatedTeam
+            teamData: updatedTeam
             },
             bubbles: true
           }));

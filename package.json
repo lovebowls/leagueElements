@@ -1,6 +1,6 @@
 {
   "name": "@lovebowls/leagueelements",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "League Elements package for LoveBowls",
   "type": "module",
   "source": "src/index.ts",
@@ -17,6 +17,8 @@
   "files": [
     "dist",
     "src",
+    "src/elements/*.js",
+    "src/elements/*-styles.js",
     "README.md"
   ],
   "scripts": {

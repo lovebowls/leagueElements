@@ -1,14 +1,60 @@
-export const utilityStyles = `
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
+export const dropdownStyles = `
+  .dropdown-shared {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-select-shared {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: var(--le-background-color-panel, #fff);
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-small, 3px);
+    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 0.75rem);
+    padding-right: calc(var(--le-padding-m, 0.75rem) * 2);
+    font-size: var(--le-font-size-base, 1em);
+    color: var(--le-text-color-primary, #333);
+    cursor: pointer;
+    line-height: 1.4;
+    max-width: 100%;
+    width: auto;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5em center;
+    background-size: 1em;
+  }
+  
+  .dropdown-select-shared:hover {
+    border-color: var(--le-border-color-dark, #ccc);
+  }
+  
+  .dropdown-select-shared:focus {
+    outline: none;
+    border-color: var(--le-text-color-accent, #2196f3);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  }
+  
+  /* Mobile-specific adjustments */
+  @media (max-width: 480px) {
+    .dropdown-select-shared {
+      font-size: 1.1em;
+      padding: 0.3rem 2rem 0.3rem 0.5rem;
+      background-size: 0.8em;
+    }
+  }
+  
+  /* For dropdown containers that need to be right-aligned */
+  .dropdown-container-right {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  /* For dropdowns within flexbox layouts */
+  .dropdown-container-flex {
+    display: flex;
+    align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
   }
 `;
 
@@ -281,4 +327,23 @@ export const listItemStyles = `
     display: flex;
     gap: var(--le-padding-xs, 0.4em); /* Increased gap */
   }
+`;
+
+export const mobileStyles = `
+  /* Mobile-specific styling that can be added to host elements */
+  
+  /* Increased font sizes for better readability on mobile */
+  --le-font-size-base: 1.4em;
+  --le-font-size-small: 1.2em;
+  --le-font-size-medium: 1.6em;
+  --le-font-size-large: 1.8em;
+  --le-font-size-xlarge: 2em;
+  
+  /* Adjust padding for better touch targets */
+  --le-padding-s: 0.6rem;
+  --le-padding-m: 1rem;
+  
+  /* Other mobile optimizations */
+  font-size: var(--le-font-size-base);
+  line-height: 1.4;
 `; 

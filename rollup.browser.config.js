@@ -14,7 +14,8 @@ const elements = [
   'leagueAdminElement',
   'LeagueMatchesAttention',
   'LeagueMatchesUpcoming',
-  'leagueMatch'
+  'leagueMatch',
+  'LeagueCalendar'
 ];
 
 // Define common globals for all bundles

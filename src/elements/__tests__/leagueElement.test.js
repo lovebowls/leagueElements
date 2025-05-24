@@ -5,7 +5,6 @@ import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 // Mock the dependencies
 jest.mock('../shared-styles.js', () => ({
-  utilityStyles: '',
   panelStyles: '',
   buttonStyles: ''
 }));
@@ -114,10 +113,10 @@ describe('LeagueElement', () => {
         relegationPositions: 1
       },
       teams: [
-        { value: 'Team A', label: 'Team Alpha' },
-        { value: 'Team B', label: 'Team Beta' },
-        { value: 'Team C', label: 'Team Charlie' },
-        { value: 'Team D', label: 'Team Delta' }
+        { _id: 'Team A', name: 'Team Alpha' },
+        { _id: 'Team B', name: 'Team Beta' },
+        { _id: 'Team C', name: 'Team Charlie' },
+        { _id: 'Team D', name: 'Team Delta' }
       ]
     };
 
@@ -139,6 +138,14 @@ describe('LeagueElement', () => {
     // Mock render to avoid DOM manipulation
     element.render = jest.fn();
     element.dispatchEvent = jest.fn();
+    
+    // Add mock implementation for _getTeamsFromLeagueData
+    element._getTeamsFromLeagueData = jest.fn().mockImplementation(() => {
+      if (element.data && element.data.teams) {
+        return element.data.teams;
+      }
+      return [];
+    });
     
     // Manually call what would happen in constructor
     element.shadow.host.addEventListener('league-calendar-event', element._handleCalendarDateChangeBound);
@@ -304,12 +311,29 @@ describe('LeagueElement', () => {
         'Team B': 'Team Beta'
       };
       
+      // Add team data for lookup
+      element.data = {
+        teams: [
+          { _id: 'Team A', name: 'Team Alpha' },
+          { _id: 'Team B', name: 'Team Beta' }, 
+          { _id: 'Team C', name: 'Team Charlie' }
+        ]
+      };
+      
+      // Should find Team A in teamNameMap
       expect(element.getTeamDisplayName('Team A')).toBe('Team Alpha');
-      expect(element.getTeamDisplayName('Team C')).toBe('Team C'); // Not in map, returns value
+      
+      // Should find Team C in data.teams
+      expect(element.getTeamDisplayName('Team C')).toBe('Team Charlie');
+      
+      // Should return empty string for empty input
       expect(element.getTeamDisplayName('')).toBe('');
+      
+      // Should return ID for team not found anywhere
+      expect(element.getTeamDisplayName('Team D')).toBe('Team D');
     });
     
-    it('should create team mapping array correctly', () => {
+    it('should get teams from league data correctly', () => {
       const element = new LeagueElement();
       element._teamNameMap = {
         'Team A': 'Team Alpha',
@@ -328,7 +352,7 @@ describe('LeagueElement', () => {
         ]
       };
       
-      const mapping = element.createTeamMappingArray();
+      const mapping = element._getTeamsFromLeagueData();
       
       expect(mapping).toHaveLength(4);
       expect(mapping[0]).toEqual({
@@ -475,14 +499,14 @@ describe('LeagueElement', () => {
       element.data = mockLeagueData;
       element.openMatchModal = jest.fn();
       
-      // Mock the createTeamMappingArray to return expected format
-      element.createTeamMappingArray = jest.fn().mockReturnValue([
+      // Update mock data structure to use the new format
+      element.data.teams = [
         { _id: 'Team A', name: 'Team Alpha' },
         { _id: 'Team B', name: 'Team Beta' },
         { _id: 'Team C', name: 'Team Charlie' },
         { _id: 'Team D', name: 'Team Delta' }
-      ]);
-      
+      ];
+            
       const clickEvent = {
         detail: {
           type: 'matchClick',
@@ -494,9 +518,7 @@ describe('LeagueElement', () => {
       
       expect(element.openMatchModal).toHaveBeenCalledWith(
         clickEvent.detail.match,
-        expect.arrayContaining([
-          expect.objectContaining({ _id: expect.any(String), name: expect.any(String) })
-        ]),
+        element.data.teams,
         'edit'
       );
     });
@@ -505,13 +527,13 @@ describe('LeagueElement', () => {
       element.data = mockLeagueData;
       element.openMatchModal = jest.fn();
       
-      // Mock the createTeamMappingArray to return expected format
-      element.createTeamMappingArray = jest.fn().mockReturnValue([
+      // Update mock data structure to use the new format
+      element.data.teams = [
         { _id: 'Team A', name: 'Team Alpha' },
         { _id: 'Team B', name: 'Team Beta' },
         { _id: 'Team C', name: 'Team Charlie' },
         { _id: 'Team D', name: 'Team Delta' }
-      ]);
+      ];
       
       const clickEvent = {
         detail: {
@@ -528,7 +550,7 @@ describe('LeagueElement', () => {
           key: 'match1',
           attentionReason: 'needsScores'
         }),
-        expect.any(Array),
+        element.data.teams,
         'edit'
       );
     });
@@ -537,13 +559,13 @@ describe('LeagueElement', () => {
       element.data = mockLeagueData;
       element.openMatchModal = jest.fn();
       
-      // Mock the createTeamMappingArray to return expected format
-      element.createTeamMappingArray = jest.fn().mockReturnValue([
+      // Update mock data structure to use the new format
+      element.data.teams = [
         { _id: 'Team A', name: 'Team Alpha' },
         { _id: 'Team B', name: 'Team Beta' },
         { _id: 'Team C', name: 'Team Charlie' },
         { _id: 'Team D', name: 'Team Delta' }
-      ]);
+      ];
       
       const clickEvent = {
         detail: {
@@ -556,9 +578,7 @@ describe('LeagueElement', () => {
       
       expect(element.openMatchModal).toHaveBeenCalledWith(
         clickEvent.detail.match,
-        expect.arrayContaining([
-          expect.objectContaining({ _id: expect.any(String), name: expect.any(String) })
-        ]),
+        element.data.teams,
         'edit'
       );
     });
