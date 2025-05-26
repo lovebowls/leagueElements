@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles } from './shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, mobileStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
       ${panelStyles}

@@ -26,9 +26,9 @@ export class BaseLeagueElement implements LeagueElement {
   }
 }
 
-export { default as LeagueMatch } from './leagueMatch.js';
-export { default as LeagueAdminElement } from './leagueAdminElement.js';
-export { default as LeagueElement } from './leagueElement.js';
-export { default as LeagueMatchesAttention } from './LeagueMatchesAttention.js';
-export { default as LeagueMatchesRecent } from './LeagueMatchesRecent.js';
-export { default as LeagueMatchesUpcoming } from './LeagueMatchesUpcoming.js'; 
+export { default as LeagueMatch } from './leagueMatch/leagueMatch.js';
+export { default as LeagueAdminElement } from './leagueAdminElement/leagueAdminElement.js';
+export { default as LeagueElement } from './leagueElement/leagueElement.js';
+export { default as LeagueMatchesAttention } from './LeagueMatchesAttention/LeagueMatchesAttention.js';
+export { default as LeagueMatchesRecent } from './LeagueMatchesRecent/LeagueMatchesRecent.js';
+export { default as LeagueMatchesUpcoming } from './LeagueMatchesUpcoming/LeagueMatchesUpcoming.js'; 

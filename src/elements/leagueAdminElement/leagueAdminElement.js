@@ -10,17 +10,17 @@ class LeagueAdminElementEvent extends CustomEvent {
 }
 
 // Import the LeagueMatchesAttention component
-import './LeagueMatchesAttention.js';
-import './leagueMatch.js';
+import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
+import '../leagueMatch/leagueMatch.js';
 // ADDED IMPORTS for shared modal and form styles
 import {
     BASE_STYLES,
     MOBILE_STYLES,
     DESKTOP_STYLES,
     TEMPLATE_CONTENT
-} from './LeadueAdminElement-styles.js';
+} from './LeagueAdminElement-styles.js';
 // Import Temporal API utilities
-import { Temporal, TemporalUtils } from '../utils/temporalUtils.js';
+import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueAdminElement extends HTMLElement {
 

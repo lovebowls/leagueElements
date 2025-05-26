@@ -1,5 +1,5 @@
 // Import the component and test data
-import LeagueAdminElement from '../leagueAdminElement.js';
+import LeagueAdminElement from '../leagueAdminElement/leagueAdminElement.js';
 import { generateTestLeagueData } from '../../test-data/league-test-data.js';
 import { jest } from '@jest/globals';
 

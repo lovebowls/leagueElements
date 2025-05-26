@@ -9,14 +9,15 @@ class LeagueEvent extends CustomEvent {
   }
 }
 
-import './LeagueMatchesRecent.js';
-import './LeagueMatchesUpcoming.js';
-import './LeagueMatchesAttention.js';
-import './leagueMatch.js';
-import './LeagueCalendar.js';
+import '../LeagueMatchesRecent/LeagueMatchesRecent.js';
+import '../LeagueMatchesUpcoming/LeagueMatchesUpcoming.js';
+import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
+import '../leagueMatch/leagueMatch.js';
+import '../leagueCalendar/LeagueCalendar.js';
 
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
-import { Temporal, TemporalUtils } from '../utils/temporalUtils.js'; // ADDED IMPORT
+import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
+
 class LeagueElement extends HTMLElement {
 
   constructor() {

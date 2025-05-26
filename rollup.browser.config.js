@@ -68,7 +68,7 @@ const getPlugins = () => [
 
 // Create configurations for individual elements
 const elementConfigs = elements.map(element => ({
-  input: `src/elements/${element}.js`,
+  input: `src/elements/${element}/${element}.js`,
   output: {
     file: `dist/browser/${element}.js`,
     format: 'iife',
@@ -77,7 +77,7 @@ const elementConfigs = elements.map(element => ({
     globals
   },
   plugins: getPlugins(),
-  external: [...externals, '@js-temporal/polyfill', 'jsbi']
+  external: [...externals, '@js-temporal/polyfill']
 }));
 
 // Add the bundle configuration

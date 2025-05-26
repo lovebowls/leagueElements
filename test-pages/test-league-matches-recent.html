@@ -9,7 +9,7 @@
   <league-matches-recent id="test-league-matches-recent" data='{"_id":"league1","name":"Spring Bowls League","settings":{"pointsForWin":2,"pointsForDraw":1,"pointsForLoss":0,"promotionPositions":1,"relegationPositions":1,"timesTeamsPlayOther":2,"rinkPoints":{"pointsPerRinkWin":1,"pointsPerRinkDraw":0.5,"defaultRinks":4,"enabled":true}},"teams":[{"value":"Team A","label":"Team A"},{"value":"Team B","label":"Team B"},{"value":"Team C","label":"Team C"}],"matches":[{"key":"m1","homeTeam":{"_id":"Team A","name":"Team A"},"awayTeam":{"_id":"Team B","name":"Team B"},"date":"2025-05-15","result":{"homeScore":2,"awayScore":1}},{"key":"m2","homeTeam":{"_id":"Team B","name":"Team B"},"awayTeam":{"_id":"Team C","name":"Team C"},"date":"2025-05-22","result":null},{"key":"m3","homeTeam":{"_id":"Team C","name":"Team C"},"awayTeam":{"_id":"Team A","name":"Team A"},"date":"2025-05-29","result":null}],"table":{"leagueData":[{"teamName":"Team A"},{"teamName":"Team B"},{"teamName":"Team C"}],"metaData":{"promotionPlaces":1,"relegationPlaces":1}},"createdAt":"2025-01-01T12:00:00Z","updatedAt":"2025-05-01T12:00:00Z"}'></league-matches-recent>
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
-    import '../src/elements/LeagueMatchesRecent.js';
+    import '../src/elements/LeagueMatchesRecent/LeagueMatchesRecent.js';
     const el = document.getElementById('test-league-matches-recent');
     
     // Set is-mobile attribute based on device detection

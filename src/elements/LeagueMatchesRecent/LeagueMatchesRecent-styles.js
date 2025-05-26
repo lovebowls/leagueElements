@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles } from './shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, mobileStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `

@@ -71,7 +71,7 @@ import {
 } from './LeagueCalendar-styles.js';
 
 // Import Temporal API utilities
-import { Temporal, TemporalUtils } from '../utils/temporalUtils.js';
+import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueCalendar extends HTMLElement {
   constructor() {
