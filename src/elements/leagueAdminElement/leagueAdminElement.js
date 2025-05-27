@@ -996,25 +996,21 @@ class LeagueAdminElement extends HTMLElement {
         // Find the name from the selected lovebowls team
         const selectedTeam = this._lovebowlsTeams.find(t => t._id === teamId);
         teamName = selectedTeam ? selectedTeam.name : teamId;
-        console.log('[Team Save] Selected lovebowls team:', teamId, 'with name:', teamName);
       } else {
         this._showTeamModalError('Please select a team from the dropdown.');
         return;
       }
     } else if (teamNameInput && teamNameInput.value.trim()) {
-      // For simple teams, generate a unique _id and use the input as name
+      // For simple teams, use the input as name and _id
       teamName = teamNameInput.value.trim();
-      teamId = this._teamModalMode === 'edit' && this._teamBeingEdited?._id ? 
-        this._teamBeingEdited._id : // Keep same ID when editing
-        `team-${Date.now()}-${Math.floor(Math.random() * 10000)}`; // Generate new ID for new teams
-      console.log('[Team Save] Using text input for team name:', teamName, 'with generated ID:', teamId);
+      teamId = teamName;
     } else {
       this._showTeamModalError('Team Name is required, either by typing a new name or selecting an existing team.');
       return;
     }
 
     if (!teamId || !teamName) {
-      this._showTeamModalError('Team ID and Name are required.');
+      this._showTeamModalError('Team name is required.');
       return;
     }
     
