@@ -1,6 +1,6 @@
 {
   "name": "@lovebowls/leagueelements",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "League Elements package for LoveBowls",
   "type": "module",
   "source": "src/index.ts",
@@ -34,7 +34,8 @@
     "docs": "typedoc --options typedoc.json",
     "release": "node scripts/build.js",
     "commit": "node scripts/commit.js",
-    "cli": "node scripts/cli.js"
+    "cli": "node scripts/cli.js",
+    "publish": "npm increment && npm publish"
   },
   "keywords": [
     "league",

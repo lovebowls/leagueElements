@@ -466,9 +466,9 @@ class LeagueAdminElement extends HTMLElement {
       actionsContainer.classList.add('league-item-actions-container', 'list-item-actions');
       li.appendChild(actionsContainer);
       
-      const leagueId = league._id || league.name; // Prefer _id
+      const leagueId = league._id;
       li.setAttribute('data-id', leagueId); 
-      
+    
       li.addEventListener('click', () => this._handleLeagueSelect(leagueId));
       
       // Add double-click shortcut for editing leagues in desktop mode
@@ -551,10 +551,8 @@ class LeagueAdminElement extends HTMLElement {
     btnActions.classList.add('league-action-button', 'actions-dropdown-button'); // Keep styling classes
     btnActions.textContent = '…'; 
     btnActions.title = 'More actions';
-    console.log(`[LAD_ACTIONS] Creating '...' button for leagueId: ${leagueId}`);
     btnActions.addEventListener('click', (e) => {
       e.stopPropagation();
-      console.log(`[LAD_ACTIONS] '...' button clicked for leagueId: ${leagueId}. Triggering menu.`);
       this._handleOpenGlobalLeagueMenu(leagueId, e.currentTarget); // Call new handler
     });
     container.appendChild(btnActions);
@@ -1313,9 +1311,6 @@ class LeagueAdminElement extends HTMLElement {
       // Use the exact ID that was used to find the league (either its _id or name)
       const actualLeagueIdForDispatch = leagueToDeleteObject._id || leagueToDeleteObject.name;
 
-      console.log('[Delete League] League to delete (from menu context):', JSON.parse(JSON.stringify(leagueToDeleteObject)));
-      console.log('[Delete League] Using leagueId for deletion dispatch:', actualLeagueIdForDispatch);
-
       this.dispatchEvent(new LeagueAdminElementEvent('requestDeleteLeague', { leagueId: actualLeagueIdForDispatch }));
 
       // If the globally selected league was the one deleted, nullify _selectedLeagueId.
@@ -1533,7 +1528,6 @@ class LeagueAdminElement extends HTMLElement {
     if (!globalMenu) return;
 
     this._currentLeagueIdForMenu = leagueId; // Store for action handlers
-    console.log(`[LAD_GLOBAL_MENU] _handleOpenGlobalLeagueMenu: Opened for leagueId: ${leagueId}. _currentLeagueIdForMenu SET to: ${this._currentLeagueIdForMenu}`);
 
     // Populate menu
     globalMenu.innerHTML = ''; // Clear previous items
