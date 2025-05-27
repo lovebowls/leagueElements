@@ -25,7 +25,6 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs --coverage",
-    "test:leagueAdmin": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs src/elements/__tests__/leagueAdminElement",
     "build": "rollup -c rollup.browser.config.js && tsc --emitDeclarationOnly",
     "build:browser": "rollup -c rollup.browser.config.js",
     "build:all": "npm run build && npm run build:browser",
