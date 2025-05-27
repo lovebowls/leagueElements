@@ -373,12 +373,7 @@ class LeagueAdminElement extends HTMLElement {
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;
       }
-      
-      // ADDED: Debug logging
-      console.log('[LeagueAdminElement] Match modal created with isMobile:', modal.isMobile, 
-                  'attribute:', modal.getAttribute('is-mobile'),
-                  'parent is-mobile attribute:', this.getAttribute('is-mobile'));
-      
+            
       modal.addEventListener('match-save', (e) => {
         // Save match to league
         const match = e.detail.match;
@@ -792,9 +787,7 @@ class LeagueAdminElement extends HTMLElement {
         teams: updatedTeams
       };
 
-      this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { 
-        leagueData: this._leagues[leagueIndex]
-      }));
+      this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: this._leagues[leagueIndex]}));
   
       // Re-render the teams list to reflect the change immediately
       this._renderTeamsList();
@@ -1066,9 +1059,7 @@ class LeagueAdminElement extends HTMLElement {
             ...this._leagues[leagueIndex],
             teams: updatedTeams
           };
-          this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', {
-            leagueId: this._leagues[leagueIndex],
-          }));      
+          this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', {leagueData: this._leagues[leagueIndex],}));      
         }
       }
     }
