@@ -12,8 +12,8 @@ jest.mock('../shared-styles.js', () => ({
   listItemStyles: ''
 }));
 
-jest.mock('../LeagueMatchesAttention.js', () => {});
-jest.mock('../leagueMatch.js', () => {});
+jest.mock('../LeagueMatchesAttention/LeagueMatchesAttention.js', () => {});
+jest.mock('../leagueMatch/leagueMatch.js', () => {});
 jest.mock('../../utils/temporalUtils.js', () => ({
   Temporal: {},
   TemporalUtils: {}
@@ -85,7 +85,7 @@ describe('LeagueAdminElement', () => {
     expect(element._leagues.length).toBe(testLeagueData.length);
     expect(element._data).not.toBeNull();
     expect(eventSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'dataLoaded'
+      type: 'onReady'
     }));
   });
 
@@ -122,18 +122,4 @@ describe('LeagueAdminElement', () => {
     expect(element._data).toBeNull();
   });
 
-  // Test 5: Lovebowls teams parsing
-  test('should parse lovebowls teams data from attribute', () => {
-    // Create a spy to verify event dispatch
-    const eventSpy = jest.spyOn(element, 'dispatchEvent');
-    
-    // Set lovebowls teams attribute
-    element.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));
-    
-    // Verify the teams were loaded
-    expect(element._lovebowlsTeams).toEqual(lovebowlsTeamsData);
-    expect(eventSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'lovebowlsTeamsLoaded'
-    }));
-  });
 }); 

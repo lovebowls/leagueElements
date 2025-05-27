@@ -12,8 +12,8 @@ jest.mock('../shared-styles.js', () => ({
   listItemStyles: ''
 }));
 
-jest.mock('../LeagueMatchesAttention.js', () => {});
-jest.mock('../leagueMatch.js', () => {
+jest.mock('../LeagueMatchesAttention/LeagueMatchesAttention.js', () => {});
+jest.mock('../leagueMatch/leagueMatch.js', () => {
   return function() {
     return {
       addEventListener: jest.fn(),

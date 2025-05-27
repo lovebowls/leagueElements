@@ -9,11 +9,11 @@ jest.mock('../shared-styles.js', () => ({
   buttonStyles: ''
 }));
 
-jest.mock('../LeagueMatchesRecent.js', () => {});
-jest.mock('../LeagueMatchesUpcoming.js', () => {});
-jest.mock('../LeagueMatchesAttention.js', () => {});
-jest.mock('../leagueMatch.js', () => {});
-jest.mock('../LeagueCalendar.js', () => {});
+jest.mock('../LeagueMatchesRecent/LeagueMatchesRecent.js', () => {});
+jest.mock('../LeagueMatchesUpcoming/LeagueMatchesUpcoming.js', () => {});
+jest.mock('../LeagueMatchesAttention/LeagueMatchesAttention.js', () => {});
+jest.mock('../leagueMatch/leagueMatch.js', () => {});
+jest.mock('../LeagueCalendar/LeagueCalendar.js', () => {});
 jest.mock('../../utils/temporalUtils.js', () => ({
   Temporal: {
     Now: {

@@ -1,6 +1,6 @@
 {
   "name": "@lovebowls/leagueelements",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "League Elements package for LoveBowls",
   "type": "module",
   "source": "src/index.ts",
@@ -78,5 +78,8 @@
   "dependencies": {
     "@js-temporal/polyfill": "^0.4.4",
     "tslib": "^2.8.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
