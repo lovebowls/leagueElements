@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test league-element</title>
+  <!-- Load our bundled Temporal polyfill first -->
+  <script>
+    if (!window.Temporal && !window.temporal) {
+      console.log("Loading Temporal from CDN as fallback");
+    }
+  </script>
+  <!-- Fall back to CDN if our bundled version is not available -->
+  <script>
+    if (!window.Temporal && !window.temporal) {
+      console.log("Loading Temporal from CDN as fallback");
+      document.write('<script src="https://cdn.jsdelivr.net/npm/@js-temporal/polyfill@0.4.4/dist/index.global.js"><\/script>');
+    }
+  </script>
+  <!-- Ensure polyfill is available globally -->
+  <script>
+    // Check if polyfill loaded correctly
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.temporal && window.temporal.Temporal) {
+        console.log("Temporal polyfill loaded from CDN");
+      } else if (window.Temporal) {
+        console.log("Temporal polyfill loaded from bundled version"); 
+      } else {
+        console.error("Failed to load Temporal polyfill");
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>Test: &lt;league-element&gt;</h1>
+  <div>
+    <button id="reset-data-btn" style="margin-bottom: 1em; padding: 0.5em; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset to Default Data</button>
+  </div>
+  <!-- Remove hardcoded data attribute; we'll set it via JavaScript after checking session storage -->
+  <league-element id="test-league"></league-element>
+  <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
+  <script type="module">
+    import './leagueElement.js';
+    import { generateTestLeagueData } from '../../test-data/league-test-data.js';
+    
+    const el = document.getElementById('test-league');
+    
+    // Define lovebowls team data using standardized {_id, name} model
+    const lovebowlsTeamsData = [
+      { _id: "lb-guid-a123", name: "Lovebowls Club Alpha" },
+      { _id: "lb-guid-b456", name: "Lovebowls Club Beta" },
+      { _id: "lb-guid-c789", name: "Lovebowls Club Gamma" },
+      { _id: "lb-guid-d012", name: "Lovebowls Club Delta" },
+      { _id: "lb-guid-e345", name: "Lovebowls Club Epsilon" }
+    ];
+    
+    // Use our new test data generator with lovebowls teams
+    const defaultLeagueData = generateTestLeagueData(lovebowlsTeamsData, 3);
+    
+    // Try to load league data from session storage or use default
+    function loadLeagueData() {
+      try {
+        const storedData = sessionStorage.getItem('testLeagueData');
+        if (storedData) {
+          return JSON.parse(storedData);
+        }
+      } catch (e) {
+        console.error('Error loading data from session storage:', e);
+      }
+      return defaultLeagueData;
+    }
+    
+    // Save league data to session storage
+    function saveLeagueData(data) {
+      try {
+        sessionStorage.setItem('testLeagueData', JSON.stringify(data));
+        logEvent('Data saved to session storage');
+      } catch (e) {
+        console.error('Error saving data to session storage:', e);
+      }
+    }
+    
+    // Helper function to log events to the UI
+    function logEvent(message) {
+      const log = document.getElementById('event-log');
+      log.innerHTML += `<div>${message}</div>`;
+    }
+    
+    // Set is-mobile attribute based on device detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    el.setAttribute('is-mobile', isMobile ? 'true' : 'false');
+    
+    // IMPORTANT: Set the lovebowls teams attribute FIRST before setting data
+    el.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));
+    
+    // Pass team mapping directly for sub-components
+    const teamMap = {};
+    lovebowlsTeamsData.forEach(team => {
+      teamMap[team._id] = team.name;
+    });
+    el.setAttribute('team-map', JSON.stringify(teamMap));
+    
+    // Initialize with saved or default data - AFTER setting lovebowls-teams
+    const initialData = loadLeagueData();
+    el.setAttribute('data', JSON.stringify(initialData));
+    
+    // Handle Reset button
+    document.getElementById('reset-data-btn').addEventListener('click', () => {
+      // Generate fresh test data when resetting, including lovebowls teams
+      const freshData = generateTestLeagueData(lovebowlsTeamsData, 3);
+      sessionStorage.removeItem('testLeagueData');
+      el.setAttribute('data', JSON.stringify(freshData));
+      logEvent('Data reset to default with fresh test data');
+    });
+    
+    // Listen for league update events from leagueElement.js
+    el.addEventListener('league-event', (e) => {
+      // Check if this is an update request
+      if (e.detail && e.detail.type === 'requestUpdateLeague' && e.detail.league) {
+        const updatedLeague = e.detail.league;
+        
+        // Clear any attention reasons from matches after saving
+        // This prevents the warning banner from persisting after issues are fixed
+        if (updatedLeague.matches && Array.isArray(updatedLeague.matches)) {
+          updatedLeague.matches.forEach(match => {
+            if (match.attentionReason) {
+              delete match.attentionReason;
+            }
+          });
+        }
+        
+        // Save updated data
+        saveLeagueData(updatedLeague);
+        
+        // Update the component with new data
+        el.setAttribute('data', JSON.stringify(updatedLeague));
+        
+        logEvent(`League "${updatedLeague.name}" updated and saved`);
+      }
+      
+      // Log all league-events for debugging
+      logEvent(`Event: league-event - ${JSON.stringify(e.detail)}`);
+    });
+
+    // Update is-mobile on window resize
+    window.addEventListener('resize', () => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      el.setAttribute('is-mobile', isMobile ? 'true' : 'false');
+    });
+  </script>
+</body>
+</html> 

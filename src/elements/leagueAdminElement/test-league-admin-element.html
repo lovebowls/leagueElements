@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test league-admin-element</title>
+</head>
+<body>
+  <h1>Test: &lt;league-admin-element&gt;</h1>
+  <div>
+    <button id="reset-data-btn" style="margin-bottom: 1em; padding: 0.5em; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset to Default Data</button>
+  </div>
+  <!-- Removed hardcoded data attribute; we'll set it via JavaScript after checking session storage -->
+  <league-admin-element id="test-league-admin" current-league-id="">
+  <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
+  <script type="module">
+    import './leagueAdminElement.js?v=2';
+    import { generateTestLeagueData } from '../../test-data/league-test-data.js';
+    
+    const el = document.getElementById('test-league-admin');
+    
+    // ADDED: Set lovebowls teams data first
+    const lovebowlsTeamsData = [
+      { _id: "lb-guid-a123", name: "Lovebowls Club Alpha" },
+      { _id: "lb-guid-b456", name: "Lovebowls Club Beta" },
+      { _id: "lb-guid-c789", name: "Lovebowls Club Gamma" },
+      { _id: "lb-guid-d012", name: "Lovebowls Club Delta" },
+      { _id: "lb-guid-e345", name: "Lovebowls Club Epsilon" }
+    ];
+    
+    // Generate default league data using our test data generator with lovebowls teams
+    const defaultLeagueData = [
+      generateTestLeagueData(lovebowlsTeamsData, 3, "Summer League"),
+      generateTestLeagueData(lovebowlsTeamsData, 4, "Winter League"),
+      generateTestLeagueData(lovebowlsTeamsData, 5, "Championship")
+    ];
+    
+    // Try to load league data from session storage or use default
+    function loadLeagueData() {
+      try {
+        const storedData = sessionStorage.getItem('testLeagueAdminData');
+        if (storedData) {
+          return JSON.parse(storedData);
+        }
+      } catch (e) {
+        console.error('Error loading data from session storage:', e);
+      }
+      return defaultLeagueData;
+    }
+    
+    // Save league data to session storage
+    function saveLeagueData(data) {
+      try {
+        sessionStorage.setItem('testLeagueAdminData', JSON.stringify(data));
+        logEvent('Data saved to session storage');
+      } catch (e) {
+        console.error('Error saving data to session storage:', e);
+      }
+    }
+    
+    // Initialize with saved or default data
+    const initialData = loadLeagueData();
+    el.setAttribute('data', JSON.stringify(initialData));
+    
+    // Handle Reset button
+    document.getElementById('reset-data-btn').addEventListener('click', () => {
+      try {
+        // Make sure lovebowlsTeamsData is defined and not empty
+        if (!lovebowlsTeamsData || !Array.isArray(lovebowlsTeamsData) || !lovebowlsTeamsData.length) {
+          logEvent('Error: lovebowlsTeamsData is not available');
+          return;
+        }
+        
+        // Generate fresh test data when resetting, including lovebowls teams
+        const freshData = [
+          generateTestLeagueData(lovebowlsTeamsData, 3, "Summer League"),
+          generateTestLeagueData(lovebowlsTeamsData, 4, "Winter League"),
+          generateTestLeagueData(lovebowlsTeamsData, 5, "Championship")
+        ];
+        sessionStorage.removeItem('testLeagueAdminData');
+        el.setAttribute('data', JSON.stringify(freshData));
+        saveLeagueData(freshData);
+        logEvent('Data reset to default with fresh test data and saved to session storage');
+      } catch (error) {
+        console.error('Error resetting data:', error);
+        logEvent(`Error resetting data: ${error.message}`);
+      }
+    });
+    
+    // Set is-mobile attribute based on device detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    el.setAttribute('is-mobile', isMobile);
+    
+    // Pass lovebowls teams data to the element
+    el.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));
+    
+    // Helper function to log events to the UI
+    function logEvent(message) {
+              const log = document.getElementById('event-log');
+      log.innerHTML += `<div>${message}</div>`;
+    }
+    
+    // Listen for league update events and save to session storage
+    el.addEventListener('requestUpdateLeague', (e) => {
+      const updatedLeague = e.detail.leagueData;
+      const currentData = loadLeagueData();
+      
+      // Find and update the specific league
+      const updatedLeagues = currentData.map(league => {
+        if (league._id === updatedLeague._id || league.name === updatedLeague.name) {
+          return updatedLeague;
+        }
+        return league;
+      });
+      
+      // Save updated data
+      saveLeagueData(updatedLeagues);
+      
+      // Update the component with new data
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      
+      logEvent(`League "${updatedLeague.name}" updated and saved`);
+    });
+    
+    // Also handle add/delete league events
+    el.addEventListener('requestNewLeague', (e) => {
+      const newLeague = e.detail.leagueData;
+      // Generate a unique ID if not present
+      if (!newLeague._id) {
+        newLeague._id = 'league' + Date.now();
+      }
+      
+      const currentData = loadLeagueData();
+      const updatedLeagues = [...currentData, newLeague];
+      
+      saveLeagueData(updatedLeagues);
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      
+      logEvent(`New league "${newLeague.name}" added and saved`);
+    });
+    
+    el.addEventListener('requestDeleteLeague', (e) => {
+      const leagueId = e.detail.leagueId;
+      console.log(`[TestPage] requestDeleteLeague received for ID: ${leagueId}`);
+      const currentData = loadLeagueData();
+      
+      const updatedLeagues = currentData.filter(league => 
+        ((league._id || league.name) !== leagueId)
+      );
+      
+      saveLeagueData(updatedLeagues);
+      
+      console.log(`[TestPage] Setting data attribute with ${updatedLeagues.length} leagues.`);
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      
+      if (el.getAttribute('current-league-id') === leagueId) {
+        console.log(`[TestPage] Clearing current-league-id attribute as it matched deleted league: ${leagueId}`);
+        el.setAttribute('current-league-id', '');
+      }
+      logEvent(`League with ID ${leagueId} delete request processed, data attribute updated.`);
+    });
+    
+    // Handle team events (add/update/remove) with standardized team model
+    el.addEventListener('requestAddTeam', (e) => {
+      const { leagueId, teamData } = e.detail;
+      const currentData = loadLeagueData();
+      
+      // Find the league to update
+      const updatedLeagues = currentData.map(league => {
+        if (league._id === leagueId || league.name === leagueId) {
+          // Create a new league object with the team added
+          const updatedLeague = { ...league };
+          // Initialize teams array if it doesn't exist
+          if (!updatedLeague.teams) {
+            updatedLeague.teams = [];
+          }
+          // Add the new team with {value, label} format
+          updatedLeague.teams.push(teamData);
+          return updatedLeague;
+        }
+        return league;
+      });
+      
+      // Save and update
+      saveLeagueData(updatedLeagues);
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      
+      logEvent(`Team "${teamData.label}" added to league and saved`);
+    });
+    
+    el.addEventListener('requestUpdateTeam', (e) => {
+      const { leagueId, teamData } = e.detail;
+      const currentData = loadLeagueData();
+      
+      // Find the league and update the specific team
+      const updatedLeagues = currentData.map(league => {
+        if (league._id === leagueId || league.name === leagueId) {
+          const updatedLeague = { ...league };
+          if (updatedLeague.teams) {
+            // Find and update the specific team by value 
+            updatedLeague.teams = updatedLeague.teams.map(team => {
+              if (team.value === teamData.value) {
+                return teamData;
+              }
+              return team;
+            });
+          }
+          return updatedLeague;
+        }
+        return league;
+      });
+      
+      saveLeagueData(updatedLeagues);
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      
+      logEvent(`Team "${teamData.label}" updated and saved`);
+    });
+    
+    el.addEventListener('requestRemoveTeam', (e) => {
+      const { leagueId, teamValue, teamLabel } = e.detail;
+      const currentData = loadLeagueData();
+      
+      // Find the league and remove the specific team
+      const updatedLeagues = currentData.map(league => {
+        if (league._id === leagueId || league.name === leagueId) {
+          const updatedLeague = { ...league };
+          if (updatedLeague.teams) {
+            // Filter out the team to remove by value
+            updatedLeague.teams = updatedLeague.teams.filter(team => 
+              team.value !== teamValue
+            );
+          }
+          return updatedLeague;
+        }
+        return league;
+      });
+      
+      saveLeagueData(updatedLeagues);
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      
+      logEvent(`Team "${teamLabel}" removed and data saved`);
+    });
+    
+    // Listen for other events for logging
+    const eventsToLog = [
+      'leagueSelected', 'dataLoaded', 'dataError', 
+      'requestResetLeague', 'requestViewLeagueTable',
+      'lovebowlsTeamsLoaded'
+    ];
+    
+    eventsToLog.forEach(eventName => {
+      el.addEventListener(eventName, (e) => {
+        logEvent(`Event: ${eventName} - ${JSON.stringify(e.detail)}`);
+      });
+    });
+
+    // Update is-mobile on window resize
+    window.addEventListener('resize', () => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      el.setAttribute('is-mobile', isMobile);
+    });
+  </script>
+</body>
+</html> 
