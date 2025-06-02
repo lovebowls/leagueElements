@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Test league-admin-element</title>
+  <!-- Load JSBI globally -->
+  <script src="https://unpkg.com/jsbi@4.3.0/dist/jsbi-umd.js"></script>
+  <style>
+    /* ... existing styles ... */
+  </style>
 </head>
 <body>
   <h1>Test: &lt;league-admin-element&gt;</h1>
@@ -13,7 +18,7 @@
   <league-admin-element id="test-league-admin" current-league-id="">
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
-    import './leagueAdminElement.js?v=2';
+    import '../../../dist/browser/leagueAdminElement.js?v=2';
     import { generateTestLeagueData } from '../../test-data/league-test-data.js';
     
     const el = document.getElementById('test-league-admin');

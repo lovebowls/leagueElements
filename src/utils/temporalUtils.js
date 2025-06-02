@@ -1,104 +1,13 @@
 // temporalUtils.js - Universal module for Temporal API support
 
-// Import our bundled polyfill
-import BundledTemporal from '../libs/temporal-polyfill.js';
+// Import from the standard npm package. Rollup will bundle this.
+import { Temporal as PolyfillTemporal } from '@js-temporal/polyfill';
 
-// Define a placeholder for the Temporal object
-let TemporalPolyfill;
+// The Temporal object we'll export
+export let Temporal = PolyfillTemporal;
 
-// The Temporal object we'll export - start with our bundled implementation
-export let Temporal = BundledTemporal;
-
-// Ensure we have a minimal fallback implementation if the import fails
-const createMinimalTemporal = () => {
-  console.log('Using minimal Temporal implementation');
-  return {
-    PlainDate: {
-      from(dateString) {
-        const [year, month, day] = dateString.split('-').map(Number);
-        return { year, month, day, toString: () => dateString };
-      }
-    },
-    now: {
-      plainDateISO() {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = d.getMonth() + 1;
-        const day = d.getDate();
-        return { 
-          year, 
-          month, 
-          day,
-          toString() {
-            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          },
-          equals(other) {
-            return this.year === other.year && 
-                  this.month === other.month && 
-                  this.day === other.day;
-          }
-        };
-      }
-    }
-  };
-};
-
-// First check if Temporal is already available in the global scope (from a directly loaded script)
-if (typeof window !== 'undefined' && window.temporal && window.temporal.Temporal) {
-  console.log('Using global Temporal polyfill that was already loaded');
-  Temporal = window.temporal.Temporal;
-} else {
-  // Check if we're in a Node.js environment
-  const isNode = typeof process !== 'undefined' && 
-                process.versions != null && 
-                process.versions.node != null;
-
-  // Try to load the polyfill
-  if (isNode) {
-    // In Node.js environment
-    try {
-      // Use dynamic import for Node.js
-      import('@js-temporal/polyfill').then(module => {
-        TemporalPolyfill = module.Temporal;
-        Temporal = TemporalPolyfill;
-        console.log('Temporal polyfill loaded from npm package');
-      }).catch(err => {
-        console.warn('Failed to load Temporal polyfill from npm in Node.js, using bundled implementation', err);
-      });
-    } catch (e) {
-      console.warn('Error importing Temporal polyfill in Node.js environment, using bundled implementation', e);
-    }
-  } else if (typeof window !== 'undefined') {
-    // In browser environment
-    try {
-      // We already have our bundled implementation, but try to enhance with the full version if possible
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@js-temporal/polyfill@0.4.4/dist/index.global.js';
-      script.async = true;
-      
-      script.onload = () => {
-        if (window.temporal && window.temporal.Temporal) {
-          TemporalPolyfill = window.temporal.Temporal;
-          Temporal = TemporalPolyfill;
-          console.log('Enhanced Temporal polyfill loaded from CDN');
-        } else {
-          console.log('CDN script loaded but Temporal object not found, using bundled implementation');
-        }
-      };
-      
-      script.onerror = () => {
-        console.log('CDN load failed, using bundled Temporal implementation');
-      };
-      
-      // Only try loading if we're in a document context
-      if (document && document.head) {
-        document.head.appendChild(script);
-      }
-    } catch (err) {
-      console.log('Could not load enhanced Temporal polyfill, using bundled implementation', err);
-    }
-  }
-}
+// Optional: Log to confirm which Temporal is used.
+// console.log('Using Temporal polyfill from @js-temporal/polyfill via Rollup bundle.');
 
 /**
  * Utility functions for working with Temporal API

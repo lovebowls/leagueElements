@@ -1,4 +1,5 @@
 import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles } from '../shared-styles.js';
+import 'sweetalert2/dist/sweetalert2.css'; // Import SweetAlert2 styles
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
@@ -405,6 +406,18 @@ export const BASE_STYLES = `
           background-color: var(--lae-background-color-header);
       }
 
+      /* SweetAlert2 Custom Theming */
+      .swal2-popup {
+        font-size: var(--le-font-size-base, 1rem);
+      }
+      
+      .swal2-confirm {
+        background-color: var(--le-color-danger, #d33) !important;
+      }
+      
+      .swal2-cancel {
+        background-color: var(--le-color-primary, #3085d6) !important;
+      }
     `;
 
   // Mobile-specific styles

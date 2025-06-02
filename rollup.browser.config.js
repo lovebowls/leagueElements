@@ -3,11 +3,13 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as pathResolve } from 'path';
+import postcss from 'rollup-plugin-postcss';
+import commonjs from '@rollup/plugin-commonjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// List of elements to bundle (excluding elementTemplate)
+// List of elements to bundle
 const elements = [
   'leagueElement',
   'LeagueMatchesRecent',
@@ -24,8 +26,7 @@ const globals = {
   'wix-location': 'wixLocation',
   'wix-data': 'wixData',
   'wix-http-functions': 'wixHttpFunctions',
-  '@js-temporal/polyfill': 'temporal',
-  'jsbi': 'JSBI'
+  'jsbi': 'JSBI' // Added back
 };
 
 // Define external modules - those that won't be bundled
@@ -33,28 +34,37 @@ const externals = [
   'wix-window',
   'wix-location',
   'wix-data',
-  'wix-http-functions'
+  'wix-http-functions',
+  'jsbi' // Added back
 ];
 
 // Common plugins configuration
 const getPlugins = () => [
   nodeResolve({
     browser: true,
-    preferBuiltins: false
+    preferBuiltins: false,
+    mainFields: ['browser', 'module', 'main']
+  }),
+  commonjs(),
+  postcss({
+    extract: false,
+    inject: true,
+    minimize: true,
+    modules: false
   }),
   typescript({
-    tsconfig: false, // Don't use the tsconfig file directly
+    tsconfig: false,
     compilerOptions: {
       target: "ES2020",
       module: "ESNext",
       sourceMap: true,
-      declaration: false, // Don't generate declaration files in the rollup process
-      declarationMap: false // Don't generate declaration maps in the rollup process
+      declaration: false,
+      declarationMap: false
     }
   }),
   babel({
     babelHelpers: 'bundled',
-    exclude: 'node_modules/**', // Exclude all node_modules
+    exclude: ['node_modules/**', '**/*.css'],
     presets: [
       ['@babel/preset-env', {
         targets: {
@@ -72,12 +82,13 @@ const elementConfigs = elements.map(element => ({
   output: {
     file: `dist/browser/${element}.js`,
     format: 'iife',
-    name: element.replace(/^./, c => c.toUpperCase()), // Capitalize first letter
+    name: element.replace(/^./, c => c.toUpperCase()),
     sourcemap: true,
-    globals
+    globals,
+    inlineDynamicImports: true
   },
   plugins: getPlugins(),
-  external: [...externals, '@js-temporal/polyfill']
+  external: externals
 }));
 
 // Add the bundle configuration
@@ -88,11 +99,12 @@ const bundleConfig = {
     format: 'iife',
     name: 'LeagueElementBundle',
     sourcemap: true,
-    globals
+    globals,
+    inlineDynamicImports: true
   },
   plugins: getPlugins(),
-  external: [...externals, '@js-temporal/polyfill', 'jsbi']
+  external: externals
 };
 
 // Export both configurations
-export default [...elementConfigs, bundleConfig]; 
+export default [...elementConfigs, bundleConfig];

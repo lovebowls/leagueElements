@@ -347,3 +347,104 @@ export const mobileStyles = `
   font-size: var(--le-font-size-base);
   line-height: 1.4;
 `; 
+
+export const sweetAlertGlobalStyles = `
+  /* SweetAlert2 Global Styles */
+  .swal2-popup {
+    font-family: var(--le-font-family-base, sans-serif); /* Assuming you have a base font family variable */
+    background-color: var(--le-background-color-panel, #fff) !important;
+    border-radius: var(--le-border-radius-large, 8px) !important;
+    border: 1px solid var(--le-border-color-dark, #ccc) !important;
+    color: var(--le-text-color-primary, #333) !important;
+  }
+
+  .swal2-title {
+    color: var(--le-text-color-primary, #333) !important;
+    font-size: var(--le-font-size-large, 1.4em) !important; /* Match modal header */
+    font-weight: bold !important;
+  }
+
+  .swal2-html-container {
+    color: var(--le-text-color-primary, #333) !important;
+    font-size: var(--le-font-size-base, 1em) !important;
+    margin: var(--le-padding-m, 1.25em) !important; /* Add some margin */
+  }
+
+  .swal2-actions {
+    margin-top: var(--le-padding-m, 1.25em) !important;
+  }
+  
+  .swal2-styled { /* Base for swal buttons */
+    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em) !important;
+    border-radius: var(--le-border-radius-standard, 4px) !important;
+    font-size: var(--le-font-size-medium, 1.15em) !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    text-align: center !important;
+    line-height: normal !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    user-select: none !important;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out !important;
+    border: 1px solid transparent !important; /* Start with transparent border, colors will override */
+  }
+
+  .swal2-styled:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2) !important; /* Example focus, adjust as needed */
+  }
+
+  .swal2-styled:hover:not(:disabled) {
+    /* General hover, specific button types might override */
+    filter: brightness(90%);
+  }
+
+  .swal2-confirm {
+    background-color: var(--le-color-confirm, #28a745) !important; /* Define --le-color-confirm or use existing */
+    color: var(--le-text-color-on-primary, #fff) !important;
+    border-color: var(--le-color-confirm, #28a745) !important;
+  }
+  .swal2-confirm:hover:not(:disabled) {
+    background-color: var(--le-color-confirm-hover, #218838) !important; /* Define --le-color-confirm-hover */
+    border-color: var(--le-color-confirm-hover, #218838) !important;
+  }
+
+  .swal2-cancel {
+    background-color: var(--le-color-cancel, #dc3545) !important; /* Define --le-color-cancel or use existing */
+    color: var(--le-text-color-on-primary, #fff) !important;
+    border-color: var(--le-color-cancel, #dc3545) !important;
+  }
+  .swal2-cancel:hover:not(:disabled) {
+    background-color: var(--le-color-cancel-hover, #c82333) !important; /* Define --le-color-cancel-hover */
+    border-color: var(--le-color-cancel-hover, #c82333) !important;
+  }
+  
+  /* If you use a deny button */
+  .swal2-deny {
+    background-color: var(--le-color-deny, #6c757d) !important; /* Define --le-color-deny */
+    color: var(--le-text-color-on-primary, #fff) !important;
+    border-color: var(--le-color-deny, #6c757d) !important;
+  }
+  .swal2-deny:hover:not(:disabled) {
+    background-color: var(--le-color-deny-hover, #5a6268) !important; /* Define --le-color-deny-hover */
+    border-color: var(--le-color-deny-hover, #5a6268) !important;
+  }
+
+  /* Icon styling - optional, if you want to color default icons */
+  .swal2-icon.swal2-warning {
+    color: var(--le-text-color-warning, #ffc107) !important; /* Define --le-text-color-warning */
+    border-color: var(--le-text-color-warning, #ffc107) !important;
+  }
+  .swal2-icon.swal2-error {
+    color: var(--le-text-color-error, #dc3545) !important; /* Define --le-text-color-error */
+    border-color: var(--le-text-color-error, #dc3545) !important;
+  }
+  .swal2-icon.swal2-success {
+    color: var(--le-text-color-success, #28a745) !important; /* Define --le-text-color-success */
+    border-color: var(--le-text-color-success, #28a745) !important;
+  }
+  .swal2-icon.swal2-info {
+    color: var(--le-text-color-info, #17a2b8) !important; /* Define --le-text-color-info */
+    border-color: var(--le-text-color-info, #17a2b8) !important;
+  }
+`;

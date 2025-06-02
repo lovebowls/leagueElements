@@ -1,3 +1,6 @@
+// Import any necessary LitElement modules or other dependencies here
+import * as Swal from 'sweetalert2';
+
 // Define custom event types for the new element
 class LeagueAdminElementEvent extends CustomEvent {
   constructor(type, detail) {
@@ -727,18 +730,56 @@ class LeagueAdminElement extends HTMLElement {
   }
   
   _handleResetLeague() {
-    const selectedLeague = this._getSelectedLeague();
-    if (!selectedLeague) return;
-    
-    // Confirm before resetting
-    this.dispatchEvent(new LeagueAdminElementEvent('requestResetLeague', { 
-      leagueId: this._selectedLeagueId,
-      leagueName: selectedLeague.name
-    }));
-    this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action
+    this.clearError(); // Good practice to clear any existing errors
+    const leagueIdToReset = this._currentLeagueIdForMenu;
+
+    if (!leagueIdToReset) {
+      this.showError("Cannot reset: league context from menu is missing.");
+      console.error("[Reset League] _currentLeagueIdForMenu is not set during reset attempt.");
+      this._hideGlobalLeagueMenu(); // Hide menu and exit
+      return;
+    }
+
+    const leagueToResetObject = Array.isArray(this._leagues) ? this._leagues.find(l => (l._id || l.name) === leagueIdToReset) : null;
+
+    if (leagueToResetObject) {
+      const leagueName = leagueToResetObject.name || leagueToResetObject._id || 'this league';
+
+      Swal.default.fire({
+        title: 'Reset League?',
+        text: `Are you sure you want to reset "${leagueName}"? This will remove all teams, matches, and scores. This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, reset league',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.dispatchEvent(new LeagueAdminElementEvent('requestResetLeague', {
+            leagueId: leagueToResetObject._id || leagueToResetObject.name, // Use the actual ID from the found object
+            leagueName: leagueName
+          }));
+
+          // Optionally, show a success message after dispatching
+          Swal.default.fire({
+            title: 'League Reset Requested',
+            text: `"${leagueName}" is being reset.`,
+            icon: 'info', // Use 'info' as the actual reset might be asynchronous
+            timer: 2500,
+            showConfirmButton: false
+          });
+        }
+        // Always hide the menu after the dialog is interacted with
+        this._hideGlobalLeagueMenu();
+      });
+    } else {
+      this.showError(`League with ID "${leagueIdToReset}" not found to reset.`);
+      console.error(`[Reset League] League with ID "${leagueIdToReset}" (from _currentLeagueIdForMenu) not found in this._leagues.`);
+      this._hideGlobalLeagueMenu(); // Hide menu if league not found
+    }
   }
   
-  // New handler for View League Table (should be kept or reinstated)
   _handleViewLeagueTable() {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
@@ -769,36 +810,65 @@ class LeagueAdminElement extends HTMLElement {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
     
-    console.log('[Team Remove] Removing team with _id:', team._id, 'name:', team.name);
-    
-    // Clear the team selection since we're removing it
-    if (this._selectedTeamId === team._id) {
-      this._selectedTeamId = null;
-    }
-    
-    // Optimistically update the UI by removing the team and its matches locally
-    const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === this._selectedLeagueId);
-    if (leagueIndex !== -1) {
-      // Remove the team
-      const updatedTeams = this._leagues[leagueIndex].teams.filter(t => t._id !== team._id);
-      
-      // Remove all matches involving this team
-      const updatedMatches = (this._leagues[leagueIndex].matches || []).filter(match => 
-        match.homeTeam?._id !== team._id && match.awayTeam?._id !== team._id
-      );
-      
-      this._leagues[leagueIndex] = {
-        ...this._leagues[leagueIndex],
-        teams: updatedTeams,
-        matches: updatedMatches
-      };
+    // Show confirmation dialog using window.Swal
+    Swal.default.fire({
+      title: 'Remove Team?',
+      text: `Are you sure you want to remove "${team.name}" from the league? This will also remove all matches involving this team.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, remove team',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Clear the team selection since we're removing it
+        if (this._selectedTeamId === team._id) {
+          this._selectedTeamId = null;
+        }
+        
+        // Optimistically update the UI by removing the team and its matches locally
+        const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === this._selectedLeagueId);
+        if (leagueIndex !== -1) {
+          // Remove the team
+          const updatedTeams = this._leagues[leagueIndex].teams.filter(t => t._id !== team._id);
+          
+          // Remove all matches involving this team
+          const updatedMatches = (this._leagues[leagueIndex].matches || []).filter(match => 
+            match.homeTeam?._id !== team._id && match.awayTeam?._id !== team._id
+          );
+          
+          // Update the league data
+          this._leagues[leagueIndex].teams = updatedTeams;
+          this._leagues[leagueIndex].matches = updatedMatches;
+          
+          // Dispatch event to notify parent about team removal
+          this.dispatchEvent(new LeagueAdminElementEvent('requestRemoveTeam', {
+            leagueId: this._selectedLeagueId,
+            teamId: team._id
+          }));
+          
+          // Re-render teams list
+          this._renderTeamsList();
 
-      this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: this._leagues[leagueIndex]}));
-  
-      // Re-render the teams list to reflect the change immediately
-      this._renderTeamsList();
-    }
-    
+          // ADDED: Refresh the attention panel to reflect removed matches
+          const leagueToRefresh = this._getSelectedLeague();
+          if (leagueToRefresh) {
+            const isMobile = this.getAttribute('is-mobile') === 'true';
+            this._updateAttentionPanel(isMobile, leagueToRefresh);
+          }
+          
+          // Show success message
+          Swal.default.fire({
+            title: 'Team Removed',
+            text: `${team.name} has been removed from the league`,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      }
+    });
   }
   
   _showTeamModal(mode, teamData = null, existingTeams = []) {
@@ -1343,35 +1413,56 @@ class LeagueAdminElement extends HTMLElement {
     if (!leagueIdToDelete) {
       this.showError("Cannot delete: league context from menu is missing.");
       console.error("[Delete League] _currentLeagueIdForMenu is not set during delete attempt.");
-      this._hideGlobalLeagueMenu();
+      this._hideGlobalLeagueMenu(); // Hide menu and exit
       return;
     }
 
-    // Find the league object from this._leagues using leagueIdToDelete
     const leagueToDeleteObject = Array.isArray(this._leagues) ? this._leagues.find(l => (l._id || l.name) === leagueIdToDelete) : null;
 
     if (leagueToDeleteObject) {
-      // Use the exact ID that was used to find the league (either its _id or name)
-      const actualLeagueIdForDispatch = leagueToDeleteObject._id || leagueToDeleteObject.name;
+      const leagueName = leagueToDeleteObject.name || leagueToDeleteObject._id || 'this league'; // Get a display name
 
-      this.dispatchEvent(new LeagueAdminElementEvent('requestDeleteLeague', { leagueId: actualLeagueIdForDispatch }));
+      Swal.default.fire({
+        title: 'Delete League?',
+        text: `Are you sure you want to delete "${leagueName}"? This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete league',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const actualLeagueIdForDispatch = leagueToDeleteObject._id || leagueToDeleteObject.name;
 
-      // If the globally selected league was the one deleted, nullify _selectedLeagueId.
-      if (this._selectedLeagueId === actualLeagueIdForDispatch) {
-        const oldSelectedId = this._selectedLeagueId;
-        this._selectedLeagueId = null;
-        console.log(`[Delete League] Cleared _selectedLeagueId from ${oldSelectedId} because it matched the deleted league.`);
-      }
-      
-      // After deletion logic, ensure UI reflects that no league (or a different league) might be selected.
-      this._hideLeagueSpecificPanels(); // This correctly hides panels if the selected league was deleted.
-      this._updateButtonStates();      // Updates main action buttons based on the new _selectedLeagueId state.
+          this.dispatchEvent(new LeagueAdminElementEvent('requestDeleteLeague', { leagueId: actualLeagueIdForDispatch }));
 
+          if (this._selectedLeagueId === actualLeagueIdForDispatch) {
+            const oldSelectedId = this._selectedLeagueId;
+            this._selectedLeagueId = null;
+            console.log(`[Delete League] Cleared _selectedLeagueId from ${oldSelectedId} because it matched the deleted league.`);
+          }
+          
+          this._hideLeagueSpecificPanels(); 
+          this._updateButtonStates();
+
+          // Success message
+          Swal.default.fire({
+            title: 'League Deleted',
+            text: `"${leagueName}" has been deleted.`,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+        // Always hide the menu after the dialog is interacted with (confirmed or cancelled)
+        this._hideGlobalLeagueMenu();
+      });
     } else {
       this.showError(`League with ID "${leagueIdToDelete}" not found to delete.`);
       console.error(`[Delete League] League with ID "${leagueIdToDelete}" (from _currentLeagueIdForMenu) not found in this._leagues.`);
+      this._hideGlobalLeagueMenu(); // Hide menu if league not found
     }
-    this._hideGlobalLeagueMenu(); // Hide menu after action, regardless of outcome
   }
 
   // Match Management Methods
