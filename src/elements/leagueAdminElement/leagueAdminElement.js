@@ -776,13 +776,21 @@ class LeagueAdminElement extends HTMLElement {
       this._selectedTeamId = null;
     }
     
-    // Optimistically update the UI by removing the team locally
+    // Optimistically update the UI by removing the team and its matches locally
     const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === this._selectedLeagueId);
     if (leagueIndex !== -1) {
+      // Remove the team
       const updatedTeams = this._leagues[leagueIndex].teams.filter(t => t._id !== team._id);
+      
+      // Remove all matches involving this team
+      const updatedMatches = (this._leagues[leagueIndex].matches || []).filter(match => 
+        match.homeTeam?._id !== team._id && match.awayTeam?._id !== team._id
+      );
+      
       this._leagues[leagueIndex] = {
         ...this._leagues[leagueIndex],
-        teams: updatedTeams
+        teams: updatedTeams,
+        matches: updatedMatches
       };
 
       this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: this._leagues[leagueIndex]}));
@@ -900,6 +908,11 @@ class LeagueAdminElement extends HTMLElement {
           ${optionsHtml}
         </select>
         ${filteredTeams.length === 0 ? '<div style="color: var(--lae-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
+
+        <!-- ADDED: Info message for no available teams -->
+        <div id="noAvailableTeamsMessage" style="display: none; color: var(--lae-text-color-error); margin-top: 0.5em;">
+          No available teams to select. Please add a new team.
+        </div>
       </div>
 
       <div id="newTeamNameGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'none' : 'block'};">
@@ -913,6 +926,7 @@ class LeagueAdminElement extends HTMLElement {
     const newTeamNameGroup = modalBody.querySelector('#newTeamNameGroup');
     const teamNameInput = modalBody.querySelector('#teamName');
     const existingTeamSelect = modalBody.querySelector('#existingTeamSelect');
+    const noAvailableTeamsMessage = modalBody.querySelector('#noAvailableTeamsMessage');
 
     if (useExistingTeamCheckbox && existingTeamSelectGroup && newTeamNameGroup && teamNameInput && existingTeamSelect) {
       useExistingTeamCheckbox.addEventListener('change', (e) => {
@@ -973,15 +987,15 @@ class LeagueAdminElement extends HTMLElement {
   _handleSaveTeamModal() {
     // Clear any previous error messages in the modal
     this._clearTeamModalError();
-    
+
     const modalBody = this.shadow.querySelector('#team-modal-body');
     const useExistingTeamCheckbox = modalBody.querySelector('#useExistingTeamCheckbox');
     const existingTeamSelect = modalBody.querySelector('#existingTeamSelect');
     const teamNameInput = modalBody.querySelector('#teamName');
-    
+
     let teamId = '';
     let teamName = '';
-    
+
     // For debugging
     console.log('[Team Save] Mode:', this._teamModalMode);
     console.log('[Team Save] Original team being edited:', this._teamBeingEdited);
@@ -1011,59 +1025,88 @@ class LeagueAdminElement extends HTMLElement {
       this._showTeamModalError('Team name is required.');
       return;
     }
-    
+
     // Check for duplicate team IDs in the current league
     const selectedLeague = this._getSelectedLeague();
     if (selectedLeague && selectedLeague.teams) {
-      // Only consider it a duplicate if it's not the team we're currently editing
-      const isEditing = this._teamModalMode === 'edit' && this._teamBeingEdited;
-      const isDuplicate = selectedLeague.teams.some(team => {
-        // If we're editing, ignore the team we're currently editing
-        if (isEditing && team._id === this._teamBeingEdited._id) {
-          return false;
-        }
-        return team._id === teamId;
-      });
-      
+      const isDuplicate = selectedLeague.teams.some(team => team._id === teamId && teamId !== this._teamBeingEdited._id);
       if (isDuplicate) {
         this._showTeamModalError(`A team with identifier "${teamId}" already exists in this league.`);
         return;
       }
     }
-    
+
     const teamData = {
       _id: teamId,
       name: teamName
     };
-            
+
     // Update local data first for immediate UI response
-    if (this._teamModalMode === 'edit' && selectedLeague && selectedLeague.teams) {
-      const teamIndex = selectedLeague.teams.findIndex(t => 
-        t._id === this._teamBeingEdited._id
-      );
-      
-      if (teamIndex !== -1) {
+    if (selectedLeague) {
+      const leagueIndex = this._leagues.findIndex(l => l._id === this._selectedLeagueId);
+      if (leagueIndex !== -1) {
         const updatedTeams = [...selectedLeague.teams];
-        updatedTeams[teamIndex] = teamData;
+        const existingTeamIndex = updatedTeams.findIndex(t => t._id === this._teamBeingEdited._id);
+
+        // If we're editing a team and its ID is changing, update match references
+        const oldTeamId = this._teamBeingEdited._id;
+        const isTeamIdChanging = existingTeamIndex !== -1 && oldTeamId !== teamId;
         
-        // Find the league in the leagues array and update it
-        const leagueIndex = this._leagues.findIndex(l => l._id === this._selectedLeagueId);
-        if (leagueIndex !== -1) {
+        if (existingTeamIndex !== -1) {
+          // Update the existing team
+          updatedTeams[existingTeamIndex] = teamData;
+          
+          // If team ID is changing, update all match references
+          if (isTeamIdChanging && Array.isArray(this._leagues[leagueIndex].matches)) {
+            const updatedMatches = this._leagues[leagueIndex].matches.map(match => {
+              if (match.homeTeam?._id === oldTeamId) {
+                return {
+                  ...match,
+                  homeTeam: { ...match.homeTeam, _id: teamId, name: teamName }
+                };
+              }
+              if (match.awayTeam?._id === oldTeamId) {
+                return {
+                  ...match,
+                  awayTeam: { ...match.awayTeam, _id: teamId, name: teamName }
+                };
+              }
+              return match;
+            });
+            
+            // Update the league with the modified matches
+            this._leagues[leagueIndex] = {
+              ...this._leagues[leagueIndex],
+              teams: updatedTeams,
+              matches: updatedMatches
+            };
+          } else {
+            // No ID change, just update teams
+            this._leagues[leagueIndex] = {
+              ...this._leagues[leagueIndex],
+              teams: updatedTeams
+            };
+          }
+        } else {
+          // Add the new team
           this._leagues[leagueIndex] = {
             ...this._leagues[leagueIndex],
-            teams: updatedTeams
+            teams: [...updatedTeams, teamData]
           };
-          this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', {leagueData: this._leagues[leagueIndex],}));      
         }
+
+        // Dispatch event to save the updated league
+        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', {
+          leagueData: this._leagues[leagueIndex]
+        }));
       }
     }
-    
+
     // Set the newly created/edited team as the selected team
     this._selectedTeamId = teamId;
-    
-    
+
     this._hideTeamModal();
-    
+
     // Force a re-render to update the UI immediately
     this._renderTeamsList();
   }
@@ -1630,7 +1673,6 @@ class LeagueAdminElement extends HTMLElement {
     this._currentLeagueIdForMenu = null;
     console.log(`[LAD_GLOBAL_MENU] _hideGlobalLeagueMenu FINISHED. _currentLeagueIdForMenu AFTER clear: ${this._currentLeagueIdForMenu}`);
   }
-  // --- End Global League Actions Menu Logic ---
 
   setupMatrixEventListeners() {
     const matrixCells = this.shadow.querySelectorAll('.matrix-grid .matrix-cell:not(.matrix-header-cell)');
@@ -1642,13 +1684,7 @@ class LeagueAdminElement extends HTMLElement {
         const matrixData = this._prepareMatrixData();
         if (!matrixData || !matrixData.matrix[homeTeamId] || !matrixData.matrix[homeTeamId][awayTeamId]) return;
         let matchObject = matrixData.matrix[homeTeamId][awayTeamId].match;
-        if (!matchObject) {
-          matchObject = {
-            homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
-            awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
-            date: ''
-          };
-        }
+        if (!matchObject) return;
         this._handleEditMatch(matchObject);
       };
     });
