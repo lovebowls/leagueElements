@@ -1,5 +1,6 @@
 // Import any necessary LitElement modules or other dependencies here
 import * as Swal from 'sweetalert2';
+import { sweetAlertGlobalStyles, sweetAlertMobileOverrides } from '../shared-styles.js';
 
 // Define custom event types for the new element
 class LeagueAdminElementEvent extends CustomEvent {
@@ -26,6 +27,7 @@ import {
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueAdminElement extends HTMLElement {
+  static _globalStylesInjected = false;
 
 
   constructor() {
@@ -55,15 +57,67 @@ class LeagueAdminElement extends HTMLElement {
     this._boundHandleDocumentClickForGlobalMenu = null; // For global menu closing
   }
 
+  get _isMobile() {
+    return this.getAttribute('is-mobile') === 'true';
+  }
+
   static get observedAttributes() {
     return ['elementTitle', 'data', 'is-mobile', 'current-league-id', 'lovebowls-teams']; 
   }
 
+  _injectGlobalSwalStyles() {
+    // Injects SweetAlert2 global and mobile-specific styles into document.head.
+    // Styles are imported from shared-styles.js.
+    // This ensures consistent styling for SweetAlert2 dialogs, which are appended
+    // to the document body and thus outside the shadow DOM of individual elements.
+    // Injection is guarded to run only once per page load.
+    const LOG_PREFIX_SWAL = '[LAD_SWAL_STYLE_INJECT] ';
+    console.log(LOG_PREFIX_SWAL + 'Attempting to inject/verify global SweetAlert2 mobile styles.');
+
+    const styleId = 'global-swal-mobile-styles';
+    let existingStyleTag = document.getElementById(styleId);
+
+    if (LeagueAdminElement._globalStylesInjected) {
+      if (existingStyleTag) {
+        console.log(LOG_PREFIX_SWAL + 'Global styles flag is true AND style tag exists. Skipping injection.');
+        return;
+      } else {
+        console.warn(LOG_PREFIX_SWAL + 'Global styles flag is true BUT style tag is MISSING. Will attempt to re-inject.');
+        // Proceed to inject
+      }
+    } else {
+      if (existingStyleTag) {
+        console.warn(LOG_PREFIX_SWAL + 'Global styles flag is false BUT style tag ALREADY EXISTS. Setting flag to true and skipping duplicate injection.');
+        LeagueAdminElement._globalStylesInjected = true;
+        return;
+      }
+      // Proceed to inject if flag is false and tag doesn't exist
+    }
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `${sweetAlertGlobalStyles}\n\n${sweetAlertMobileOverrides}`;
+
+    console.log(LOG_PREFIX_SWAL + 'Appending style element to document.head.');
+    document.head.appendChild(style);
+    
+    // Verify after appending
+    const appendedStyleTag = document.getElementById(styleId);
+    if (appendedStyleTag) {
+      console.log(LOG_PREFIX_SWAL + 'Successfully INJECTED and VERIFIED global SweetAlert2 mobile styles. Tag found in head.');
+    } else {
+      console.error(LOG_PREFIX_SWAL + 'FAILED to find style tag in head AFTER attempting to append. Injection FAILED.');
+    }
+    LeagueAdminElement._globalStylesInjected = true;
+  }
+
   connectedCallback() {
+    console.log('[LeagueAdminElement] ==> connectedCallback ENTERED');
+    this._injectGlobalSwalStyles();
     this._elementTitle = this.getAttribute('elementTitle') || this._elementTitle;
     this._currentLeagueId = this.getAttribute('current-league-id') || null;
     const rawData = this.getAttribute('data');
-    console.log('[LeagueAdminElement] connectedCallback: is-mobile attribute:', this.getAttribute('is-mobile'));
+    console.log('[LeagueAdminElement] connectedCallback: _isMobile:', this._isMobile);
     if (rawData) {
         this._parseAndLoadData(rawData);
     }
@@ -295,10 +349,6 @@ class LeagueAdminElement extends HTMLElement {
     // It's better to define logPrefix directly if it's only used here, or ensure this.LOG_PREFIX is set.
     const RENDER_LOG_PREFIX = "[LAD_RENDER] "; 
     console.log(RENDER_LOG_PREFIX + `Render start. _selectedLeagueId = ${this._selectedLeagueId}, _currentLeagueId = ${this._currentLeagueId}`);
-    const isMobile = this.getAttribute('is-mobile') === 'true';
-    // console.log('[LeagueAdminElement] render called. is-mobile attribute:', this.getAttribute('is-mobile'), 'computed isMobile:', isMobile);
-    // console.log('[Admin Render] _selectedLeagueId:', this._selectedLeagueId);
-
 
     // Safely log this._leagues for debugging
     try {
@@ -324,13 +374,10 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       console.log(RENDER_LOG_PREFIX + `_getSelectedLeague() returned undefined or null. _selectedLeagueId was ${this._selectedLeagueId}. leagueForRender remains null.`);
     }
-    // console.log('[Admin Render] Current _leagues before getSelectedLeague:', JSON.parse(JSON.stringify(this._leagues)));
-    // const leagueForRender = this._getSelectedLeague(); // It's critical this reflects the update
-    // console.log('[Admin Render] League object for render:', JSON.parse(JSON.stringify(leagueForRender)));
 
     this.shadow.innerHTML = `
       <style>
-        ${isMobile ? MOBILE_STYLES : DESKTOP_STYLES}
+        ${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}
       </style>
       ${this._fillTemplate(TEMPLATE_CONTENT)}
     `;
@@ -360,7 +407,7 @@ class LeagueAdminElement extends HTMLElement {
         if (attentionPanel) attentionPanel.style.display = 'none';
     }
     // Update attention panel with selected league's matches
-    this._updateAttentionPanel(isMobile, leagueForRender);
+    this._updateAttentionPanel(leagueForRender);
 
     if (this.matchModalOpen) {
       let modal = this.shadow.querySelector('league-match');
@@ -369,8 +416,7 @@ class LeagueAdminElement extends HTMLElement {
       modal.match = this.matchModalData;
       modal.teams = this.matchModalTeams;
       modal.open = true;
-      modal.isMobile = this.getAttribute('is-mobile') === 'true';
-      modal.setAttribute('is-mobile', this.getAttribute('is-mobile') === 'true' ? 'true' : 'false');
+      modal.isMobile = this._isMobile;
       modal.mode = this.matchModalMode;
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
@@ -572,7 +618,7 @@ class LeagueAdminElement extends HTMLElement {
     
     const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Changed selector
     if (attentionContainer) attentionContainer.style.display = ''; 
-    this._updateAttentionPanel(this.getAttribute('is-mobile') === 'true', selectedLeague);
+    this._updateAttentionPanel(selectedLeague);
 
     const teamsPanelRight = this.shadow.querySelector('#teams-panel');
     
@@ -854,8 +900,7 @@ class LeagueAdminElement extends HTMLElement {
           // ADDED: Refresh the attention panel to reflect removed matches
           const leagueToRefresh = this._getSelectedLeague();
           if (leagueToRefresh) {
-            const isMobile = this.getAttribute('is-mobile') === 'true';
-            this._updateAttentionPanel(isMobile, leagueToRefresh);
+            this._updateAttentionPanel(leagueToRefresh);
           }
           
           // Show success message
@@ -1423,6 +1468,31 @@ class LeagueAdminElement extends HTMLElement {
       const leagueName = leagueToDeleteObject.name || leagueToDeleteObject._id || 'this league'; // Get a display name
 
       Swal.default.fire({
+        target: document.body, // Explicitly target body
+        showClass: {
+          popup: '' // Try to remove default animation/styling classes
+        },
+        hideClass: {
+          popup: ''
+        },
+        customClass: (() => {
+          console.log('[Swal customClass IIFE] this._isMobile:', this._isMobile);
+          const mobilePopup = this._isMobile ? 'lae-swal-popup-mobile' : '';
+          const mobileTitle = this._isMobile? 'lae-swal-title-mobile' : '';
+          const mobileHtmlContainer = this._isMobile ? 'lae-swal-html-container-mobile' : '';
+          const mobileActions = this._isMobile ? 'lae-swal-actions-mobile' : '';
+          const mobileStyled = this._isMobile ? 'lae-swal-styled-mobile' : '';
+
+          const returnedClasses = {
+            popup: mobilePopup,
+            title: mobileTitle,
+            htmlContainer: mobileHtmlContainer,
+            actions: mobileActions,
+            confirmButton: mobileStyled,
+            cancelButton: mobileStyled,
+          };
+          return returnedClasses;
+        })(), // IIFE to construct customClass object
         title: 'Delete League?',
         text: `Are you sure you want to delete "${leagueName}"? This action cannot be undone.`,
         icon: 'warning',
@@ -1547,7 +1617,7 @@ class LeagueAdminElement extends HTMLElement {
     resizer.addEventListener('mousedown', mouseDownHandler);
   }
 
-  _updateAttentionPanel(isMobile, leagueToUse) {
+  _updateAttentionPanel(leagueToUse) {
     const selectedLeague = leagueToUse || this._getSelectedLeague();
     const attentionMatchesElement = this.shadow.querySelector('#admin-attention-matches');
     const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container');
@@ -1564,7 +1634,7 @@ class LeagueAdminElement extends HTMLElement {
       });
     }
     
-    attentionMatchesElement.setAttribute('is-mobile', String(isMobile));
+    attentionMatchesElement.setAttribute('is-mobile', String(this._isMobile));
     attentionMatchesElement.setAttribute('data', JSON.stringify(selectedLeague.matches || []));
     // Pass the team name mapping as an additional attribute if your LeagueMatchesAttention component supports it
     if (Object.keys(teamMap).length > 0) {
@@ -1697,8 +1767,7 @@ class LeagueAdminElement extends HTMLElement {
     let top = rect.bottom;
     let left = rect.left; // Default for desktop LTR alignment
 
-    const isMobile = this.getAttribute('is-mobile') === 'true';
-    if (isMobile) {
+    if (this._isMobile) {
       left = rect.right - menuWidth; // Align right edges on mobile
     }
     

@@ -92,8 +92,26 @@
     });
     
     // Set is-mobile attribute based on device detection
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-    el.setAttribute('is-mobile', isMobile);
+    const userAgentIsMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const windowIsNarrow = window.innerWidth <= 768;
+    const calculatedIsMobile = userAgentIsMobile || windowIsNarrow;
+
+    console.log('[Test Harness - league-admin-element] navigator.userAgent:', navigator.userAgent);
+    console.log('[Test Harness - league-admin-element] userAgentIsMobile:', userAgentIsMobile);
+    console.log('[Test Harness - league-admin-element] window.innerWidth:', window.innerWidth);
+    console.log('[Test Harness - league-admin-element] windowIsNarrow:', windowIsNarrow);
+    console.log('[Test Harness - league-admin-element] Calculated isMobile for attribute logic:', calculatedIsMobile);
+
+    if (calculatedIsMobile) {
+      el.setAttribute('is-mobile', 'true');
+      console.log('[Test Harness - league-admin-element] el.setAttribute("is-mobile", "true")');
+    } else {
+      el.removeAttribute('is-mobile');
+      console.log('[Test Harness - league-admin-element] el.removeAttribute("is-mobile")');
+    }
+    // Verify after operation
+    console.log('[Test Harness - league-admin-element] el.hasAttribute("is-mobile") after logic:', el.hasAttribute('is-mobile'));
+    console.log('[Test Harness - league-admin-element] el.getAttribute("is-mobile") after logic:', el.getAttribute('is-mobile'));
     
     // Pass lovebowls teams data to the element
     el.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));
@@ -163,8 +181,28 @@
 
     // Update is-mobile on window resize
     window.addEventListener('resize', () => {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-      el.setAttribute('is-mobile', isMobile);
+      console.log('[Test Harness - resize] Resize event triggered.');
+      const userAgentIsMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const windowIsNarrow = window.innerWidth <= 768;
+      const calculatedIsMobile = userAgentIsMobile || windowIsNarrow;
+
+      console.log('[Test Harness - resize] window.innerWidth:', window.innerWidth);
+      console.log('[Test Harness - resize] windowIsNarrow:', windowIsNarrow);
+      console.log('[Test Harness - resize] Calculated isMobile for attribute logic:', calculatedIsMobile);
+
+      if (calculatedIsMobile) {
+        if (el.getAttribute('is-mobile') !== 'true') {
+          el.setAttribute('is-mobile', 'true');
+          console.log('[Test Harness - resize] el.setAttribute("is-mobile", "true")');
+        }
+      } else {
+        if (el.hasAttribute('is-mobile')) {
+          el.removeAttribute('is-mobile');
+          console.log('[Test Harness - resize] el.removeAttribute("is-mobile")');
+        }
+      }
+      console.log('[Test Harness - resize] el.hasAttribute("is-mobile") after resize logic:', el.hasAttribute('is-mobile'));
+      console.log('[Test Harness - resize] el.getAttribute("is-mobile") after resize logic:', el.getAttribute('is-mobile'));
     });
   </script>
 </body>

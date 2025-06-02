@@ -384,7 +384,7 @@ describe('LeagueAdminElement - Match Management', () => {
       const league = testLeagueData[0];
       
       // Call the update method
-      element._updateAttentionPanel(false, league);
+      element._updateAttentionPanel(league);
       
       // Verify the attention panel was updated correctly
       expect(attentionElement.setAttribute).toHaveBeenCalledWith('is-mobile', 'false');

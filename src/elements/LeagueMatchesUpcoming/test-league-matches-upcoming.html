@@ -13,8 +13,25 @@
     const el = document.getElementById('test-league-matches-upcoming');
     
     // Set is-mobile attribute based on device detection
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-    el.setAttribute('is-mobile', isMobile);
+    const userAgentIsMobile_init_upc = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const windowIsNarrow_init_upc = window.innerWidth <= 768;
+    const calculatedIsMobile_init_upc = userAgentIsMobile_init_upc || windowIsNarrow_init_upc;
+
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - navigator.userAgent:', navigator.userAgent);
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - userAgentIsMobile:', userAgentIsMobile_init_upc);
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - window.innerWidth:', window.innerWidth);
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - windowIsNarrow:', windowIsNarrow_init_upc);
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - Calculated isMobile for attribute logic:', calculatedIsMobile_init_upc);
+
+    if (calculatedIsMobile_init_upc) {
+      el.setAttribute('is-mobile', 'true');
+      console.log('[Test Harness - league-matches-upcoming] Initial Load - el.setAttribute("is-mobile", "true")');
+    } else {
+      el.removeAttribute('is-mobile');
+      console.log('[Test Harness - league-matches-upcoming] Initial Load - el.removeAttribute("is-mobile")');
+    }
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - el.hasAttribute("is-mobile") after logic:', el.hasAttribute('is-mobile'));
+    console.log('[Test Harness - league-matches-upcoming] Initial Load - el.getAttribute("is-mobile") after logic:', el.getAttribute('is-mobile'));
     
     // Set team mapping for display names
     const teamMapping = [
@@ -48,8 +65,28 @@
 
     // Update is-mobile on window resize
     window.addEventListener('resize', () => {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-      el.setAttribute('is-mobile', isMobile);
+      console.log('[Test Harness - league-matches-upcoming] Resize event triggered.');
+      const userAgentIsMobile_resize_upc = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const windowIsNarrow_resize_upc = window.innerWidth <= 768;
+      const calculatedIsMobile_resize_upc = userAgentIsMobile_resize_upc || windowIsNarrow_resize_upc;
+
+      console.log('[Test Harness - league-matches-upcoming] Resize - window.innerWidth:', window.innerWidth);
+      console.log('[Test Harness - league-matches-upcoming] Resize - windowIsNarrow:', windowIsNarrow_resize_upc);
+      console.log('[Test Harness - league-matches-upcoming] Resize - Calculated isMobile for attribute logic:', calculatedIsMobile_resize_upc);
+
+      if (calculatedIsMobile_resize_upc) {
+        if (el.getAttribute('is-mobile') !== 'true') {
+          el.setAttribute('is-mobile', 'true');
+          console.log('[Test Harness - league-matches-upcoming] Resize - el.setAttribute("is-mobile", "true")');
+        }
+      } else {
+        if (el.hasAttribute('is-mobile')) {
+          el.removeAttribute('is-mobile');
+          console.log('[Test Harness - league-matches-upcoming] Resize - el.removeAttribute("is-mobile")');
+        }
+      }
+      console.log('[Test Harness - league-matches-upcoming] Resize - el.hasAttribute("is-mobile") after resize logic:', el.hasAttribute('is-mobile'));
+      console.log('[Test Harness - league-matches-upcoming] Resize - el.getAttribute("is-mobile") after resize logic:', el.getAttribute('is-mobile'));
     });
   </script>
 </body>

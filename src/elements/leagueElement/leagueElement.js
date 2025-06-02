@@ -42,6 +42,9 @@ class LeagueElement extends HTMLElement {
     this.shadow.host.addEventListener('league-calendar-event', this._handleCalendarDateChange.bind(this)); // ADDED event listener
   }
 
+  get _isMobile() {
+    return this.getAttribute('is-mobile') === 'true';
+  }
   static get observedAttributes() {
     return ['data', 'selectedMatch', 'is-mobile', 'lovebowls-teams'];
   }
@@ -182,7 +185,6 @@ class LeagueElement extends HTMLElement {
   render() {
     // Generate table rows based on data if available
     let tableRows = '';
-    const isMobile = this.getAttribute('is-mobile') === 'true';
     
     if (this.data && this.data.table) {
       const processedLeagueData = this._getFilteredLeagueData();
@@ -242,16 +244,16 @@ class LeagueElement extends HTMLElement {
       this.tableRows = tableRows;
 
       // Render based on device type
-      const baseTemplate = isMobile ? MOBILE_TEMPLATE : DESKTOP_TEMPLATE;
+      const baseTemplate = this._isMobile ? MOBILE_TEMPLATE : DESKTOP_TEMPLATE;
       this.shadow.innerHTML = `
-        <style>${isMobile ? MOBILE_STYLES : DESKTOP_STYLES}</style>
+        <style>${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}</style>
         ${this._fillTemplate(baseTemplate)}
       `;
       
       // Configure the recent matches components
-      const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
+      const recentMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
       if (recentMatchesElement) {
-        recentMatchesElement.setAttribute('is-mobile', isMobile.toString());
+        recentMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
         recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
         
         // Add team mapping data for display name resolution
@@ -270,9 +272,9 @@ class LeagueElement extends HTMLElement {
       }
       
       // Configure the attention matches components
-      const attentionMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
+      const attentionMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
       if (attentionMatchesElement) {
-        attentionMatchesElement.setAttribute('is-mobile', isMobile.toString());
+        attentionMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
         attentionMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
         
         // Add team mapping data for display name resolution
@@ -283,7 +285,7 @@ class LeagueElement extends HTMLElement {
         attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAttentionMatchClickBound);
       }
       
-      if (!isMobile) {
+      if (!this._isMobile) {
         const renderedLeftPanel = this.shadow.querySelector('.left-panel');
         if (renderedLeftPanel && this.leftPanelFlexBasis) {
           renderedLeftPanel.style.flex = this.leftPanelFlexBasis;
@@ -298,9 +300,9 @@ class LeagueElement extends HTMLElement {
       }
 
       // Configure the upcoming fixtures component
-      const upcomingFixturesElement = this.shadow.querySelector(isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
+      const upcomingFixturesElement = this.shadow.querySelector(this._isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
       if (upcomingFixturesElement) {
-        upcomingFixturesElement.setAttribute('is-mobile', isMobile.toString());
+        upcomingFixturesElement.setAttribute('is-mobile', this._isMobile.toString());
         
         // Add team mapping data for display name resolution
         upcomingFixturesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
@@ -325,9 +327,9 @@ class LeagueElement extends HTMLElement {
       }
 
       // ADDED: Configure the league-calendar component
-      const calendarElement = this.shadow.querySelector(isMobile ? '#mobile-calendar' : '#desktop-calendar');
+      const calendarElement = this.shadow.querySelector(this._isMobile ? '#mobile-calendar' : '#desktop-calendar');
       if (calendarElement) {
-        calendarElement.setAttribute('is-mobile', isMobile.toString());
+        calendarElement.setAttribute('is-mobile', this._isMobile.toString());
         if (this.data && this.data.matches) {
             calendarElement.setAttribute('matches', JSON.stringify(this.data.matches));
         } else {
@@ -388,8 +390,7 @@ class LeagueElement extends HTMLElement {
       }
       
       modal.open = true; // This line sets the property
-      modal.isMobile = this.getAttribute('is-mobile') === 'true';
-      modal.setAttribute('is-mobile', this.getAttribute('is-mobile') === 'true' ? 'true' : 'false');
+      modal.isMobile = this._isMobile;
       modal.mode = this.matchModalMode;
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
@@ -398,8 +399,7 @@ class LeagueElement extends HTMLElement {
 
       // ADDED: Debug logging
       console.log('[LeagueElement] Match modal created with isMobile:', modal.isMobile, 
-                  'attribute:', modal.getAttribute('is-mobile'),
-                  'parent is-mobile attribute:', this.getAttribute('is-mobile'));
+                  'parent is-mobile attribute:', this._isMobile);
 
       // ADDED CONSOLE LOGS - Check properties after assignment to modal instance
       console.log('[LeagueElement - render] Modal instance properties after assignment:');
@@ -847,11 +847,9 @@ class LeagueElement extends HTMLElement {
     if (teams.length === 0) {
         return '<div class="error">No teams available for matrix.</div>';
     }
-
-    const isMobile = this.getAttribute('is-mobile') === 'true';
     
     // Mobile gets a completely different HTML structure using tables instead of grid
-    if (isMobile) {
+    if (this._isMobile) {
       let html = '<table class="matrix-table">';
       
       // Header row with column team names
@@ -987,8 +985,7 @@ class LeagueElement extends HTMLElement {
   }
 
   setupMatrixEventListeners() {
-    const isMobile = this.getAttribute('is-mobile') === 'true';
-    const selector = isMobile ? '.matrix-table td' : '.matrix-grid .matrix-cell:not(.matrix-header-cell)';
+    const selector = this._isMobile ? '.matrix-table td' : '.matrix-grid .matrix-cell:not(.matrix-header-cell)';
     
     const matrixCells = this.shadow.querySelectorAll(selector);
     matrixCells.forEach(cell => {
@@ -1344,9 +1341,8 @@ class LeagueElement extends HTMLElement {
             const x = xScale(dateVal);
             mainGroup.appendChild(createSVGElement('line', { x1: x, y1: height, x2: x, y2: height + 6, class: 'axis' }));
             
-            const isMobile = this.getAttribute('is-mobile') === 'true';
             let dateLabelText;
-            if (isMobile) {
+            if (this._isMobile) {
                 const currentMonthName = new Date(dateVal).toLocaleDateString(undefined, { month: 'short' });
                 if (currentMonthName !== lastDisplayedMonth) {
                     dateLabelText = currentMonthName;

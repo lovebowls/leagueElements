@@ -348,6 +348,63 @@ export const mobileStyles = `
   line-height: 1.4;
 `; 
 
+// SweetAlert2 Mobile-Specific Style Overrides
+// These styles are specifically designed to improve the appearance and usability
+// of SweetAlert2 dialogs on smaller screens (mobile devices).
+// They should be injected globally by elements that use SweetAlert2.
+export const sweetAlertMobileOverrides = `
+      /* Injected SweetAlert2 Mobile Styles - Production v1 */
+      .swal2-popup.lae-swal-popup-mobile {
+        width: 90vw !important;
+        max-width: 480px !important;
+        padding: 1rem !important; /* Increased padding for better touch spacing */
+        font-size: 1rem !important; /* Base font size for content */
+      }
+
+      .lae-swal-popup-mobile .swal2-title,
+      .lae-swal-title-mobile {
+        font-size: 1.4rem !important; /* Readable title size for mobile */
+        padding: 0.5rem 0.5rem 0.75rem !important; /* Adjusted padding */
+        margin-bottom: 0 !important; /* Remove default bottom margin if any, handled by container */
+        line-height: 1.3 !important;
+      }
+
+      .lae-swal-popup-mobile .swal2-html-container,
+      .lae-swal-html-container-mobile {
+        font-size: 0.95rem !important; /* Slightly smaller for body text */
+        margin: 0.75rem 0.5rem !important; /* Vertical and horizontal margin */
+        line-height: 1.5 !important;
+        text-align: center !important;
+      }
+
+      .lae-swal-popup-mobile .swal2-actions,
+      .lae-swal-actions-mobile {
+        width: 100% !important;
+        margin-top: 1rem !important;
+        gap: 0.65rem !important; /* Space between stacked buttons */
+        flex-direction: column-reverse !important; /* Stack buttons, confirm on top */
+      }
+
+      .lae-swal-popup-mobile .swal2-styled,
+      .lae-swal-styled-mobile {
+        width: 100% !important; /* Full width buttons */
+        padding: 0.85rem !important; /* Generous padding for touch targets */
+        font-size: 1rem !important;
+        margin: 0 !important; /* Remove individual margins, gap handles spacing */
+        border-radius: 0.3rem !important;
+      }
+
+      /* Optional: If you want to ensure default button colors are explicitly set or overridden for mobile */
+      /* .lae-swal-popup-mobile .swal2-confirm.lae-swal-styled-mobile {
+        background-color: #3085d6 !important; /* Example: Default confirm blue */
+      /* }
+      .lae-swal-popup-mobile .swal2-cancel.lae-swal-styled-mobile {
+        background-color: #d33 !important; /* Example: Default cancel red */
+      /* } */
+`;
+// SweetAlert2 Global Style Overrides
+// These are general global styles for SweetAlert2 dialogs, ensuring a consistent
+// base appearance. They should be injected globally by elements that use SweetAlert2.
 export const sweetAlertGlobalStyles = `
   /* SweetAlert2 Global Styles */
   .swal2-popup {

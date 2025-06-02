@@ -8,6 +8,7 @@ export const BASE_STYLES = `
       ${modalStyles}   /* ADDED SHARED MODAL STYLE */
       ${formStyles}    /* ADDED SHARED FORM STYLE */
       ${listItemStyles} /* ADDED SHARED LIST ITEM STYLE */
+      /* sweetAlertGlobalStyles (and mobile overrides) are now injected globally by leagueAdminElement.js */
       :host {
         display: block;
         border: 1px solid var(--lae-border-color-medium, #ccc); 
@@ -603,6 +604,7 @@ export const BASE_STYLES = `
         background-color: var(--lae-background-color-selected-item, #e9eff7); 
         /* font-weight: bold; */
       }
+      /* SweetAlert2 mobile styles are now injected globally by leagueAdminElement.js */
     `;
 
   // Desktop-specific styles
