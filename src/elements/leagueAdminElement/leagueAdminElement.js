@@ -112,12 +112,10 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('[LeagueAdminElement] ==> connectedCallback ENTERED');
     this._injectGlobalSwalStyles();
     this._elementTitle = this.getAttribute('elementTitle') || this._elementTitle;
     this._currentLeagueId = this.getAttribute('current-league-id') || null;
     const rawData = this.getAttribute('data');
-    console.log('[LeagueAdminElement] connectedCallback: _isMobile:', this._isMobile);
     if (rawData) {
         this._parseAndLoadData(rawData);
     }
@@ -346,24 +344,8 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   render() {
-    // It's better to define logPrefix directly if it's only used here, or ensure this.LOG_PREFIX is set.
     const RENDER_LOG_PREFIX = "[LAD_RENDER] "; 
     console.log(RENDER_LOG_PREFIX + `Render start. _selectedLeagueId = ${this._selectedLeagueId}, _currentLeagueId = ${this._currentLeagueId}`);
-
-    // Safely log this._leagues for debugging
-    try {
-      if (Array.isArray(this._leagues)) {
-        // Log only essential info to avoid large console output if leagues have many matches/teams
-        const leagueSummaries = this._leagues.map(l => ({ _id: l._id, name: l.name, teamCount: l.teams ? l.teams.length : 0 }));
-        // Guard against massive arrays in logs
-        const summaryToLog = leagueSummaries.length > 5 ? leagueSummaries.slice(0,5) : leagueSummaries;
-        console.log(RENDER_LOG_PREFIX + `Current _leagues summaries (showing up to 5 of ${leagueSummaries.length}):`, JSON.parse(JSON.stringify(summaryToLog)));
-      } else {
-        console.warn(RENDER_LOG_PREFIX + `this._leagues is not an array:`, this._leagues);
-      }
-    } catch (e) {
-      console.error(RENDER_LOG_PREFIX + `Error logging this._leagues:`, e);
-    }
 
     let leagueForRender = null;
     const tempLeague = this._getSelectedLeague(); // This can return undefined
@@ -418,6 +400,13 @@ class LeagueAdminElement extends HTMLElement {
       modal.open = true;
       modal.isMobile = this._isMobile;
       modal.mode = this.matchModalMode;
+      
+      const selectedLeague = this._getSelectedLeague();
+      modal.leagueSettings = selectedLeague?.settings || {}; // Pass settings object or empty if none
+      
+      // Log the passed settings for verification
+      console.log('[LeagueAdminElement] Passing leagueSettings to modal:', JSON.parse(JSON.stringify(modal.leagueSettings)));
+      
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;

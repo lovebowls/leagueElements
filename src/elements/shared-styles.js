@@ -126,26 +126,37 @@ export const buttonStyles = `
     /* line-height: 1.2; */
   }
 
-  /* Variations - consider if needed, or handle with specific component styles */
-  /*
-  .button-shared.primary {
+  /* Variations */
+  .button-shared.button-primary {
     background-color: var(--le-color-primary, #007bff);
     color: var(--le-text-color-on-primary, #fff);
     border-color: var(--le-color-primary, #007bff);
   }
-  .button-shared.primary:hover:not(:disabled) {
+  .button-shared.button-primary:hover:not(:disabled) {
     background-color: var(--le-color-primary-hover, #0056b3);
     border-color: var(--le-color-primary-hover, #0056b3);
   }
 
-  .button-shared.accent {
-    background-color: var(--le-color-accent, #2196f3);
-    color: var(--le-text-color-on-primary, #fff);
-    border-color: var(--le-color-accent, #2196f3);
+  .button-shared.button-secondary-light {
+    background-color: var(--le-background-color-button-secondary-light, #f8f9fa);
+    color: var(--le-text-color-secondary-light-text, #212529);
+    border-color: var(--le-border-color-secondary-light, #ced4da);
   }
-  .button-shared.accent:hover:not(:disabled) {
-    background-color: var(--le-color-accent-hover, #1976d2);
-    border-color: var(--le-color-accent-hover, #1976d2);
+  .button-shared.button-secondary-light:hover:not(:disabled) {
+    background-color: var(--le-background-color-button-secondary-light-hover, #e2e6ea);
+    border-color: var(--le-border-color-secondary-light-hover, #dae0e5);
+    color: var(--le-text-color-secondary-light-text-hover, #212529);
+  }
+
+  /* Example for a darker secondary button if needed elsewhere 
+  .button-shared.button-secondary {
+    background-color: var(--le-color-secondary, #6c757d); 
+    color: var(--le-text-color-on-secondary, #fff);
+    border-color: var(--le-color-secondary, #6c757d);
+  }
+  .button-shared.button-secondary:hover:not(:disabled) {
+    background-color: var(--le-color-secondary-hover, #5a6268);
+    border-color: var(--le-color-secondary-hover, #5a6268);
   }
   */
 `;

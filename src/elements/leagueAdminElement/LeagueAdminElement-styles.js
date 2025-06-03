@@ -1,5 +1,4 @@
 import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles } from '../shared-styles.js';
-import 'sweetalert2/dist/sweetalert2.css'; // Import SweetAlert2 styles
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
@@ -8,7 +7,6 @@ export const BASE_STYLES = `
       ${modalStyles}   /* ADDED SHARED MODAL STYLE */
       ${formStyles}    /* ADDED SHARED FORM STYLE */
       ${listItemStyles} /* ADDED SHARED LIST ITEM STYLE */
-      /* sweetAlertGlobalStyles (and mobile overrides) are now injected globally by leagueAdminElement.js */
       :host {
         display: block;
         border: 1px solid var(--lae-border-color-medium, #ccc); 
@@ -697,14 +695,12 @@ export const BASE_STYLES = `
 
   // Base HTML template (placeholders will be filled by render logic)
   export const TEMPLATE_CONTENT = `
-          <div class="header">
+    <div class="header">
       <div id="main-title">League Administration</div>
       <div class="header-actions">
       </div>
-            </div>
-            
+    </div>
     <div id="error-message" class="error" style="display: none;"></div>
-
     <div class="content-area">
       <div class="columns">
         <div class="column column-leagues">

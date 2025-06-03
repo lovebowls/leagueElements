@@ -54,10 +54,102 @@ export const BASE_STYLES = `
       .score-inputs input[type="number"] {
         -moz-appearance: textfield; /* Firefox */
       }
+      
+      /* Rink Results Styles */
+      .rink-results-container {
+        margin-top: 1rem;
+        border: 1px solid var(--le-border-color, #ccc);
+        border-radius: var(--le-border-radius-standard);
+        padding: 0.75rem;
+        background-color: var(--le-background-color-light, #f9f9f9);
+      }
+      
+      .rink-results-header, .rink-result-row, .rink-results-totals, .rink-points-totals {
+        display: grid;
+        grid-template-columns: 1.5fr 2fr 2fr; /* Rink Label, Home, Away */
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.5rem 0;
+      }
+
+      .rink-results-header div,
+      .rink-results-totals div,
+      .rink-points-totals div {
+        text-align: center; /* Center header and total texts */
+      }
+
+      .rink-results-header .rink-header-label {
+        text-align: left; /* Rink label in header to the left */
+      }
+
+      .rink-results-totals .rink-total-label,
+      .rink-points-totals .rink-points-label {
+        text-align: left; /* Total labels to the left */
+        font-weight: normal;
+      }
+      
+      .rink-results-header {
+        font-weight: bold;
+        border-bottom: 1px solid var(--le-border-color, #ddd);
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.75rem;
+      }
+      
+      .rink-result-row { /* Changed from .rink-row to match JS output */
+        border-bottom: 1px dashed var(--le-border-color-light, #eee);
+      }
+      
+      .rink-result-row:last-child {
+        border-bottom: none;
+      }
+      
+      .rink-results-totals, .rink-points-totals {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--le-border-color, #ccc);
+        font-weight: bold;
+      }
+      
+      .rink-points-totals, .match-points-totals {
+        border-top: 1px dashed var(--le-border-color-light, #eee); /* Lighter top border for points total */
+        margin-top: 0.25rem;
+        padding-top: 0.25rem;
+      }
+
+      .rink-result-row .rink-number { /* Style for the Rink X label in data rows */
+        text-align: left;
+        padding-left: 0.25rem;
+      }
+      
+      .rink-input {
+        width: 100%;
+        text-align: center;
+        padding: 0.35rem 0.5rem !important; /* Slightly increased padding */
+        box-sizing: border-box;
+      }
+      
+      /* Responsive adjustments for mobile */
+      @media (max-width: 480px) {
+        .rink-results-header, .rink-result-row, .rink-results-totals, .rink-points-totals {
+          grid-template-columns: 1fr 1.5fr 1.5fr; /* Adjust fr units for mobile */
+          font-size: 0.9rem;
+          gap: 0.3rem;
+        }
+        
+        .rink-input {
+          padding: 0.3rem 0.25rem !important;
+          font-size: 0.9rem !important;
+        }
+        .rink-results-container {
+          padding: 0.5rem;
+        }
+      }
+      
       /* Right-align the home score input */
       .score-inputs input[type="number"]:first-of-type {
         text-align: right;
       }
+      
       /* Responsive adjustment for mobile */
       @media (max-width: 480px) {
         .modal-shared-content {
