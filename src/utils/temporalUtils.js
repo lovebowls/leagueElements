@@ -3,8 +3,10 @@
 // Import from the standard npm package. Rollup will bundle this.
 import { Temporal as PolyfillTemporal } from '@js-temporal/polyfill';
 
-// The Temporal object we'll export
-export let Temporal = PolyfillTemporal;
+// Use the polyfill if native Temporal is not available and export it
+export const Temporal = typeof globalThis.Temporal !== 'undefined' 
+  ? globalThis.Temporal 
+  : PolyfillTemporal;
 
 // Optional: Log to confirm which Temporal is used.
 // console.log('Using Temporal polyfill from @js-temporal/polyfill via Rollup bundle.');
@@ -78,7 +80,14 @@ export const TemporalUtils = {
    * @returns {Object} Today's date
    */
   today() {
-    return Temporal.now.plainDateISO();
+    try {
+      return Temporal.Now.plainDateISO();
+    } catch (error) {
+      console.error('Error getting today\'s date with Temporal:', error);
+      // Fallback to current date
+      const now = new Date();
+      return this.createPlainDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    }
   },
   
   /**
