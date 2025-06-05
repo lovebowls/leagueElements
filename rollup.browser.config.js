@@ -25,8 +25,7 @@ const globals = {
   'wix-window': 'wixWindow',
   'wix-location': 'wixLocation',
   'wix-data': 'wixData',
-  'wix-http-functions': 'wixHttpFunctions',
-  'jsbi': 'JSBI' // Added back
+  'wix-http-functions': 'wixHttpFunctions'
 };
 
 // Define external modules - those that won't be bundled
@@ -34,8 +33,7 @@ const externals = [
   'wix-window',
   'wix-location',
   'wix-data',
-  'wix-http-functions',
-  'jsbi' // Added back
+  'wix-http-functions'
 ];
 
 // Common plugins configuration
