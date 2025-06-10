@@ -447,7 +447,7 @@ export const sweetAlertGlobalStyles = `
     border-radius: var(--le-border-radius-standard, 4px) !important;
     font-size: var(--le-font-size-medium, 1.15em) !important;
     text-decoration: none !important;
-    display: inline-block !important;
+    /* display: inline-block !important; */ /* Removed to allow SweetAlert2 to control visibility */
     text-align: center !important;
     line-height: normal !important;
     white-space: nowrap !important;

@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Test league-element</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "@lovebowls/leaguejs": "/node_modules/@lovebowls/leaguejs/dist/index.js"
+      }
+    }
+  </script>
   <!-- Load JSBI globally -->
   <script src="https://unpkg.com/jsbi@4.3.0/dist/jsbi-umd.js"></script>
 
@@ -17,7 +24,7 @@
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../../../dist/browser/leagueElement.js';
-    import { generateTestLeagueData } from '../../test-data/league-test-data.js';
+    import { generateTestLeagueData, leagueToPlainObject } from '../../test-data/league-test-data.js';
     
     const el = document.getElementById('test-league');
     
@@ -31,7 +38,8 @@
     ];
     
     // Use our new test data generator with lovebowls teams
-    const defaultLeagueData = generateTestLeagueData(lovebowlsTeamsData, 3);
+    const defaultLeague = generateTestLeagueData(lovebowlsTeamsData, 3);
+    const defaultLeagueData = leagueToPlainObject(defaultLeague);
     
     // Try to load league data from session storage or use default
     function loadLeagueData() {
@@ -100,7 +108,8 @@
     // Handle Reset button
     document.getElementById('reset-data-btn').addEventListener('click', () => {
       // Generate fresh test data when resetting, including lovebowls teams
-      const freshData = generateTestLeagueData(lovebowlsTeamsData, 3);
+      const freshLeague = generateTestLeagueData(lovebowlsTeamsData, 3);
+      const freshData = leagueToPlainObject(freshLeague);
       sessionStorage.removeItem('testLeagueData');
       el.setAttribute('data', JSON.stringify(freshData));
       logEvent('Data reset to default with fresh test data');

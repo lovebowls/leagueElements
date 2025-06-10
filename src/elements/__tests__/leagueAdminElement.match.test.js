@@ -154,7 +154,7 @@ describe('LeagueAdminElement - Match Management', () => {
       const existingMatch = testLeagueData[0].matches[0];
       
       // Call the method to edit the match
-      element._handleEditMatch({ key: existingMatch.key });
+      element._handleEditMatch({ _id: existingMatch._id });
       
       // Should open the modal with the existing match data
       expect(element.matchModalOpen).toBe(true);
@@ -166,7 +166,7 @@ describe('LeagueAdminElement - Match Management', () => {
     test('should close the match modal', () => {
       // Setup the modal as open first
       element.matchModalOpen = true;
-      element.matchModalData = { key: 'match1' };
+      element.matchModalData = { _id: 'match1' };
       element.matchModalTeams = [...testLeagueData[0].teams];
       element.matchModalMode = 'edit';
       
@@ -186,7 +186,7 @@ describe('LeagueAdminElement - Match Management', () => {
     test('should handle match save events from modal', () => {
       // Set up the match data
       const matchData = {
-        key: 'm1',
+        _id: 'm1',
         date: '2024-01-01',
         homeTeam: { _id: 'Team A', name: 'Team A' },
         awayTeam: { _id: 'Team B', name: 'Team B' },
@@ -206,7 +206,7 @@ describe('LeagueAdminElement - Match Management', () => {
         ],
         matches: [
           {
-            key: 'm1',
+            _id: 'm1',
             date: '2024-01-01',
             homeTeam: { _id: 'Team A', name: 'Team A' },
             awayTeam: { _id: 'Team B', name: 'Team B' },
@@ -314,7 +314,7 @@ describe('LeagueAdminElement - Match Management', () => {
             leagueData: expect.objectContaining({
               matches: expect.arrayContaining([
                 expect.objectContaining({
-                  key: 'm1',
+                  _id: 'm1',
                   result: expect.objectContaining({
                     homeScore: 10,
                     awayScore: 5
@@ -399,7 +399,7 @@ describe('LeagueAdminElement - Match Management', () => {
       
       // Create a mock attention event with match data
       const mockMatch = {
-        key: 'm1',
+        _id: 'm1',
         date: '2024-01-01',
         homeTeam: { _id: 'Team A', name: 'Team A' },
         awayTeam: { _id: 'Team B', name: 'Team B' }
@@ -419,7 +419,7 @@ describe('LeagueAdminElement - Match Management', () => {
       // Verify the match modal was opened with the correct data
       expect(element.openMatchModal).toHaveBeenCalledWith(
         expect.objectContaining({
-          key: 'm1',
+          _id: 'm1',
           attentionReason: 'needsScores'
         }),
         expect.any(Array),

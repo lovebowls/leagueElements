@@ -3,8 +3,9 @@ class LeagueMatchesAttentionEvent extends CustomEvent {
   constructor(detail) {
     super('league-matches-attention-event', {
       detail,
-      bubbles: true,
-      composed: true
+      bubbles: true, // Ensure event bubbles up through the DOM
+      composed: true, // Ensure event crosses shadow DOM boundaries
+      cancelable: true // Make the event cancelable
     });
   }
 }
@@ -146,7 +147,7 @@ class LeagueMatchesAttention extends HTMLElement {
     today.setHours(0, 0, 0, 0);
     const todayTimestamp = today.getTime();
     // Scheduling conflict detection
-    const conflictingKeys = this._getConflictingMatchKeys();
+    const conflictingIds = this._getConflictingMatchIds();
     const getPriority = (match) => {
       const matchDateObj = match.date ? new Date(match.date) : null;
       let matchTimestamp = null;
@@ -154,7 +155,7 @@ class LeagueMatchesAttention extends HTMLElement {
         matchDateObj.setHours(0, 0, 0, 0);
         matchTimestamp = matchDateObj.getTime();
       }
-      if (conflictingKeys.has(match.key)) return 1;
+      if (conflictingIds.has(match._id)) return 1;
       if (match.result && matchTimestamp && matchTimestamp > todayTimestamp) return 2;
       if (!match.result && matchTimestamp && matchTimestamp < todayTimestamp) return 3;
       if (!match.date && !match.result) return 4;
@@ -169,7 +170,7 @@ class LeagueMatchesAttention extends HTMLElement {
           matchTimestamp = matchDateObj.getTime();
         }
         if (match.result && matchTimestamp && matchTimestamp > todayTimestamp) return true;
-        if (conflictingKeys.has(match.key)) return true;
+        if (conflictingIds.has(match._id)) return true;
         if (!match.result && matchTimestamp && matchTimestamp < todayTimestamp) return true;
         if (!match.date && !match.result) return true;
         return false;
@@ -189,10 +190,10 @@ class LeagueMatchesAttention extends HTMLElement {
   }
 
   /**
-   * Returns a set of match keys that are in scheduling conflict.
+   * Returns a set of match IDs that are in scheduling conflict.
    * @returns {Set<string>}
    */
-  _getConflictingMatchKeys() {
+  _getConflictingMatchIds() {
     if (!this.matches) return new Set();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -211,7 +212,7 @@ class LeagueMatchesAttention extends HTMLElement {
       acc[dateKey].push(match);
       return acc;
     }, {});
-    const conflictingKeys = new Set();
+    const conflictingIds = new Set();
     for (const dateKey in matchesByDate) {
       const matchesOnDay = matchesByDate[dateKey];
       if (matchesOnDay.length < 2) continue;
@@ -229,12 +230,12 @@ class LeagueMatchesAttention extends HTMLElement {
           const awayTeamId = match.awayTeam?._id;
           if ((homeTeamId && conflictingTeams.includes(homeTeamId)) || 
               (awayTeamId && conflictingTeams.includes(awayTeamId))) {
-            conflictingKeys.add(match.key);
+            conflictingIds.add(match._id);
           }
         });
       }
     }
-    return conflictingKeys;
+    return conflictingIds;
   }
 
   _hasNextPage() {
@@ -258,13 +259,8 @@ class LeagueMatchesAttention extends HTMLElement {
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const conflictingKeys = this._getConflictingMatchKeys();
+    const conflictingIds = this._getConflictingMatchIds();
     return pageItems.map(match => {
-      // Use team object _id properties if available, or generate a default key
-      const homeTeamId = match.homeTeam?._id || '';
-      const awayTeamId = match.awayTeam?._id || '';
-      const matchKey = match.key || `${homeTeamId}_${awayTeamId}_unscheduled`;
-      
       // Get display names for teams
       const homeTeamDisplay = match.homeTeam?.name || this.getTeamDisplayName(homeTeamId);
       const awayTeamDisplay = match.awayTeam?.name || this.getTeamDisplayName(awayTeamId);
@@ -280,7 +276,7 @@ class LeagueMatchesAttention extends HTMLElement {
           warningSymbol = '&#9888;';
           warningClass = 'warning-icon-future-result';
         }
-      } else if (conflictingKeys.has(match.key)) {
+      } else if (conflictingIds.has(match._id)) {
         tooltipText = "Scheduling conflict on this date.";
         warningSymbol = '&#9888;';
         warningClass = 'warning-icon-conflict';
@@ -304,7 +300,7 @@ class LeagueMatchesAttention extends HTMLElement {
       return `
         <div class="match-item list-item-shared">
           ${warningSpan}
-          <a href="#" class="match-link list-item-text-primary" data-match-key="${matchKey}"${titleAttr}${dataAttr}>
+          <a href="#" class="match-link list-item-text-primary" data-match-id="${match._id}"${titleAttr}${dataAttr}>
             ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}
           </a>
         </div>
@@ -331,11 +327,14 @@ class LeagueMatchesAttention extends HTMLElement {
   }
 
   setupEventListeners() {
+    console.log('[LeagueMatchesAttention] Setting up event listeners');
+    
     // Paging buttons
     const prevBtn = this.shadow.querySelector('#attention-prev');
     const nextBtn = this.shadow.querySelector('#attention-next');
     if (prevBtn) {
       prevBtn.onclick = () => {
+        console.log('[LeagueMatchesAttention] Previous page button clicked');
         if (this.currentPage > 0) {
           this.currentPage--;
           this.render();
@@ -344,31 +343,78 @@ class LeagueMatchesAttention extends HTMLElement {
     }
     if (nextBtn) {
       nextBtn.onclick = () => {
+        console.log('[LeagueMatchesAttention] Next page button clicked');
         if (this._hasNextPage()) {
           this.currentPage++;
           this.render();
         }
       };
     }
+    
     // Match click handlers
     const matchLinks = this.shadow.querySelectorAll('.match-link');
     console.log('[LeagueMatchesAttention] Number of .match-link elements:', matchLinks.length);
-    matchLinks.forEach(link => {
+    
+    matchLinks.forEach((link, index) => {
+      console.log(`[LeagueMatchesAttention] Setting up click handler for match link ${index + 1}/${matchLinks.length}`, {
+        text: link.textContent.trim(),
+        matchId: link.dataset.matchId,
+        attentionReason: link.dataset.attentionReason
+      });
+      
       link.onclick = (e) => {
+        console.log('[LeagueMatchesAttention] Match link clicked!', {
+          text: e.target.textContent.trim(),
+          matchId: e.target.dataset.matchId,
+          attentionReason: e.target.dataset.attentionReason,
+          eventTarget: e.target,
+          currentTarget: e.currentTarget
+        });
+        
         e.preventDefault();
-        const matchKey = link.dataset.matchKey;
+        e.stopPropagation();
+        
+        const matchId = link.dataset.matchId;
         const attentionReason = link.dataset.attentionReason;
-        const match = this._getMatchesRequiringAttention().find(m => m.key === matchKey);
+        const match = this._getMatchesRequiringAttention().find(m => m._id === matchId);
+        
         if (match) {
-          console.log('[LeagueMatchesAttention] Dispatching matchClick event for match:', match, 'Reason:', attentionReason);
-          this.dispatchEvent(new LeagueMatchesAttentionEvent({
+          console.log('[LeagueMatchesAttention] Found match in _getMatchesRequiringAttention:', {
+            matchId,
+            match,
+            attentionReason
+          });
+          
+          // Create and dispatch the event
+          const event = new LeagueMatchesAttentionEvent({
             type: 'matchClick',
             match: match,
             attentionReason: attentionReason
-          }));
+          });
+          
+          console.log('[LeagueMatchesAttention] Dispatching event:', event);
+          const dispatchResult = this.dispatchEvent(event);
+          console.log('[LeagueMatchesAttention] Event dispatch result:', dispatchResult ? 'not canceled' : 'canceled');
+          
+          // If the event was canceled, log it
+          if (!dispatchResult) {
+            console.warn('[LeagueMatchesAttention] Event was canceled by a listener');
+          }
+        } else {
+          console.warn('[LeagueMatchesAttention] No match found for ID:', matchId);
         }
       };
+      
+      // Also log the element's position in the DOM
+      console.log(`[LeagueMatchesAttention] Match link ${index + 1} position:`, link.getBoundingClientRect());
     });
+    
+    // Add a global click handler to the shadow root to see if clicks are reaching it
+    this.shadow.addEventListener('click', (e) => {
+      if (e.target.classList.contains('match-link')) {
+        console.log('[LeagueMatchesAttention] Shadow root click handler - match link clicked');
+      }
+    }, { capture: true });
   }
 
   // Public API methods

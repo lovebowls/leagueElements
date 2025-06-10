@@ -784,8 +784,16 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
    * Updates the total shots and points based on rink results
    */
   _updateRinkTotals() {
+    // Only proceed if rink points are enabled and we have results
     if (!this.rinkPointsEnabled || !this._rinkResults?.length) {
       console.debug('[LeagueMatch] Skipping rink totals update - rink points not enabled or no results');
+      return;
+    }
+
+    // Check if we have the required DOM elements before proceeding
+    const totalsContainer = this.shadowRoot?.querySelector('.rink-results-container');
+    if (!totalsContainer) {
+      console.debug('[LeagueMatch] Skipping rink totals update - rink results container not found');
       return;
     }
 
@@ -851,15 +859,26 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     if (homeScoreInput) homeScoreInput.value = homeTotalShots || '';
     if (awayScoreInput) awayScoreInput.value = awayTotalShots || '';
 
-    // Update the totals display
-    updateElement('homeTotalShots', homeTotalShots);
-    updateElement('awayTotalShots', awayTotalShots);
-    updateElement('homeRinkPoints', homeRinkPoints.toFixed(1));
-    updateElement('awayRinkPoints', awayRinkPoints.toFixed(1));
-    updateElement('homeMatchPoints', homeMatchPoints.toFixed(1));
-    updateElement('awayMatchPoints', awayMatchPoints.toFixed(1));
-    updateElement('homeFinalTotalPoints', homeFinalTotalPoints.toFixed(1));
-    updateElement('awayFinalTotalPoints', awayFinalTotalPoints.toFixed(1));
+    // Update the totals display only if elements exist
+    const elementsToUpdate = [
+      { id: 'homeTotalShots', value: homeTotalShots },
+      { id: 'awayTotalShots', value: awayTotalShots },
+      { id: 'homeRinkPoints', value: homeRinkPoints.toFixed(1) },
+      { id: 'awayRinkPoints', value: awayRinkPoints.toFixed(1) },
+      { id: 'homeMatchPoints', value: homeMatchPoints.toFixed(1) },
+      { id: 'awayMatchPoints', value: awayMatchPoints.toFixed(1) },
+      { id: 'homeFinalTotalPoints', value: homeFinalTotalPoints.toFixed(1) },
+      { id: 'awayFinalTotalPoints', value: awayFinalTotalPoints.toFixed(1) }
+    ];
+    
+    elementsToUpdate.forEach(({ id, value }) => {
+      const element = this.shadowRoot?.getElementById(id);
+      if (element) {
+        element.textContent = value;
+      } else {
+        console.debug(`[LeagueMatch] Element with ID ${id} not found for updating totals.`);
+      }
+    });
 
     console.debug('[LeagueMatch] All rink totals updated in DOM.', {
       homeTotalShots,

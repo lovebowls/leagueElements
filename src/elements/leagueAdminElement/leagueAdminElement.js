@@ -13,22 +13,18 @@ class LeagueAdminElementEvent extends CustomEvent {
   }
 }
 
-// Import the LeagueMatchesAttention component
 import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
-// ADDED IMPORTS for shared modal and form styles
 import {
     BASE_STYLES,
     MOBILE_STYLES,
     DESKTOP_STYLES,
     TEMPLATE_CONTENT
 } from './LeagueAdminElement-styles.js';
-// Import Temporal API utilities
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueAdminElement extends HTMLElement {
   static _globalStylesInjected = false;
-
 
   constructor() {
     super();
@@ -72,18 +68,13 @@ class LeagueAdminElement extends HTMLElement {
     // to the document body and thus outside the shadow DOM of individual elements.
     // Injection is guarded to run only once per page load.
     const LOG_PREFIX_SWAL = '[LAD_SWAL_STYLE_INJECT] ';
-    console.log(LOG_PREFIX_SWAL + 'Attempting to inject/verify global SweetAlert2 mobile styles.');
 
     const styleId = 'global-swal-mobile-styles';
     let existingStyleTag = document.getElementById(styleId);
 
     if (LeagueAdminElement._globalStylesInjected) {
-      if (existingStyleTag) {
-        console.log(LOG_PREFIX_SWAL + 'Global styles flag is true AND style tag exists. Skipping injection.');
-        return;
-      } else {
+      if (!existingStyleTag) {
         console.warn(LOG_PREFIX_SWAL + 'Global styles flag is true BUT style tag is MISSING. Will attempt to re-inject.');
-        // Proceed to inject
       }
     } else {
       if (existingStyleTag) {
@@ -98,14 +89,11 @@ class LeagueAdminElement extends HTMLElement {
     style.id = styleId;
     style.textContent = `${sweetAlertGlobalStyles}\n\n${sweetAlertMobileOverrides}`;
 
-    console.log(LOG_PREFIX_SWAL + 'Appending style element to document.head.');
     document.head.appendChild(style);
     
     // Verify after appending
     const appendedStyleTag = document.getElementById(styleId);
-    if (appendedStyleTag) {
-      console.log(LOG_PREFIX_SWAL + 'Successfully INJECTED and VERIFIED global SweetAlert2 mobile styles. Tag found in head.');
-    } else {
+    if (!appendedStyleTag) {
       console.error(LOG_PREFIX_SWAL + 'FAILED to find style tag in head AFTER attempting to append. Injection FAILED.');
     }
     LeagueAdminElement._globalStylesInjected = true;
@@ -446,7 +434,7 @@ class LeagueAdminElement extends HTMLElement {
         }
 
         // Update the internal _leagues array
-        const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === (selectedLeague._id || selectedLeague.name));
+        const leagueIndex = this._leagues.findIndex(l => l._id === selectedLeague._id);
         if (leagueIndex > -1) {
           this._leagues[leagueIndex] = updatedLeague;
           console.log('[Admin Match Save] Updated this._leagues:', JSON.parse(JSON.stringify(this._leagues)));
@@ -482,8 +470,22 @@ class LeagueAdminElement extends HTMLElement {
       return;
     }
     console.log(`[LAD_RENDER_LIST] Rendering ${this._leagues.length} leagues. Current _selectedLeagueId: ${this._selectedLeagueId}`);
+    console.log('Available leagues:', this._leagues.map(l => ({ _id: l._id, name: l.name })));
 
-    this._leagues.forEach(league => {
+    // Sort leagues alphabetically by name
+    const sortedLeagues = [...this._leagues].sort((a, b) => {
+      const nameA = (a.name || '').toUpperCase();
+      const nameB = (b.name || '').toUpperCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    sortedLeagues.forEach(league => {
+      // Ensure the league has an ID
+      if (!league._id) {
+        console.warn('League is missing _id:', league);
+        return; // Skip leagues without an ID
+      }
+
       const li = document.createElement('li');
       li.classList.add('league-list-item', 'list-item-shared');
       
@@ -505,14 +507,20 @@ class LeagueAdminElement extends HTMLElement {
       li.appendChild(actionsContainer);
       
       const leagueId = league._id;
-      li.setAttribute('data-id', leagueId); 
-    
-      li.addEventListener('click', () => this._handleLeagueSelect(leagueId));
+      li.setAttribute('data-id', leagueId);
+      
+      // Add click handler
+      li.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log('League item clicked:', { leagueId, leagueName: league.name });
+        this._handleLeagueSelect(leagueId);
+      });
       
       // Add double-click shortcut for editing leagues in desktop mode
       if (this.getAttribute('is-mobile') !== 'true') {
         li.addEventListener('dblclick', (e) => {
           e.stopPropagation();
+          console.log('League item double-clicked:', { leagueId, leagueName: league.name });
           // Select the league first
           this._handleLeagueSelect(leagueId);
           // Then open edit modal
@@ -526,59 +534,74 @@ class LeagueAdminElement extends HTMLElement {
 
   _handleLeagueSelect(leagueId) {
     this.clearError();
+    console.log(this.LOG_PREFIX + `_handleLeagueSelect: Starting selection for league ID: ${leagueId}`);
+    console.log(this.LOG_PREFIX + `Current _selectedLeagueId: ${this._selectedLeagueId}`);
 
     const previouslySelectedId = this._selectedLeagueId;
     const previouslySelectedElement = this.shadow.querySelector('.league-list-item.selected');
 
-    // If the clicked league is the same as the currently selected one, do nothing (or handle as a toggle if desired later)
-    // For global menu, we might want to show it even if league is already selected, if menu button is clicked.
-    // The actual menu opening is now separate from league selection itself.
-    if (previouslySelectedId === leagueId && previouslySelectedElement && previouslySelectedElement.getAttribute('data-id') === leagueId) {
-        if (this._selectedLeagueId) {
-            this._showLeagueSpecificPanels();
-        }
-        // return; // Do not return, allow actions button to still work.
+    // If the clicked league is the same as the currently selected one, do nothing
+    if (leagueId === this._selectedLeagueId) {
+      console.log(this.LOG_PREFIX + `_handleLeagueSelect: Clicked on already selected league ${leagueId}. Ignoring.`);
+      return; 
     }
 
-    // Deselect previous item
-    if (previouslySelectedElement && previouslySelectedId !== leagueId) {
-      previouslySelectedElement.classList.remove('selected');
-      const oldActionsContainer = previouslySelectedElement.querySelector('.league-item-actions-container');
-      if (oldActionsContainer) {
-        oldActionsContainer.innerHTML = ''; // Clear its dynamic content
+    // Find the clicked league in our data - only match by _id
+    const selectedLeague = this._leagues.find(league => league._id === leagueId);
+  
+    if (selectedLeague) {
+      // Use the _id as the identifier
+      const effectiveId = selectedLeague._id;
+      console.log(this.LOG_PREFIX + `_handleLeagueSelect: Found league:`, selectedLeague);
+      console.log(this.LOG_PREFIX + `Using effective ID: ${effectiveId}`);
+      
+      // Update the selected league ID
+      this._selectedLeagueId = effectiveId;
+      
+      // Update the UI to show the selected league
+      // First, remove selected class from all league items
+      const allLeagueItems = this.shadow.querySelectorAll('.league-list-item');
+      allLeagueItems.forEach(item => item.classList.remove('selected'));
+      
+      // Find and select the clicked league item
+      const newSelectedElement = Array.from(allLeagueItems).find(item => {
+        const itemId = item.getAttribute('data-id');
+        return itemId === effectiveId;
+      });
+      
+      if (newSelectedElement) {
+        newSelectedElement.classList.add('selected');
+        // Scroll the selected item into view
+        newSelectedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        console.log(this.LOG_PREFIX + `_handleLeagueSelect: Updated UI for selected league ${effectiveId}`);
+      } else {
+        console.warn(this.LOG_PREFIX + `_handleLeagueSelect: Could not find DOM element for selected league ${effectiveId}`);
       }
-    }
-
-    // Select the new league
-    this._selectedLeagueId = leagueId;
-    const newSelectedItem = this.shadow.querySelector(`.league-list-item[data-id="${leagueId}"]`);
-
-    
-    if (newSelectedItem) {
-      newSelectedItem.classList.add('selected');
-      const actionsContainer = newSelectedItem.querySelector('.league-item-actions-container');
-      if (actionsContainer) {
-        this._createAndAppendLeagueActions(actionsContainer, leagueId);
-      }
-      // BEFORE setting _selectedLeagueId
-      const oldId = this._selectedLeagueId;
-      this._selectedLeagueId = leagueId;
-      // AFTER setting _selectedLeagueId
+      
+      // Show the league-specific panels
       this._showLeagueSpecificPanels();
+      
+      // Reset selected team
       this._selectedTeamId = null;
-      this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId }));
+      
+      // Dispatch the leagueSelected event
+      console.log(this.LOG_PREFIX + `Dispatching leagueSelected event with ID: ${effectiveId}`);
+      this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { 
+        leagueId: effectiveId,
+        leagueName: selectedLeague.name 
+      }));
 
     } else {
       // League not found in list, effectively deselecting
+      console.warn(this.LOG_PREFIX + `_handleLeagueSelect: League with ID ${leagueId} not found`);
       this._selectedLeagueId = null;
-      this._selectedTeamId = null; // ADDED: Reset selected team
+      this._selectedTeamId = null;
       this._hideLeagueSpecificPanels();
-      const oldId = this._selectedLeagueId;
-      this._selectedLeagueId = null;
       this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { leagueId: null }));
     }
     
-    this._updateButtonStates(); // Main action buttons like New, Copy, Delete
+    this._updateButtonStates();
+    console.log(this.LOG_PREFIX + `_handleLeagueSelect: Finished. New _selectedLeagueId: ${this._selectedLeagueId}`);
   }
 
   _createAndAppendLeagueActions(container, leagueId) {
@@ -596,38 +619,82 @@ class LeagueAdminElement extends HTMLElement {
     container.appendChild(btnActions);
   }
 
-  _showLeagueSpecificPanels() { // Renamed from _showSelectedLeaguePanel
+  _showLeagueSpecificPanels() {
+    console.log(this.LOG_PREFIX + '_showLeagueSpecificPanels called');
+  
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) {
-        this._hideLeagueSpecificPanels();
-        return;
+      console.log(this.LOG_PREFIX + 'No league selected, hiding panels');
+      this._hideLeagueSpecificPanels();
+      return;
+    }
+  
+    console.log(this.LOG_PREFIX + `Showing panels for league: ${selectedLeague.name} (${selectedLeague._id})`);
+  
+    // Show the teams panel
+    const teamsPanel = this.shadow.querySelector('#teams-panel');
+    if (teamsPanel) {
+      console.log(this.LOG_PREFIX + 'Showing teams panel');
+      teamsPanel.style.display = '';
+      this._renderTeamsList();
+    } else {
+      console.warn(this.LOG_PREFIX + 'Teams panel element not found');
+    }
+  
+    // Show the attention container and update it
+    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container');
+    if (attentionContainer) {
+      console.log(this.LOG_PREFIX + 'Showing attention container');
+      attentionContainer.style.display = '';
+      this._updateAttentionPanel(selectedLeague);
+    } else {
+      console.warn(this.LOG_PREFIX + 'Attention container element not found');
+    }
+  
+    // Ensure the details column is visible (in case it was hidden)
+    const detailsColumn = this.shadow.querySelector('.column-details');
+    if (detailsColumn) {
+      detailsColumn.style.display = '';
+    }
+  }
+
+  _hideLeagueSpecificPanels() {
+    console.log(this.LOG_PREFIX + '_hideLeagueSpecificPanels called');
+    
+    // Hide the attention container
+    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container');
+    if (attentionContainer) {
+      console.log(this.LOG_PREFIX + 'Hiding attention container');
+      attentionContainer.style.display = 'none';
+    } else {
+      console.warn(this.LOG_PREFIX + 'Attention container element not found when trying to hide');
     }
     
-    this._renderTeamsList();
+    // Reset selected team
+    this._selectedTeamId = null;
     
-    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Changed selector
-    if (attentionContainer) attentionContainer.style.display = ''; 
-    this._updateAttentionPanel(selectedLeague);
-
-    const teamsPanelRight = this.shadow.querySelector('#teams-panel');
+    // Hide the teams panel
+    const teamsPanel = this.shadow.querySelector('#teams-panel');
+    if (teamsPanel) {
+      console.log(this.LOG_PREFIX + 'Hiding teams panel');
+      teamsPanel.style.display = 'none';
+      
+      // Clear and reset the teams list
+      const teamsList = this.shadow.querySelector('#teams-list');
+      if (teamsList) {
+        teamsList.innerHTML = '<li style="padding: 0.5rem;">No league selected.</li>';
+      }
+    } else {
+      console.warn(this.LOG_PREFIX + 'Teams panel element not found when trying to hide');
+    }
     
-    if (teamsPanelRight) teamsPanelRight.style.display = '';
-    
-  }
-  
-  _hideLeagueSpecificPanels() { // Renamed from _hideSelectedLeaguePanel
-    const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container'); // Changed selector
-    if (attentionContainer) attentionContainer.style.display = 'none';
-    this._selectedTeamId = null; // CHANGED: Reset selected team _id
-
-    const teamsPanelRight = this.shadow.querySelector('#teams-panel');
-    
-    
-    if (teamsPanelRight) teamsPanelRight.style.display = 'none';
-    
-    const teamsList = this.shadow.querySelector('#teams-list');
-    if (teamsList) teamsList.innerHTML = '<li style="padding: 0.5rem;">No league selected.</li>';
-    
+    // Hide the details column (if in mobile view)
+    if (this.getAttribute('is-mobile') === 'true') {
+      const detailsColumn = this.shadow.querySelector('.column-details');
+      if (detailsColumn) {
+        detailsColumn.style.display = 'none';
+      }
+    }
   }
   
   _renderTeamsList() {
@@ -761,7 +828,7 @@ class LeagueAdminElement extends HTMLElement {
   _getSelectedLeague() {
     if (!this._selectedLeagueId) return null;
     // Ensure _leagues is an array before trying to find
-    return Array.isArray(this._leagues) ? this._leagues.find(l => (l._id || l.name) === this._selectedLeagueId) : null;
+    return Array.isArray(this._leagues) ? this._leagues.find(l => l._id === this._selectedLeagueId) : null;
   }
   
   _handleResetLeague() {
@@ -780,13 +847,13 @@ class LeagueAdminElement extends HTMLElement {
     if (leagueToResetObject) {
       const leagueName = leagueToResetObject.name || leagueToResetObject._id || 'this league';
 
-      Swal.default.fire({
+      Swal.default.fire({ 
+        customClass: this._getSwalCustomClasses(),
         title: 'Reset League?',
         text: `Are you sure you want to reset "${leagueName}"? This will remove all teams, matches, and scores. This action cannot be undone.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, reset league',
-        cancelButtonText: 'Cancel',
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6'
       }).then((result) => {
@@ -798,6 +865,7 @@ class LeagueAdminElement extends HTMLElement {
 
           // Optionally, show a success message after dispatching
           Swal.default.fire({
+            customClass: this._getSwalCustomClasses(),
             title: 'League Reset Requested',
             text: `"${leagueName}" is being reset.`,
             icon: 'info', // Use 'info' as the actual reset might be asynchronous
@@ -847,14 +915,13 @@ class LeagueAdminElement extends HTMLElement {
     
     // Show confirmation dialog using window.Swal
     Swal.default.fire({
+      customClass: this._getSwalCustomClasses(),
       title: 'Remove Team?',
       text: `Are you sure you want to remove "${team.name}" from the league? This will also remove all matches involving this team.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, remove team',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6'
+      confirmButtonColor: '#d33'
     }).then((result) => {
       if (result.isConfirmed) {
         // Clear the team selection since we're removing it
@@ -894,6 +961,7 @@ class LeagueAdminElement extends HTMLElement {
           
           // Show success message
           Swal.default.fire({
+            customClass: this._getSwalCustomClasses(),
             title: 'Team Removed',
             text: `${team.name} has been removed from the league`,
             icon: 'success',
@@ -1396,17 +1464,44 @@ class LeagueAdminElement extends HTMLElement {
       }
     };
 
-    // If editing, preserve the original _id
+    // If editing, preserve the original _id, teams, and matches
     if (this._modalMode === 'edit') {
         const originalLeague = this._getSelectedLeague();
-        if (originalLeague && originalLeague._id) {
-            leagueData._id = originalLeague._id;
+        if (originalLeague) {
+            if (originalLeague._id) {
+                leagueData._id = originalLeague._id;
+            }
+            // Preserve existing teams and matches
+            if (originalLeague.teams) {
+                leagueData.teams = originalLeague.teams;
+            }
+            if (originalLeague.matches) {
+                leagueData.matches = originalLeague.matches;
+            }
         }
     }
     
     this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData }));
     this._hideModal();
     this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action (if it was open due to edit)
+  }
+
+  // Helper method to get custom classes for Swal
+  _getSwalCustomClasses() {
+    const mobilePopup = this._isMobile ? 'lae-swal-popup-mobile' : '';
+    const mobileTitle = this._isMobile ? 'lae-swal-title-mobile' : '';
+    const mobileHtmlContainer = this._isMobile ? 'lae-swal-html-container-mobile' : '';
+    const mobileActions = this._isMobile ? 'lae-swal-actions-mobile' : '';
+    const mobileStyled = this._isMobile ? 'lae-swal-styled-mobile' : '';
+
+    return {
+      popup: mobilePopup,
+      title: mobileTitle,
+      htmlContainer: mobileHtmlContainer,
+      actions: mobileActions,
+      confirmButton: mobileStyled,
+      cancelButton: mobileStyled,
+    };
   }
 
   // --- Action Button Handlers ---
@@ -1457,39 +1552,13 @@ class LeagueAdminElement extends HTMLElement {
       const leagueName = leagueToDeleteObject.name || leagueToDeleteObject._id || 'this league'; // Get a display name
 
       Swal.default.fire({
-        target: document.body, // Explicitly target body
-        showClass: {
-          popup: '' // Try to remove default animation/styling classes
-        },
-        hideClass: {
-          popup: ''
-        },
-        customClass: (() => {
-          console.log('[Swal customClass IIFE] this._isMobile:', this._isMobile);
-          const mobilePopup = this._isMobile ? 'lae-swal-popup-mobile' : '';
-          const mobileTitle = this._isMobile? 'lae-swal-title-mobile' : '';
-          const mobileHtmlContainer = this._isMobile ? 'lae-swal-html-container-mobile' : '';
-          const mobileActions = this._isMobile ? 'lae-swal-actions-mobile' : '';
-          const mobileStyled = this._isMobile ? 'lae-swal-styled-mobile' : '';
-
-          const returnedClasses = {
-            popup: mobilePopup,
-            title: mobileTitle,
-            htmlContainer: mobileHtmlContainer,
-            actions: mobileActions,
-            confirmButton: mobileStyled,
-            cancelButton: mobileStyled,
-          };
-          return returnedClasses;
-        })(), // IIFE to construct customClass object
+        customClass: this._getSwalCustomClasses(),
         title: 'Delete League?',
         text: `Are you sure you want to delete "${leagueName}"? This action cannot be undone.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete league',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6'
+        confirmButtonColor: '#d33'
       }).then((result) => {
         if (result.isConfirmed) {
           const actualLeagueIdForDispatch = leagueToDeleteObject._id || leagueToDeleteObject.name;
@@ -1507,6 +1576,7 @@ class LeagueAdminElement extends HTMLElement {
 
           // Success message
           Swal.default.fire({
+            customClass: this._getSwalCustomClasses(),
             title: 'League Deleted',
             text: `"${leagueName}" has been deleted.`,
             icon: 'success',
@@ -1535,21 +1605,21 @@ class LeagueAdminElement extends HTMLElement {
     this.openMatchModal({ date: '', homeTeam: null, awayTeam: null, result: null }, teams, 'new');
   }
   
-  _handleEditMatch(matchKeyContainer) {
-    if (!matchKeyContainer || !matchKeyContainer.key) {
-        console.error("Match key not provided to _handleEditMatch");
+  _handleEditMatch(matchIdContainer) {
+    if (!matchIdContainer || !matchIdContainer._id) {
+        console.error("Match ID not provided to _handleEditMatch");
         return;
     }
-    const matchKey = matchKeyContainer.key;
+    const matchId = matchIdContainer._id;
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague || !selectedLeague.matches) {
         console.error("Selected league or its matches not found when trying to edit match.");
         return;
     }
     
-    const currentMatchObject = selectedLeague.matches.find(m => m.key === matchKey);
+    const currentMatchObject = selectedLeague.matches.find(m => m._id === matchId);
     if (!currentMatchObject) {
-        console.error(`Match with key ${matchKey} not found in selected league.`);
+        console.error(`Match with ID ${matchId} not found in selected league.`);
         return;
     }
 
@@ -1559,12 +1629,53 @@ class LeagueAdminElement extends HTMLElement {
   }
   
   openMatchModal(matchData, teams, mode = 'edit') {
-    // Teams are already in {value, label} format from selectedLeague.teams
-    this.matchModalOpen = true;
-    this.matchModalData = matchData;
-    this.matchModalTeams = teams;
-    this.matchModalMode = mode;
-    this.render();
+    console.group('[LeagueAdmin] openMatchModal');
+    try {
+      console.log('Opening match modal with:', {
+        matchData,
+        teamsCount: teams ? teams.length : 0,
+        mode
+      });
+      
+      // Validate inputs
+      if (!matchData) {
+        throw new Error('No match data provided');
+      }
+      
+      if (!teams || !Array.isArray(teams)) {
+        console.warn('No teams array provided, using empty array');
+        teams = [];
+      }
+      
+      // Update component state
+      this.matchModalOpen = true;
+      this.matchModalData = matchData;
+      this.matchModalTeams = teams;
+      this.matchModalMode = mode;
+      
+      console.log('State updated, calling render()');
+      this.render();
+      
+      // Verify the modal was rendered
+      const modalElement = this.shadowRoot.querySelector('league-match');
+      if (!modalElement) {
+        console.error('League match modal element not found after render');
+      } else {
+        console.log('Modal element found:', modalElement);
+        // Try to force open the modal if it has an open method
+        if (typeof modalElement.open === 'function') {
+          console.log('Calling open() on modal element');
+          modalElement.open();
+        }
+      }
+      
+      console.log('Match modal should now be visible');
+    } catch (error) {
+      console.error('Error in openMatchModal:', error);
+      this.showError('Failed to open match editor. Please try again.');
+    } finally {
+      console.groupEnd();
+    }
   }
   
   closeMatchModal() {
@@ -1607,13 +1718,28 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _updateAttentionPanel(leagueToUse) {
+    console.log('[LeagueAdmin] _updateAttentionPanel called with league:', leagueToUse?.name || 'none');
     const selectedLeague = leagueToUse || this._getSelectedLeague();
-    const attentionMatchesElement = this.shadow.querySelector('#admin-attention-matches');
+    const attentionMatchesElement = this.shadow.querySelector('league-matches-attention');
     const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container');
+    
+    console.log('[LeagueAdmin] _updateAttentionPanel elements:', {
+      selectedLeague: !!selectedLeague,
+      attentionMatchesElement: !!attentionMatchesElement,
+      attentionContainer: !!attentionContainer
+    });
+    
     if (!selectedLeague || !attentionMatchesElement || !attentionContainer) {
+      console.warn('[LeagueAdmin] Cannot update attention panel - missing required elements:', {
+        selectedLeague: !!selectedLeague,
+        attentionMatchesElement: !!attentionMatchesElement,
+        attentionContainer: !!attentionContainer
+      });
       if (attentionContainer) attentionContainer.style.display = 'none';
       return;
     }
+    
+    console.log('[LeagueAdmin] Updating attention panel for league:', selectedLeague.name);
     
     // Convert the teams array to a format that LeagueMatchesAttention can use for team name display
     const teamMap = {};
@@ -1623,34 +1749,146 @@ class LeagueAdminElement extends HTMLElement {
       });
     }
     
-    attentionMatchesElement.setAttribute('is-mobile', String(this._isMobile));
-    attentionMatchesElement.setAttribute('data', JSON.stringify(selectedLeague.matches || []));
-    // Pass the team name mapping as an additional attribute if your LeagueMatchesAttention component supports it
-    if (Object.keys(teamMap).length > 0) {
-      attentionMatchesElement.setAttribute('team-map', JSON.stringify(teamMap));
-    }
-    attentionContainer.style.display = '';
+    const isMobile = String(this._isMobile);
+    attentionMatchesElement.setAttribute('is-mobile', isMobile);
+    console.log('[LeagueAdmin] Set is-mobile attribute:', isMobile);
+    
+    try {
+      const matchesData = JSON.stringify(selectedLeague.matches || []);
+      console.log('[LeagueAdmin] Setting matches data, count:', (selectedLeague.matches || []).length);
+      attentionMatchesElement.setAttribute('data', matchesData);
+      
+      // Pass the team name mapping as an additional attribute if your LeagueMatchesAttention component supports it
+      if (Object.keys(teamMap).length > 0) {
+        console.log('[LeagueAdmin] Setting team mapping, count:', Object.keys(teamMap).length);
+        attentionMatchesElement.setAttribute('team-mapping', JSON.stringify(teamMap));
+      } else {
+        console.log('[LeagueAdmin] No team mapping to set');
+      }
+      
+      attentionContainer.style.display = '';
 
-    // Ensure event listener is attached (and only once)
-    if (!this._handleAdminAttentionMatchClickBound) {
+      // Debug: Log the attributes we're setting
+      console.log('[LeagueAdmin] Set attributes on league-matches-attention:', {
+        isMobile: this._isMobile,
+        hasMatches: (selectedLeague.matches || []).length > 0,
+        teamMapSize: Object.keys(teamMap).length
+      });
+
+      // Ensure event listener is attached (and only once)
+      if (!this._handleAdminAttentionMatchClickBound) {
+        console.log('[LeagueAdmin] Creating new bound event handler');
         this._handleAdminAttentionMatchClickBound = this._handleAdminAttentionMatchClick.bind(this);
+      }
+      
+      // Log before removing existing listener
+      console.log('[LeagueAdmin] Removing existing event listener if it exists');
+      attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAdminAttentionMatchClickBound);
+      
+      // Add the new listener with capture: true to catch the event in the capture phase
+      console.log('[LeagueAdmin] Adding new event listener with capture: true');
+      attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAdminAttentionMatchClickBound, { 
+        capture: true,
+        passive: false // Ensure preventDefault can be called
+      });
+      
+      // Log that we've added the event listener
+      console.log('[LeagueAdmin] Event listener added for league-matches-attention-event');
+      console.log('[LeagueAdmin] Note: Event listener count not available in this environment');
+      
+    } catch (error) {
+      console.error('[LeagueAdmin] Error updating attention panel:', error);
+      attentionContainer.style.display = 'none';
     }
-    attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAdminAttentionMatchClickBound);
-    attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAdminAttentionMatchClickBound);
   }
 
   _handleAdminAttentionMatchClick(e) {
-    if (e.detail.type === 'matchClick' && e.detail.match) {
-        const selectedLeague = this._getSelectedLeague();
-        if (!selectedLeague) return;
-        
-        // Pass teams as array of {value, label} objects
-        const teams = selectedLeague.teams || [];
-        const matchData = { ...e.detail.match }; // Clone to avoid modifying original event detail
-        if (e.detail.attentionReason) {
-            matchData.attentionReason = e.detail.attentionReason;
-        }
-        this.openMatchModal(matchData, teams, 'edit');
+    console.group('[LeagueAdmin] _handleAdminAttentionMatchClick');
+    console.log('Event object:', e);
+    console.log('Event phase:', e.eventPhase === 1 ? 'CAPTURING_PHASE' : e.eventPhase === 2 ? 'AT_TARGET' : 'BUBBLING_PHASE');
+    console.log('Event target:', e.target);
+    console.log('Current target:', e.currentTarget);
+    console.log('Event path:', e.composedPath ? e.composedPath() : 'composedPath not supported');
+    
+    // Log the event detail
+    console.log('Event detail:', e.detail);
+    
+    // Validate the event detail
+    if (!e.detail) {
+      console.error('[LeagueAdmin] Event detail is missing');
+      console.groupEnd();
+      return;
+    }
+    
+    if (e.detail.type !== 'matchClick') {
+      console.warn('[LeagueAdmin] Received non-matchClick event type:', e.detail.type);
+      console.groupEnd();
+      return;
+    }
+    
+    if (!e.detail.match) {
+      console.error('[LeagueAdmin] Match data is missing from event detail');
+      console.groupEnd();
+      return;
+    }
+    
+    // Get the selected league
+    const selectedLeague = this._getSelectedLeague();
+    if (!selectedLeague) {
+      console.error('[LeagueAdmin] No selected league when handling match click');
+      console.groupEnd();
+      return;
+    }
+    
+    try {
+      // Log the received match data for debugging
+      console.log('[LeagueAdmin] Processing match click:', {
+        matchId: e.detail.match._id,
+        homeTeam: e.detail.match.homeTeam,
+        awayTeam: e.detail.match.awayTeam,
+        attentionReason: e.detail.attentionReason,
+        match: e.detail.match // Full match object
+      });
+      
+      // Get teams from the selected league
+      const teams = selectedLeague.teams || [];
+      console.log('[LeagueAdmin] Available teams for match (count:', teams.length, '):', teams);
+      
+      // Clone match data to avoid modifying the original
+      const matchData = { ...e.detail.match };
+      
+      // Add attention reason if present
+      if (e.detail.attentionReason) {
+        console.log('[LeagueAdmin] Adding attention reason to match data:', e.detail.attentionReason);
+        matchData.attentionReason = e.detail.attentionReason;
+      }
+      
+      // Log before opening modal
+      console.log('[LeagueAdmin] Calling openMatchModal with:', {
+        matchData,
+        teamsCount: teams.length,
+        mode: 'edit'
+      });
+      
+      // Open the match modal
+      this.openMatchModal(matchData, teams, 'edit');
+      
+      // Stop propagation to prevent multiple handlers from firing
+      console.log('[LeagueAdmin] Stopping event propagation');
+      e.stopPropagation();
+      
+      // Prevent default to avoid any default link behavior
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      
+      console.log('[LeagueAdmin] Successfully processed match click');
+      
+    } catch (error) {
+      console.error('[LeagueAdmin] Error handling match click:', error);
+      this.showError('An error occurred while opening the match for editing.');
+    } finally {
+      console.groupEnd();
     }
   }
 

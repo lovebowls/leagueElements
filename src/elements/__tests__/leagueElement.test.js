@@ -52,56 +52,56 @@ describe('LeagueElement', () => {
       },
       matches: [
         {
-          key: 'match1',
+          _id: 'match1',
           date: '2023-01-01',
           homeTeam: { _id: 'Team A', name: 'Team Alpha' },
           awayTeam: { _id: 'Team B', name: 'Team Beta' },
           result: { homeScore: 5, awayScore: 3 }
         },
         {
-          key: 'match2',
+          _id: 'match2',
           date: '2023-01-01',
           homeTeam: { _id: 'Team C', name: 'Team Charlie' },
           awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: { homeScore: 4, awayScore: 2 }
         },
         {
-          key: 'match3',
+          _id: 'match3',
           date: '2023-01-08',
           homeTeam: { _id: 'Team A', name: 'Team Alpha' },
           awayTeam: { _id: 'Team C', name: 'Team Charlie' },
           result: { homeScore: 5, awayScore: 2 }
         },
         {
-          key: 'match4',
+          _id: 'match4',
           date: '2023-01-08',
           homeTeam: { _id: 'Team B', name: 'Team Beta' },
           awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: { homeScore: 4, awayScore: 2 }
         },
         {
-          key: 'match5',
+          _id: 'match5',
           date: '2023-01-15',
           homeTeam: { _id: 'Team A', name: 'Team Alpha' },
           awayTeam: { _id: 'Team D', name: 'Team Delta' },
           result: { homeScore: 5, awayScore: 1 }
         },
         {
-          key: 'match6',
+          _id: 'match6',
           date: '2023-01-15',
           homeTeam: { _id: 'Team B', name: 'Team Beta' },
           awayTeam: { _id: 'Team C', name: 'Team Charlie' },
           result: { homeScore: 5, awayScore: 3 }
         },
         {
-          key: 'matchFuture1',
+          _id: 'matchFuture1',
           date: '2023-05-01',
           homeTeam: { _id: 'Team A', name: 'Team Alpha' },
           awayTeam: { _id: 'Team B', name: 'Team Beta' },
           result: null
         },
         {
-          key: 'matchFuture2',
+          _id: 'matchFuture2',
           date: '2023-05-01',
           homeTeam: { _id: 'Team C', name: 'Team Charlie' },
           awayTeam: { _id: 'Team D', name: 'Team Delta' },
@@ -375,14 +375,14 @@ describe('LeagueElement', () => {
       // Add conflicting matches to test data
       element.data.matches.push(
         {
-          key: 'conflict1',
+          _id: 'conflict1',
           date: '2023-06-01',
           homeTeam: { _id: 'Team A', name: 'Team Alpha' },
           awayTeam: { _id: 'Team C', name: 'Team Charlie' },
           result: null
         },
         {
-          key: 'conflict2',
+          _id: 'conflict2',
           date: '2023-06-01',
           homeTeam: { _id: 'Team A', name: 'Team Alpha' },
           awayTeam: { _id: 'Team D', name: 'Team Delta' },
@@ -510,7 +510,7 @@ describe('LeagueElement', () => {
       const clickEvent = {
         detail: {
           type: 'matchClick',
-          match: { key: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
+          match: { _id: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
         }
       };
       
@@ -538,7 +538,7 @@ describe('LeagueElement', () => {
       const clickEvent = {
         detail: {
           type: 'matchClick',
-          match: { key: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } },
+          match: { _id: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } },
           attentionReason: 'needsScores'
         }
       };
@@ -547,7 +547,7 @@ describe('LeagueElement', () => {
       
       expect(element.openMatchModal).toHaveBeenCalledWith(
         expect.objectContaining({
-          key: 'match1',
+          _id: 'match1',
           attentionReason: 'needsScores'
         }),
         element.data.teams,
@@ -570,7 +570,7 @@ describe('LeagueElement', () => {
       const clickEvent = {
         detail: {
           type: 'matchClick',
-          match: { key: 'matchFuture1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
+          match: { _id: 'matchFuture1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
         }
       };
       
@@ -586,7 +586,7 @@ describe('LeagueElement', () => {
   
   describe('Match Modal Handling', () => {
     it('should open match modal correctly', () => {
-      const matchData = { key: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } };
+      const matchData = { _id: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } };
       const teams = ['Team A', 'Team B', 'Team C', 'Team D'];
       
       element.openMatchModal(matchData, teams, 'edit');
@@ -600,7 +600,7 @@ describe('LeagueElement', () => {
     
     it('should close match modal correctly', () => {
       element.matchModalOpen = true;
-      element.matchModalData = { key: 'match1' };
+      element.matchModalData = { _id: 'match1' };
       element.matchModalTeams = ['Team A', 'Team B'];
       element.matchModalMode = 'edit';
       
