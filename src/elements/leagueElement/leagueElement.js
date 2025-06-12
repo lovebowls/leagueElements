@@ -452,8 +452,8 @@ class LeagueElement extends HTMLElement {
     settingsIcons.forEach(icon => {
       icon.onclick = () => {
         this.dispatchEvent(new LeagueEvent({
-          type: 'editLeague',
-          league: this.data
+          type: 'requestAdminView',
+          leagueId: this.data?._id || this.data?.name
         }));
       };
     });

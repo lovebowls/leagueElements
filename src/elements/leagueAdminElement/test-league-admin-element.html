@@ -27,6 +27,7 @@
     import { generateMultipleTestLeagues, leagueToPlainObject } from '../../test-data/league-test-data.js';
 
     const el = document.getElementById('test-league-admin');
+    const STORAGE_KEY = 'lovebowlsTestHarnessData';
     
     // Set lovebowls teams data
     const lovebowlsTeamsData = [
@@ -44,20 +45,24 @@
     // Try to load league data from session storage or use default
     function loadLeagueData() {
       try {
-        const storedData = sessionStorage.getItem('testLeagueAdminData');
+        const storedData = sessionStorage.getItem(STORAGE_KEY);
         if (storedData) {
-          return JSON.parse(storedData);
+          // The stored data is an object { leagues: [...] }
+          return JSON.parse(storedData).leagues;
         }
       } catch (e) {
         console.error('Error loading data from session storage:', e);
       }
+      // On first load, defaultLeagues is just the array.
       return defaultLeagueData;
     }
     
     // Save league data to session storage
-    function saveLeagueData(data) {
+    function saveLeagueData(leaguesArray) {
       try {
-        sessionStorage.setItem('testLeagueAdminData', JSON.stringify(data));
+        // Wrap the array in an object
+        const dataToStore = { leagues: leaguesArray };
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
         logEvent('Data saved to session storage');
       } catch (e) {
         console.error('Error saving data to session storage:', e);
@@ -66,7 +71,19 @@
     
     // Initialize with saved or default data
     const initialData = loadLeagueData();
+    // The first time, we need to save the default data in the new format
+    if (!sessionStorage.getItem(STORAGE_KEY)) {
+      saveLeagueData(initialData);
+    }
     el.setAttribute('data', JSON.stringify(initialData));
+
+    // Check for a leagueId in the URL and set it as current
+    const urlParams = new URLSearchParams(window.location.search);
+    const leagueIdFromUrl = urlParams.get('leagueId');
+    if (leagueIdFromUrl) {
+      el.setAttribute('current-league-id', leagueIdFromUrl);
+      logEvent(`Set current league from URL: ${leagueIdFromUrl}`);
+    }
     
     // Handle Reset button
     document.getElementById('reset-data-btn').addEventListener('click', () => {
@@ -81,9 +98,9 @@
         const freshLeagues = generateMultipleTestLeagues(lovebowlsTeamsData, 3);
         const freshData = freshLeagues.map(league => leagueToPlainObject(league));
         
-        sessionStorage.removeItem('testLeagueAdminData');
-        el.setAttribute('data', JSON.stringify(freshData));
+        // This will overwrite the existing data
         saveLeagueData(freshData);
+        el.setAttribute('data', JSON.stringify(freshData));
         logEvent('Data reset to default with fresh test data and saved to session storage');
         
         // Log the generated data for debugging
@@ -162,6 +179,17 @@
       saveLeagueData(updatedLeagues);
       el.setAttribute('data', JSON.stringify(updatedLeagues));
       logEvent(`League with ID ${leagueId} deleted`);
+    });
+
+    // Handle league view events
+    el.addEventListener('requestViewLeagueTable', (e) => {
+      const { leagueId, leagueName } = e.detail;
+      console.log(`[TestPage] requestViewLeagueTable received for ID: ${leagueId}, Name: ${leagueName}`);
+      logEvent(`Request to view league: ${leagueName} (ID: ${leagueId})`);
+
+      // Data is already synchronized in sessionStorage. We just need to navigate.
+      // Pass the leagueId as a URL parameter.
+      window.location.href = `../leagueElement/test-league-element.html?leagueId=${encodeURIComponent(leagueId)}`;
     });
     
     // Log all events for debugging

@@ -27,6 +27,7 @@
     import { generateTestLeagueData, leagueToPlainObject } from '../../test-data/league-test-data.js';
     
     const el = document.getElementById('test-league');
+    const STORAGE_KEY = 'lovebowlsTestHarnessData';
     
     // Define lovebowls team data using standardized {_id, name} model
     const lovebowlsTeamsData = [
@@ -44,9 +45,16 @@
     // Try to load league data from session storage or use default
     function loadLeagueData() {
       try {
-        const storedData = sessionStorage.getItem('testLeagueData');
-        if (storedData) {
-          return JSON.parse(storedData);
+        const urlParams = new URLSearchParams(window.location.search);
+        const leagueId = urlParams.get('leagueId');
+
+        const storedData = sessionStorage.getItem(STORAGE_KEY);
+        if (storedData && leagueId) {
+          const allLeagues = JSON.parse(storedData).leagues;
+          const league = allLeagues.find(l => (l._id || l.name) === leagueId);
+          if (league) {
+            return league;
+          }
         }
       } catch (e) {
         console.error('Error loading data from session storage:', e);
@@ -57,8 +65,18 @@
     // Save league data to session storage
     function saveLeagueData(data) {
       try {
-        sessionStorage.setItem('testLeagueData', JSON.stringify(data));
-        logEvent('Data saved to session storage');
+        const allLeaguesData = sessionStorage.getItem(STORAGE_KEY);
+        if (allLeaguesData) {
+          const allLeagues = JSON.parse(allLeaguesData).leagues;
+          const updatedAllLeagues = allLeagues.map(league => {
+            if (league._id === data._id || league.name === data.name) {
+              return data; // replace with updated data
+            }
+            return league;
+          });
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ leagues: updatedAllLeagues }));
+          logEvent('Updated league list saved to session storage (lovebowlsTestHarnessData)');
+        }
       } catch (e) {
         console.error('Error saving data to session storage:', e);
       }
@@ -110,9 +128,14 @@
       // Generate fresh test data when resetting, including lovebowls teams
       const freshLeague = generateTestLeagueData(lovebowlsTeamsData, 3);
       const freshData = leagueToPlainObject(freshLeague);
-      sessionStorage.removeItem('testLeagueData');
+      
+      // Update the component with the new default data for this league
       el.setAttribute('data', JSON.stringify(freshData));
-      logEvent('Data reset to default with fresh test data');
+      
+      // Also update this league in the main session storage
+      saveLeagueData(freshData);
+
+      logEvent('Data for this league reset to default and saved');
     });
     
     // Listen for league update events from leagueElement.js
@@ -142,6 +165,16 @@
       
       // Log all league-events for debugging
       logEvent(`Event: league-event - ${JSON.stringify(e.detail)}`);
+    });
+
+    // Handle navigation back to the admin page
+    el.addEventListener('league-event', (e) => {
+      if (e.detail && e.detail.type === 'requestAdminView' && e.detail.leagueId) {
+        const leagueId = e.detail.leagueId;
+        logEvent(`Request to return to admin view for league: ${leagueId}`);
+        // Navigate back to the admin test page, passing the leagueId
+        window.location.href = `../leagueAdminElement/test-league-admin-element.html?leagueId=${encodeURIComponent(leagueId)}`;
+      }
     });
 
     // Update is-mobile on window resize
