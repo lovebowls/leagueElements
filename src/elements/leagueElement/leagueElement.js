@@ -1013,7 +1013,7 @@ class LeagueElement extends HTMLElement {
           };
         }
         // Use openMatchModal instead of event
-        const teams = matrixData.teams;
+        const teams = this._getTeamsFromLeagueData();
         this.openMatchModal(matchObject, teams, matchObject.key && !matchObject.key.startsWith('temp_') ? 'edit' : 'new');
       };
     });
@@ -1802,7 +1802,7 @@ class LeagueElement extends HTMLElement {
   /**
    * Open the match modal dialog.
    * @param {Object} matchData
-   * @param {Array<string>} teams - Array of team IDs
+   * @param {Array<Object>} teams - Array of team objects ({_id, name}) for dropdowns.
    * @param {'edit'|'new'} mode
    */
   openMatchModal(matchData, teams, mode = 'edit') {
