@@ -509,6 +509,10 @@ class LeagueAdminElement extends HTMLElement {
       const leagueId = league._id;
       li.setAttribute('data-id', leagueId);
       
+      if (league._id === this._selectedLeagueId) {
+        this._createAndAppendLeagueActions(actionsContainer, league._id);
+      }
+      
       // Add click handler
       li.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -552,30 +556,22 @@ class LeagueAdminElement extends HTMLElement {
     if (selectedLeague) {
       // Use the _id as the identifier
       const effectiveId = selectedLeague._id;
-      console.log(this.LOG_PREFIX + `_handleLeagueSelect: Found league:`, selectedLeague);
-      console.log(this.LOG_PREFIX + `Using effective ID: ${effectiveId}`);
       
       // Update the selected league ID
       this._selectedLeagueId = effectiveId;
       
+      this._renderLeagueList();
+
       // Update the UI to show the selected league
       // First, remove selected class from all league items
       const allLeagueItems = this.shadow.querySelectorAll('.league-list-item');
       allLeagueItems.forEach(item => item.classList.remove('selected'));
       
       // Find and select the clicked league item
-      const newSelectedElement = Array.from(allLeagueItems).find(item => {
-        const itemId = item.getAttribute('data-id');
-        return itemId === effectiveId;
-      });
-      
+      const newSelectedElement = this.shadow.querySelector(`.league-list-item[data-id="${effectiveId}"]`);
       if (newSelectedElement) {
         newSelectedElement.classList.add('selected');
-        // Scroll the selected item into view
         newSelectedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        console.log(this.LOG_PREFIX + `_handleLeagueSelect: Updated UI for selected league ${effectiveId}`);
-      } else {
-        console.warn(this.LOG_PREFIX + `_handleLeagueSelect: Could not find DOM element for selected league ${effectiveId}`);
       }
       
       // Show the league-specific panels
@@ -1067,7 +1063,7 @@ class LeagueAdminElement extends HTMLElement {
       <div id="team-modal-error" class="form-error-shared" style="display: none; margin-bottom: var(--lae-padding-s); color: var(--lae-text-color-error); background-color: var(--lae-background-color-error); padding: var(--lae-padding-s); border: 1px solid var(--lae-border-color-error); border-radius: var(--lae-border-radius-standard);"></div>
       
       <div class="form-group-shared">
-        <label class="form-label-shared">
+        <label for="useExistingTeamCheckbox" class="form-label-shared" id="useExistingTeamLabel">
           <input type="checkbox" id="useExistingTeamCheckbox" ${isLovebowlsTeam ? 'checked' : ''}>
           ${checkboxLabel}
         </label>
@@ -1094,6 +1090,7 @@ class LeagueAdminElement extends HTMLElement {
     `;
 
     const useExistingTeamCheckbox = modalBody.querySelector('#useExistingTeamCheckbox');
+    const useExistingTeamLabel = modalBody.querySelector('#useExistingTeamLabel');
     const existingTeamSelectGroup = modalBody.querySelector('#existingTeamSelectGroup');
     const newTeamNameGroup = modalBody.querySelector('#newTeamNameGroup');
     const teamNameInput = modalBody.querySelector('#teamName');
@@ -1129,7 +1126,15 @@ class LeagueAdminElement extends HTMLElement {
       if (!filteredTeams || filteredTeams.length === 0) {
         // Disable checkbox if no Lovebowls teams are available
         useExistingTeamCheckbox.disabled = true;
-        useExistingTeamCheckbox.title = filteredTeams.length === 0 ? "All lovebowls teams are already in this league" : "No lovebowls teams available";
+        const tooltip = existingTeams.length === 0 ? "No lovebowls teams available" : "All lovebowls teams are already in this league";
+        useExistingTeamCheckbox.title = tooltip;
+
+        if (useExistingTeamLabel) {
+            useExistingTeamLabel.title = tooltip;
+            useExistingTeamLabel.style.cursor = 'not-allowed';
+            useExistingTeamLabel.style.opacity = '0.6';
+        }
+
         useExistingTeamCheckbox.checked = false;
         existingTeamSelectGroup.style.display = 'none';
         newTeamNameGroup.style.display = 'block';
