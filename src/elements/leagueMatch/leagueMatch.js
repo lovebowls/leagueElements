@@ -590,6 +590,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     
     isPlayedCheckbox.addEventListener('change', (e) => {
       const isChecked = e.target.checked;
+      // Preserve the date value before re-render
+      const dateInput = this.shadow.querySelector('#matchDate');
+      if (dateInput) {
+        this._match = this._match || {};
+        this._match.date = dateInput.value || null;
+      }
 
       if (!this._match) this._match = {}; // Ensure _match exists
       if (!this._match.result) this._match.result = {}; // Ensure _match.result exists
