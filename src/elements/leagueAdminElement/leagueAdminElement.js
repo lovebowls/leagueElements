@@ -1229,13 +1229,16 @@ class LeagueAdminElement extends HTMLElement {
         const oldTeamId = this._teamBeingEdited._id;
         const isTeamIdChanging = existingTeamIndex !== -1 && oldTeamId !== teamId;
         
+        // Deep copy the selected league to ensure we have the most up-to-date version
+        const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
+
         if (existingTeamIndex !== -1) {
           // Update the existing team
           updatedTeams[existingTeamIndex] = teamData;
           
           // If team ID is changing, update all match references
-          if (isTeamIdChanging && Array.isArray(this._leagues[leagueIndex].matches)) {
-            const updatedMatches = this._leagues[leagueIndex].matches.map(match => {
+          if (isTeamIdChanging && Array.isArray(updatedLeague.matches)) {
+            const updatedMatches = updatedLeague.matches.map(match => {
               if (match.homeTeam?._id === oldTeamId) {
                 return {
                   ...match,
@@ -1251,30 +1254,24 @@ class LeagueAdminElement extends HTMLElement {
               return match;
             });
             
-            // Update the league with the modified matches
-            this._leagues[leagueIndex] = {
-              ...this._leagues[leagueIndex],
-              teams: updatedTeams,
-              matches: updatedMatches
-            };
+            // Update the league with the modified matches and teams
+            updatedLeague.teams = updatedTeams;
+            updatedLeague.matches = updatedMatches;
           } else {
             // No ID change, just update teams
-            this._leagues[leagueIndex] = {
-              ...this._leagues[leagueIndex],
-              teams: updatedTeams
-            };
+            updatedLeague.teams = updatedTeams;
           }
         } else {
           // Add the new team
-          this._leagues[leagueIndex] = {
-            ...this._leagues[leagueIndex],
-            teams: [...updatedTeams, teamData]
-          };
+          updatedLeague.teams = [...updatedTeams, teamData];
         }
 
+        // Update the main _leagues array and dispatch the event
+        this._leagues[leagueIndex] = updatedLeague;
+        
         // Dispatch event to save the updated league
         this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', {
-          leagueData: this._leagues[leagueIndex]
+          leagueData: updatedLeague
         }));
       }
     }

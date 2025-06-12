@@ -431,7 +431,14 @@ class LeagueElement extends HTMLElement {
         }
         
         this.data = updatedLeagueData; // Update internal state
-        this.dispatchEvent(new LeagueEvent({ type: 'requestUpdateLeague', league: this.data }));
+        
+        // Before dispatching, create a clean copy of the data without the 'table' property
+        const dataToDispatch = { ...this.data };
+        if (dataToDispatch.table) {
+          delete dataToDispatch.table;
+        }
+
+        this.dispatchEvent(new LeagueEvent({ type: 'requestUpdateLeague', league: dataToDispatch }));
         this.loadLeagueData(this.data); // Reprocess and re-render
         this.closeMatchModal();
       });

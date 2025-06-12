@@ -38,28 +38,37 @@
       { _id: "lb-guid-e345", name: "Lovebowls Club Epsilon" }
     ];
     
-    // Use our new test data generator with lovebowls teams
-    const defaultLeague = generateTestLeagueData(lovebowlsTeamsData, 3);
-    const defaultLeagueData = leagueToPlainObject(defaultLeague);
-    
-    // Try to load league data from session storage or use default
+    // This page should not generate its own default data.
+    // It should ONLY display data passed to it from the admin harness.
+    // We remove the generation of defaultLeagueData.
+
+    // Try to load league data from session storage. If it fails, it's an error.
     function loadLeagueData() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const leagueId = urlParams.get('leagueId');
 
+        if (!leagueId) {
+          throw new Error("No leagueId provided in the URL. Please navigate from the admin page.");
+        }
+
         const storedData = sessionStorage.getItem(STORAGE_KEY);
-        if (storedData && leagueId) {
+        if (storedData) {
           const allLeagues = JSON.parse(storedData).leagues;
           const league = allLeagues.find(l => (l._id || l.name) === leagueId);
           if (league) {
             return league;
+          } else {
+            throw new Error(`League with ID "${leagueId}" not found in sessionStorage.`);
           }
+        } else {
+          throw new Error("No data found in sessionStorage. Please start from the admin page.");
         }
       } catch (e) {
         console.error('Error loading data from session storage:', e);
+        // Return null to indicate failure
+        return null;
       }
-      return defaultLeagueData;
     }
     
     // Save league data to session storage
@@ -121,21 +130,26 @@
     
     // Initialize with saved or default data - AFTER setting lovebowls-teams
     const initialData = loadLeagueData();
-    el.setAttribute('data', JSON.stringify(initialData));
+
+    if (initialData) {
+      el.setAttribute('data', JSON.stringify(initialData));
+    } else {
+      // Handle the error case where data could not be loaded
+      document.body.innerHTML = `
+        <h1 style="color: red;">Error Loading League</h1>
+        <p>Could not load league data. This can happen if you navigated to this page directly.</p>
+        <p>Please <a href="../leagueAdminElement/test-league-admin-element.html">return to the Admin Page</a> and select a league to view.</p>
+      `;
+      // Stop further script execution
+      throw new Error("Stopping script execution due to data load failure.");
+    }
     
     // Handle Reset button
     document.getElementById('reset-data-btn').addEventListener('click', () => {
-      // Generate fresh test data when resetting, including lovebowls teams
-      const freshLeague = generateTestLeagueData(lovebowlsTeamsData, 3);
-      const freshData = leagueToPlainObject(freshLeague);
-      
-      // Update the component with the new default data for this league
-      el.setAttribute('data', JSON.stringify(freshData));
-      
-      // Also update this league in the main session storage
-      saveLeagueData(freshData);
-
-      logEvent('Data for this league reset to default and saved');
+      // This button is now problematic as it generates its own data.
+      // For now, we'll disable it to prevent creating inconsistent data.
+      logEvent('Reset button is disabled on this page to maintain data integrity.');
+      alert('Resetting a single league from this view is not supported in the test harness to avoid data inconsistencies.');
     });
     
     // Listen for league update events from leagueElement.js
