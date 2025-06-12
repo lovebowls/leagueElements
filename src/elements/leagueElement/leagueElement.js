@@ -1002,7 +1002,8 @@ class LeagueElement extends HTMLElement {
         if (homeTeamId === awayTeamId) return;
         const matrixData = this._prepareMatrixData();
         if (!matrixData || !matrixData.matrix[homeTeamId] || !matrixData.matrix[homeTeamId][awayTeamId]) return;
-        let matchObject = matrixData.matrix[homeTeamId][awayTeamId].match;
+        const cellData = matrixData.matrix[homeTeamId][awayTeamId];
+        let matchObject = cellData.match;
         if (!matchObject) {
           matchObject = {
             homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
@@ -1014,7 +1015,9 @@ class LeagueElement extends HTMLElement {
         }
         // Use openMatchModal instead of event
         const teams = this._getTeamsFromLeagueData();
-        this.openMatchModal(matchObject, teams, matchObject.key && !matchObject.key.startsWith('temp_') ? 'edit' : 'new');
+        // Determine mode: new only for empty cells, edit for scheduled or played
+        const mode = cellData.status === 'none' ? 'new' : 'edit';
+        this.openMatchModal(matchObject, teams, mode);
       };
     });
   }
