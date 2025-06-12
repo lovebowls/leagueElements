@@ -211,9 +211,12 @@ export const BASE_STYLES = `
       }
       .matrix-team-name-x {
         transform: rotate(-45deg);
-        white-space: nowrap;
-        font-size: var(--le-font-size-small); 
+        transform-origin: center center;
         display: inline-block;
+        white-space: normal;
+        word-break: break-word;
+        hyphens: auto;
+        font-size: var(--le-font-size-small);
       }
       .matrix-team-name-y {
         text-align: right;
