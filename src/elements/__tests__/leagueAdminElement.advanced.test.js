@@ -2,6 +2,22 @@
 import LeagueAdminElement from '../leagueAdminElement/leagueAdminElement.js';
 import { generateTestLeagueData } from '../../test-data/league-test-data.js';
 import { jest } from '@jest/globals';
+import Swal from 'sweetalert2';
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
 // Define the event class that was missing
 class LeagueAdminElementEvent extends CustomEvent {
@@ -242,7 +258,7 @@ describe('LeagueAdminElement - Advanced Features', () => {
       expect(element._renderTeamsList).toHaveBeenCalled();
     });
     
-    test('should remove a team', () => {
+    test('should remove a team', async () => {
       // Setup mock team to remove
       const mockTeam = { _id: 'team1', name: 'Team 1' };
       
@@ -259,15 +275,24 @@ describe('LeagueAdminElement - Advanced Features', () => {
       element._selectedLeagueId = 'league1';
       element._renderTeamsList = jest.fn();
       
-      // Create a spy for the event dispatch
-      const dispatchSpy = jest.spyOn(element, 'dispatchEvent');
+      // Mock Swal.fire to return a resolved promise
+      Swal.fire = jest.fn().mockResolvedValue({ isConfirmed: true });
       
       // Call the remove team method
       element._handleRemoveTeam(mockTeam);
+      await Promise.resolve();
       
-      // Check the event dispatch with a looser matcher
-      expect(dispatchSpy).toHaveBeenCalled();
-            
+      // Verify the event was dispatched
+      expect(element.dispatchEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'requestRemoveTeam',
+          detail: expect.objectContaining({
+            leagueId: 'league1',
+            teamId: 'team1'
+          })
+        })
+      );
+      
       // Should update local data immediately
       expect(element._leagues[0].teams.length).toBe(1);
       expect(element._leagues[0].teams[0]._id).toBe('team2');
@@ -331,15 +356,18 @@ describe('LeagueAdminElement - Advanced Features', () => {
       expect(element._hideGlobalLeagueMenu).toHaveBeenCalled();
     });
     
-    test('should handle deleting a league', () => {
+    test('should handle deleting a league', async () => {
       // Setup league to delete
       element._currentLeagueIdForMenu = testLeagueData[0]._id;
       
       // Mock methods
       element._hideGlobalLeagueMenu = jest.fn();
+      // Mock confirmation dialog
+      Swal.fire = jest.fn().mockResolvedValue({ isConfirmed: true });
       
       // Call the delete league handler
       element._handleDeleteLeague();
+      await Promise.resolve();
       
       // Verify dispatchEvent was called with the correct event
       expect(element.dispatchEvent).toHaveBeenCalledWith(

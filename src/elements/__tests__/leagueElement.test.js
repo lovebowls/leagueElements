@@ -2,6 +2,7 @@
 import LeagueElement from '../leagueElement/leagueElement.js';
 import { jest } from '@jest/globals';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
+import { League } from '@lovebowls/leaguejs';
 
 // Mock the dependencies
 jest.mock('../shared-styles.js', () => ({
@@ -198,37 +199,25 @@ describe('LeagueElement', () => {
   });
 
   describe('Data Loading and Processing', () => {
-    it('should load league data from string', () => {
+    it('should convert data to League instance', () => {
       const dataString = JSON.stringify(mockLeagueData);
-      
-      element.loadLeagueData(dataString);
-      
-      expect(element.data).toEqual(mockLeagueData);
+      element._parseAndLoadData(dataString);
+      expect(element.data).toBeInstanceOf(League);
+      expect(element.data.name).toBe(mockLeagueData.name);
+      expect(element.data.table).toBeDefined();
       expect(element.dispatchEvent).toHaveBeenCalledWith(
         expect.objectContaining({ 
-          detail: { data: mockLeagueData }
+          detail: { data: expect.any(League) }
         })
       );
       expect(element.render).toHaveBeenCalled();
     });
-    
-    it('should load league data from object', () => {
-      element.loadLeagueData(mockLeagueData);
-      
-      expect(element.data).toEqual(mockLeagueData);
-      expect(element.dispatchEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ 
-          detail: { data: mockLeagueData }
-        })
-      );
-      expect(element.render).toHaveBeenCalled();
-    });
-    
+
     it('should handle invalid data format', () => {
       const invalidData = 'not-json-data';
       element.showError = jest.fn();
       
-      element.loadLeagueData(invalidData);
+      element._parseAndLoadData(invalidData);
       
       expect(element.showError).toHaveBeenCalled();
       expect(element.dispatchEvent).toHaveBeenCalledWith(

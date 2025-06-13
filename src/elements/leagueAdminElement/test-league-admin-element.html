@@ -24,7 +24,7 @@
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../../../dist/browser/leagueAdminElement.js';
-    import { generateMultipleTestLeagues, leagueToPlainObject } from '../../test-data/league-test-data.js';
+    import { generateMultipleTestLeagues } from '../../test-data/league-test-data.js';
 
     const el = document.getElementById('test-league-admin');
     const STORAGE_KEY = 'lovebowlsTestHarnessData';
@@ -40,7 +40,6 @@
     
     // Generate default league data using our test data generator with lovebowls teams
     const defaultLeagues = generateMultipleTestLeagues(lovebowlsTeamsData, 3);
-    const defaultLeagueData = defaultLeagues.map(league => leagueToPlainObject(league));
     
     // Try to load league data from session storage or use default
     function loadLeagueData() {
@@ -54,7 +53,7 @@
         console.error('Error loading data from session storage:', e);
       }
       // On first load, defaultLeagues is just the array.
-      return defaultLeagueData;
+      return defaultLeagues;
     }
     
     // Save league data to session storage
@@ -96,11 +95,10 @@
         
         // Generate fresh test data when resetting, including lovebowls teams
         const freshLeagues = generateMultipleTestLeagues(lovebowlsTeamsData, 3);
-        const freshData = freshLeagues.map(league => leagueToPlainObject(league));
         
         // This will overwrite the existing data
-        saveLeagueData(freshData);
-        el.setAttribute('data', JSON.stringify(freshData));
+        saveLeagueData(freshLeagues);
+        el.setAttribute('data', JSON.stringify(freshLeagues));
         logEvent('Data reset to default with fresh test data and saved to session storage');
         
         // Log the generated data for debugging

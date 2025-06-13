@@ -17,6 +17,7 @@ import '../leagueCalendar/LeagueCalendar.js';
 
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
+import { League } from '@lovebowls/leaguejs';
 
 class LeagueElement extends HTMLElement {
 
@@ -52,7 +53,7 @@ class LeagueElement extends HTMLElement {
   connectedCallback() {
     this.data = this.getAttribute('data');
     if (this.data) {
-      this.loadLeagueData(this.data);
+      this._parseAndLoadData(this.data);
     }
   }
 
@@ -70,7 +71,7 @@ class LeagueElement extends HTMLElement {
     } else if (name === 'data') {
       this.data = newValue;
       if (newValue) {
-        this.loadLeagueData(newValue);
+        this._parseAndLoadData(newValue);
       } else {
         this.showError('data is required');
         this.dispatchEvent(new LeagueEvent({data: '',error: 'data is required'}));
@@ -92,54 +93,37 @@ class LeagueElement extends HTMLElement {
     }
   }
 
-  async loadLeagueData(data) {
+  async _parseAndLoadData(data) {
     try {
       // Parse data if it's a string
-      if (typeof data === 'string') {
-        try {
-          this.data = JSON.parse(data);
-        } catch (e) {
-          // If parsing fails, use the string as is (or handle as error)
-          // For now, we'll assume if it's a string it should be parseable or it's an error state
-          this.showError('Invalid data format: Expected JSON object or stringified JSON.');
-          this.dispatchEvent(new LeagueEvent({ data: '', error: 'Invalid data format' }));
-          return;
-        }
-      } else {
-        // If it's already an object, use it directly
-        this.data = data;
-      }
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
 
-      // Basic validation of the data structure needed for trends
-      if (!this.data || typeof this.data !== 'object' || !this.data.table || !Array.isArray(this.data.table.leagueData) || !Array.isArray(this.data.matches)) {
-        // this.showError('League data is missing or incomplete for trends analysis.');
-        // Don't fully block rendering, but trends might be empty or show an error later
-        console.warn('League data is missing or incomplete for trends analysis. Trends tab might not display correctly.');
-      } else {
-        // Proceed with data preparation for trends if essential data is present
-        this.ensureTeamColors(); 
-        this._preparePointsOverTimeData();
+      // Convert to League instance
+      this.data = new League(parsedData);
+      
+      // Ensure table data is available
+      this.data.table = this.data.getLeagueTable();
 
-        // Initialize selectedTeamsForGraph with top 3 teams if possible
-        this.selectedTeamsForGraph.clear(); // Clear previous selections
-        if (this.data.table.leagueData.length > 0) {
-          const sortedTeams = [...this.data.table.leagueData].sort((a, b) => b.points - a.points);
-          for (let i = 0; i < Math.min(sortedTeams.length, 3); i++) {
-            this.selectedTeamsForGraph.add(sortedTeams[i].teamName);
-          }
+      // Initialize selectedTeamsForGraph with top 3 teams
+      this.selectedTeamsForGraph.clear();
+      if (this.data.table.leagueData.length > 0) {
+        const sortedTeams = [...this.data.table.leagueData].sort((a, b) => b.points - a.points);
+        for (let i = 0; i < Math.min(sortedTeams.length, 3); i++) {
+          this.selectedTeamsForGraph.add(sortedTeams[i].teamName);
         }
       }
       
+      // Prepare data for trends view
+      this.ensureTeamColors();
+      this._preparePointsOverTimeData();
+      
       this.render();
-      // Dispatch success event
       this.dispatchEvent(new LeagueEvent({data: this.data}));
     } catch (error) {
       const errorMessage = 'Failed to load league data';
       this.showError(errorMessage);
       console.error('Error loading league:', error);
-      
-      // Dispatch error event
-      this.dispatchEvent(new LeagueEvent({data,error: errorMessage}));
+      this.dispatchEvent(new LeagueEvent({data, error: errorMessage}));
     }
   }
 
@@ -152,34 +136,17 @@ class LeagueElement extends HTMLElement {
 
   // Helper method to replace placeholders in template
   _fillTemplate(template) {
-    // Check if paging controls should be visible
-    // const showFixturesPaging = this.upcomingFixturesPage > 0 || this._upcomingFixturesHasNext(); // Moved to LeagueMatchesUpcoming
-    // const showAttentionPaging = this.attentionMatchesPage > 0 || this._attentionMatchesHasNext(); // Moved to LeagueMatchesAttention
     
     const currentTitle = (this.data && this.data.name ? this.data.name : 'League Table') || 'League Table';
-    // const currentFilterDateISO = this.activeCalendarFilterDate 
-    //     ? this.activeCalendarFilterDate.toISOString().split('T')[0] 
-    //     : null; // This is not used in the template directly
 
     return template
       .replace(/\{\{title\}\}/g, currentTitle)
       .replace('{{tableRows}}', this.tableRows)
-      // .replace('{{upcomingFixtures}}', this.renderUpcomingFixtures()) // Handled by LeagueMatchesUpcoming element
-      // .replace('{{fixturesPrevDisabled}}', this.upcomingFixturesPage === 0 ? 'disabled' : '')
-      // .replace('{{fixturesNextDisabled}}', this._upcomingFixturesHasNext() ? '' : 'disabled')
-      // .replace('{{showFixturesPaging}}', showFixturesPaging ? '' : 'style="display: none;"')
-      // .replace('{{calendar}}', this.renderCalendar()) // Moved to LeagueMatchesUpcoming
-      // .replace('{{calendarFilter}}', this.renderCalendarFilter()) // Moved to LeagueMatchesUpcoming
-      // .replace('{{attentionMatches}}', this.renderMatchesRequiringAttention()) // Handled by LeagueMatchesAttention element
-      // .replace('{{attentionPrevDisabled}}', this.attentionMatchesPage === 0 ? 'disabled' : '')
-      // .replace('{{attentionNextDisabled}}', this._attentionMatchesHasNext() ? '' : 'disabled')
-      // .replace('{{showAttentionPaging}}', showAttentionPaging ? '' : 'style="display: none;"')
       .replace('{{matrixView}}', this.activeView === 'matrix' ? this.renderMatrix() : '')
       .replace('{{trendsViewContent}}', this.activeView === 'trends' ? this.renderTrendsViewContent() : '')
       .replace('{{overallSelected}}', this.tableFilter === 'overall' ? 'selected' : '')
       .replace('{{homeSelected}}', this.tableFilter === 'home' ? 'selected' : '')
       .replace('{{awaySelected}}', this.tableFilter === 'away' ? 'selected' : '');
-      // REMOVED .replace('{{filterDate}}', currentFilterDateISO);
   }
 
   render() {
@@ -397,18 +364,6 @@ class LeagueElement extends HTMLElement {
         modal.attentionReason = this.matchModalData.attentionReason;
       }
 
-      // ADDED: Debug logging
-      console.log('[LeagueElement] Match modal created with isMobile:', modal.isMobile, 
-                  'parent is-mobile attribute:', this._isMobile);
-
-      // ADDED CONSOLE LOGS - Check properties after assignment to modal instance
-      console.log('[LeagueElement - render] Modal instance properties after assignment:');
-      console.log('[LeagueElement - render] modal.match:', modal.match);
-      console.log('[LeagueElement - render] modal.teams:', modal.teams);
-      console.log('[LeagueElement - render] modal.lovebowlsTeams:', modal.lovebowlsTeams);
-      console.log('[LeagueElement - render] modal.mode:', modal.mode);
-      console.log('[LeagueElement - render] modal.open:', modal.open);
-
       modal.addEventListener('match-save', (e) => {
         const savedMatch = e.detail.match;
         if (!this.data || !this.data.matches) {
@@ -426,7 +381,7 @@ class LeagueElement extends HTMLElement {
           updatedLeagueData.matches[matchIndex] = savedMatch;
         } else {
           // New match (could be from matrix with a temp key, or a completely new match if UI allowed)
-          // The parent/handler of requestUpdateLeague will be responsible for assigning a final key if temp
+          // The parent/handler of requestSaveLeague will be responsible for assigning a final key if temp
           updatedLeagueData.matches.push(savedMatch);
         }
         
@@ -438,8 +393,8 @@ class LeagueElement extends HTMLElement {
           delete dataToDispatch.table;
         }
 
-        this.dispatchEvent(new LeagueEvent({ type: 'requestUpdateLeague', league: dataToDispatch }));
-        this.loadLeagueData(this.data); // Reprocess and re-render
+        this.dispatchEvent(new LeagueEvent({ type: 'requestSaveLeague', league: dataToDispatch }));
+        this._parseAndLoadData(this.data); // Reprocess and re-render
         this.closeMatchModal();
       });
       modal.addEventListener('match-cancel', () => {

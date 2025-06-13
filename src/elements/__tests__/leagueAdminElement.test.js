@@ -105,7 +105,7 @@ describe('LeagueAdminElement', () => {
     expect(element._selectedLeagueId).toBe(leagueId);
     expect(eventSpy).toHaveBeenCalledWith(expect.objectContaining({
       type: 'leagueSelected',
-      detail: { leagueId }
+      detail: expect.objectContaining({ leagueId })
     }));
   });
 

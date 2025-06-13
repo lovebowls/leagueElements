@@ -24,7 +24,7 @@
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../../../dist/browser/leagueElement.js';
-    import { generateTestLeagueData, leagueToPlainObject } from '../../test-data/league-test-data.js';
+    import { generateTestLeagueData } from '../../test-data/league-test-data.js';
     
     const el = document.getElementById('test-league');
     const STORAGE_KEY = 'lovebowlsTestHarnessData';
@@ -39,9 +39,7 @@
     ];
     
     // This page should not generate its own default data.
-    // It should ONLY display data passed to it from the admin harness.
-    // We remove the generation of defaultLeagueData.
-
+    // It should ONLY display data passed to it.
     // Try to load league data from session storage. If it fails, it's an error.
     function loadLeagueData() {
       try {

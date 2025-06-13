@@ -29,7 +29,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     this._match = null;
     this._teams = [];
     this._open = false;
-    console.log('[LeagueMatch] constructor, _open initialized to:', this._open);
     this._isMobile = false;
     this._mode = 'new';
     this._error = '';
@@ -58,14 +57,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         // Use existing rink results from the match if they are valid for the current number of rinks
         if (this._match.result.rinkResults.length === this.defaultRinks) {
             this._rinkResults = JSON.parse(JSON.stringify(this._match.result.rinkResults));
-            console.log('[LeagueMatch] Using existing rink results from match:', this._rinkResults);
         } else {
             console.warn('[LeagueMatch] Mismatch between saved rinks and default rinks. Re-initializing.');
             this._rinkResults = this._generateDefaultRinkResults();
         }
       } else {
         // Initialize with default values or distribute existing simple scores
-        console.log('[LeagueMatch] Initializing new rink results.');
         this._rinkResults = this._generateDefaultRinkResults();
       }
     } else {
@@ -106,7 +103,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         for (let i = 0; i < awayRemainder; i++) {
           if (results[i]) results[i].awayShots++;
         }
-        console.log('[LeagueMatch] Distributed simple scores to new rink results:', results);
       }
     }
     return results;
@@ -121,13 +117,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     this._leagueSettings = value && typeof value === 'object' ? value : {};
     const newSettingsString = JSON.stringify(this._leagueSettings);
 
-    console.log('[LeagueMatch] leagueSettings set:', JSON.parse(newSettingsString));
-
     // Internal convenience properties for rink/match points have been removed.
     // The component will now use getters that read directly from _leagueSettings.
 
     if (newSettingsString !== oldSettingsString) {
-      console.log('[LeagueMatch] League settings changed. Re-evaluating rink results and rendering.');
       // If rink points are enabled and match data exists, ensure rink results are consistent
       if (this.rinkPointsEnabled && this._match) {
         // Check if defaultRinks changed or if rinkPointsEnabled status itself changed
@@ -187,7 +180,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   set open(value) {
     const Rerender = this._open !== !!value;
     this._open = !!value;
-    console.log('[LeagueMatch] set open property. New _open value:', this._open, 'Rerender needed:', Rerender);
     this.setAttribute('open', this._open.toString());
     if (Rerender) {
         this.render();
@@ -201,7 +193,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     }
   }
   get open() {
-    console.log('[LeagueMatch] get open property, returning:', this._open);
     return this._open;
   }
 
@@ -211,7 +202,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   set isMobile(value) {
     const oldValue = this._isMobile;
     this._isMobile = !!value;
-    console.log('[LeagueMatch] set isMobile property called with:', value, 'converted to:', this._isMobile, 'old value was:', oldValue);
     this.setAttribute('is-mobile', this._isMobile ? 'true' : 'false');
     if (oldValue !== this._isMobile) {
       this.render();
@@ -240,7 +230,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   get attentionReason() { return this._attentionReason; }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(`[LeagueMatch] attributeChangedCallback: ${name} changed from ${oldValue} to ${newValue}`);
     if (oldValue === newValue) return;
 
     let shouldRender = false;
@@ -248,17 +237,11 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       const newOpenState = newValue !== null && newValue !== 'false';
       if (this._open !== newOpenState) {
         this._open = newOpenState;
-        console.log('[LeagueMatch] attributeChangedCallback for open. New _open value:', this._open);
         shouldRender = true; 
       }
     }
     if (name === 'is-mobile') {
       const newIsMobileState = newValue !== null && newValue !== 'false';
-      console.log('[LeagueMatch] attributeChangedCallback for is-mobile:', 
-                 'oldValue:', oldValue, 
-                 'newValue:', newValue, 
-                 'converted to boolean:', newIsMobileState, 
-                 'current _isMobile:', this._isMobile);
       if (this._isMobile !== newIsMobileState) {
         this._isMobile = newIsMobileState;
         shouldRender = true;
@@ -304,15 +287,11 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
    * @private
    */
   _onOk() {
-    console.log('[LeagueMatch] _onOk called', { rinkPointsEnabled: this.rinkPointsEnabled });
-    
     // Get form values
     const homeTeamId = this.shadow.getElementById('homeTeam')?.value;
     const awayTeamId = this.shadow.getElementById('awayTeam')?.value;
     const matchDate = this.shadow.getElementById('matchDate')?.value;
     const isPlayed = this.shadow.getElementById('isPlayed')?.checked || false;
-    
-    console.log('Form values:', { homeTeamId, awayTeamId, matchDate, isPlayed });
     
     // Validate required fields
     if (!homeTeamId || !awayTeamId || !matchDate) {
@@ -358,8 +337,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       
       if (this.rinkPointsEnabled) {
         // Process rink-based scoring
-        console.log('Processing rink-based scoring');
-        
         // Filter out any invalid rink results
         const validRinkResults = (this._rinkResults || []).filter(
           rink => rink && (rink.homeShots !== undefined || rink.awayShots !== undefined)
@@ -393,17 +370,8 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
           awayShots: parseInt(rink.awayShots, 10) || 0
         }));
         
-        console.log('Rink results processed:', {
-          homeScore,
-          awayScore,
-          homePoints,
-          awayPoints,
-          rinkResults: match.result.rinkResults
-        });
       } else {
         // Process simple scoring (non-rink points)
-        console.log('Processing simple scoring');
-        
         const homeScore = parseInt(this.shadow.getElementById('homeScore')?.value, 10);
         const awayScore = parseInt(this.shadow.getElementById('awayScore')?.value, 10);
         
@@ -423,21 +391,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         match.result.homePoints = homePoints;
         match.result.awayPoints = awayPoints;
         
-        console.log('Simple scores processed:', {
-          homeScore,
-          awayScore,
-          homePoints,
-          awayPoints
-        });
       }
-      
-      console.log('[LeagueMatch _onOk] Match result:', match.result);
     } else {
       // If match is not played, keep date but clear result
       match.result = null;
     }
     
-    console.log('[LeagueMatch _onOk] Final match object before dispatch:', JSON.parse(JSON.stringify(match)));
     this.dispatchEvent(new LeagueMatchEvent('match-save', { match }));
     this.open = false;
   }
@@ -453,10 +412,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   }
 
   render() {
-    console.log('[LeagueMatch] render() called. Current _open state:', this._open);
-    
     const isMobileView = this._isMobile || false;
-    console.log('[LeagueMatch] render() mobile check - attribute isMobile:', this._isMobile);
     
     // Determine if host itself should act as overlay or if it contains an overlay div.
     // For this example, host itself will be the overlay when open.
@@ -469,9 +425,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     const homeScore = this._match?.result?.homeScore !== undefined && this._match?.result?.homeScore !== null ? this._match.result.homeScore : '';
     const awayScore = this._match?.result?.awayScore !== undefined && this._match?.result?.awayScore !== null ? this._match.result.awayScore : '';
     const isPlayed = this._match?.result?.played !== undefined ? this._match.result.played : (homeScore !== '' || awayScore !== '');
-
-    // ADDED CONSOLE LOG to inspect _teams structure
-    console.log('[LeagueMatch] render - _teams received by modal:', JSON.stringify(this._teams));
 
     const attentionBannerHTML = this._attentionReason
       ? `<div class="attention-banner">${this._escapeHtml(this._attentionReason)}</div>`
@@ -499,8 +452,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
             <select id="homeTeam" class="form-select-shared">
               <option value="">Select Home Team</option>
               ${this._teams.map(team => {
-                // ADDED CONSOLE LOG to inspect each team object during mapping
-                console.log('[LeagueMatch] render - mapping homeTeam option:', JSON.stringify(team));
                 return `<option value="${this._escapeHtml(team._id)}" ${team._id === homeTeamId ? 'selected' : ''}>${this._escapeHtml(team.name)}</option>`;
               }).join('')}
             </select>
@@ -509,9 +460,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
             <label for="awayTeam" class="form-label-shared">Away Team</label>
             <select id="awayTeam" class="form-select-shared">
               <option value="">Select Away Team</option>
-              ${this._teams.map(team => {
-                // ADDED CONSOLE LOG to inspect each team object during mapping
-                console.log('[LeagueMatch] render - mapping awayTeam option:', JSON.stringify(team));
+              ${this._teams.map(team => { 
                 return `<option value="${this._escapeHtml(team._id)}" ${team._id === awayTeamId ? 'selected' : ''}>${this._escapeHtml(team.name)}</option>`;
               }).join('')}
             </select>
@@ -683,7 +632,6 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         errorDiv.textContent = this._error ? this._escapeHtml(this._error) : '';
     }
 
-    console.log('[LeagueMatch] render() finished. Host display style should be:', this.style.display);
   }
 
   /**

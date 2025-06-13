@@ -47,8 +47,6 @@ function generateTestMatch(homeTeam, awayTeam, index = 0) {
     matchData.status = 'played';
   }
   
-  console.log('[generateTestMatch] Creating Match with data:', matchData);
-
   const match = new Match(matchData);
   
   return match;
@@ -127,20 +125,17 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
   for (let i = 0; i < teams.length; i++) {
     for (let j = i + 1; j < teams.length; j++) {
       // Home and away matches
-      console.log(teams[i], teams[j])
       const homeMatch = generateTestMatch(
         teams[i],
         teams[j],
         matchIndex++
       );
-      console.log("homeMatch", homeMatch)
 
       const awayMatch = generateTestMatch(
         teams[j],
         teams[i],
         matchIndex++
       );
-      console.log("awayMatch", awayMatch)
       league.addMatch(homeMatch);
       league.addMatch(awayMatch);
     }
@@ -175,15 +170,3 @@ export function generateMultipleTestLeagues(lovebowlsTeams = [], leagueCount = 3
   
   return leagues;
 }
-
-/**
- * Convert LeagueJS league to plain object for testing
- * @param {League} league - The LeagueJS league instance
- * @returns {Object} Plain object representation of the league
- */
-export function leagueToPlainObject(league) {
-  return {
-    ...league.toJSON(),
-    table: league.getLeagueTable()
-  };
-} 
