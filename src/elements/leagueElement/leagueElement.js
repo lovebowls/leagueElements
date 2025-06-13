@@ -60,8 +60,6 @@ class LeagueElement extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) return;
 
-    this.dispatchEvent(new LeagueEvent({console: [name, oldValue, newValue]}));
-
     if (name === 'lovebowls-teams') {
       this.parseLovebowlsTeams(newValue);
       // If data is already loaded, re-render to apply the new team names
@@ -85,7 +83,7 @@ class LeagueElement extends HTMLElement {
                             : [];
           this.openMatchModal(matchData, teamsArray, 'edit');
         } catch (error) {
-          console.error('Error parsing match data for selectedMatch attribute:', error);
+          console.warn('Error parsing match data for selectedMatch attribute:', error);
         }
       }
     } else if (name === 'is-mobile') {
@@ -284,7 +282,7 @@ class LeagueElement extends HTMLElement {
                 upcomingFixturesElement.removeAttribute('filter-date');
             }
         } else {
-            console.log('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
+            console.warn('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
         }
 
         // Add listener for match clicks
@@ -300,7 +298,7 @@ class LeagueElement extends HTMLElement {
         if (this.data && this.data.matches) {
             calendarElement.setAttribute('matches', JSON.stringify(this.data.matches));
         } else {
-            console.log('[LeagueElement] render: this.data.matches is NOT available for league-calendar.');
+            console.warn('[LeagueElement] render: this.data.matches is NOT available for league-calendar.');
         }
         // Pass current filter date to keep calendar selection in sync if changed from parent
         // (e.g. if filter was set by URL param or other means and leagueElement needs to inform calendar)
@@ -321,11 +319,6 @@ class LeagueElement extends HTMLElement {
 
     // After main content rendering:
     if (this.matchModalOpen) {
-      // ADDED CONSOLE LOG
-      console.log('[LeagueElement - render] Modal rendering. this.matchModalOpen is true.');
-      console.log('[LeagueElement - render] Current this.matchModalData before modal creation:', this.matchModalData);
-      console.log('[LeagueElement - render] Current this.matchModalTeams before modal creation:', this.matchModalTeams);
-      console.log('[LeagueElement - render] Current this.lovebowlsTeams before modal creation:', this.lovebowlsTeams);
 
       // Remove any existing modal first
       let modal = this.shadow.querySelector('league-match');
@@ -1769,13 +1762,6 @@ class LeagueElement extends HTMLElement {
     this.matchModalTeams = teams;
     this.matchModalMode = mode;
 
-    // ADDED CONSOLE LOGS
-    console.log('[LeagueElement - openMatchModal] Opening modal with:');
-    console.log('[LeagueElement - openMatchModal] Mode:', mode);
-    console.log('[LeagueElement - openMatchModal] Match Data (this.matchModalData):', this.matchModalData);
-    console.log('[LeagueElement - openMatchModal] Teams for dropdown (this.matchModalTeams):', this.matchModalTeams);
-    console.log('[LeagueElement - openMatchModal] lovebowlsTeams available:', this.lovebowlsTeams);
-
     this.render();
   }
 
@@ -1828,19 +1814,6 @@ class LeagueElement extends HTMLElement {
     // Check if the event is specifically a dateChange event
     if (e.detail.type === 'dateChange') {
       const selectedDateFromUpcoming = e.detail.selectedDate;
-      // console.log('Date selected in upcoming fixtures calendar:', selectedDateFromUpcoming);
-      // If LeagueMatchesRecent or other components need to react to this specific date selection,
-      // you would update their 'selected-date' attributes here and re-render them or parts of the UI.
-      // For example, if LeagueMatchesRecent should also filter by this date:
-      // const recentMatchesEl = this.shadow.querySelector(this.getAttribute('isMobile') === 'true' ? '#mobile-recent-matches' : '#desktop-recent-matches');
-      // if (recentMatchesEl) {
-      //   if (selectedDateFromUpcoming) {
-      //     recentMatchesEl.setAttribute('selected-date', new Date(selectedDateFromUpcoming).toISOString().split('T')[0]);
-      //   } else {
-      //     recentMatchesEl.removeAttribute('selected-date');
-      //   }
-      // }
-      // Currently, selectedResultDate is distinct. If desired, we could unify them or sync them here.
     }
   }
 

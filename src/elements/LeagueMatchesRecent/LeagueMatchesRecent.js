@@ -258,7 +258,6 @@ class LeagueMatchesRecent extends HTMLElement {
       `;
     });
     html += '</div>';
-    console.log('[LeagueMatchesRecent] renderRecentResults HTML:', html);
     return html;
   }
 
@@ -303,7 +302,6 @@ class LeagueMatchesRecent extends HTMLElement {
 
     // Setup match click handlers
     const matchLinks = this.shadow.querySelectorAll('.match-link');
-    console.log('[LeagueMatchesRecent] Number of .match-link elements:', matchLinks.length);
     matchLinks.forEach(link => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
@@ -311,7 +309,6 @@ class LeagueMatchesRecent extends HTMLElement {
         // Find the match object by key
         const match = this.matches.find(m => m.key === matchKey);
         if (match) {
-          console.log('[LeagueMatchesRecent] Dispatching matchClick event for match:', match);
           this.dispatchEvent(new LeagueMatchesRecentEvent({
             type: 'matchClick',
             match: match,

@@ -1699,7 +1699,6 @@ class LeagueAdminElement extends HTMLElement {
     }
     
     if (e.detail.type !== 'matchClick') {
-      console.warn('[LeagueAdmin] Received non-matchClick event type:', e.detail.type);
       console.groupEnd();
       return;
     }

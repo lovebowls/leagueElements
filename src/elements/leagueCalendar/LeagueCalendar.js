@@ -1,7 +1,6 @@
 // Define custom event types for the new element
 class LeagueCalendarEvent extends CustomEvent {
   constructor(detail) {
-    console.log('[LeagueCalendarEvent] Constructor called with detail:', JSON.stringify(detail));
     
     // Generate a consistent dateString for all event types
     if (detail.date && !detail.dateString) {
@@ -12,19 +11,16 @@ class LeagueCalendarEvent extends CustomEvent {
           detail.dateString = plainDate.toString();
           // Add Temporal object for direct use
           detail.plainDate = plainDate;
-          console.log('[LeagueCalendarEvent] Generated dateString using Temporal:', detail.dateString);
         } else {
           // Fallback to legacy method
           const d = detail.date;
           detail.dateString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          console.log('[LeagueCalendarEvent] Generated dateString using legacy method:', detail.dateString);
         }
       } catch (err) {
         console.error('[LeagueCalendarEvent] Error generating dateString with Temporal:', err);
         // Fallback to legacy method
         const d = detail.date;
         detail.dateString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        console.log('[LeagueCalendarEvent] Fallback to legacy dateString:', detail.dateString);
       }
     }
     
@@ -36,19 +32,16 @@ class LeagueCalendarEvent extends CustomEvent {
         detail.dateString = plainDate.toString();
         // Add Temporal object for direct use
         detail.plainDate = plainDate;
-        console.log('[LeagueCalendarEvent] Generated dateString from components using Temporal:', detail.dateString);
       } catch (err) {
         console.error('[LeagueCalendarEvent] Error generating dateString from components:', err);
         // Fallback to string formatting
         detail.dateString = `${detail.year}-${String(detail.month).padStart(2, '0')}-${String(detail.day).padStart(2, '0')}`;
-        console.log('[LeagueCalendarEvent] Fallback dateString from components:', detail.dateString);
       }
     }
     
     // Always set the dateString as the currentFilterDate for parent components to use
     if (detail.type === 'dateChange' && detail.dateString) {
       detail.currentFilterDate = detail.dateString;
-      console.log('[LeagueCalendarEvent] Setting explicit currentFilterDate for attribute:', detail.currentFilterDate);
     }
     
     super('league-calendar-event', {
@@ -56,7 +49,6 @@ class LeagueCalendarEvent extends CustomEvent {
       bubbles: true,
       composed: true
     });
-    console.log('[LeagueCalendarEvent] Event created:', this.type, 'with detail:', JSON.stringify(this.detail));
   }
 }
 
@@ -92,10 +84,6 @@ class LeagueCalendar extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('[LeagueCalendar] connectedCallback - Initial attributes:', 
-        'matches:', this.hasAttribute('matches') ? this.getAttribute('matches').substring(0,100) + '...' : 'null', 
-        'current-filter-date:', this.getAttribute('current-filter-date')
-    );
     if (this.hasAttribute('matches')) {
       this._loadMatchesData(this.getAttribute('matches'));
     }
@@ -107,11 +95,6 @@ class LeagueCalendar extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue && name !== 'matches') return; // Allow matches to re-process if needed
-
-    console.log(`[LeagueCalendar] attributeChangedCallback: ${name}`,
-        `oldValue: ${oldValue ? (typeof oldValue === 'string' ? oldValue.substring(0,50)+'...': oldValue) : oldValue}`, 
-        `newValue: ${newValue ? (typeof newValue === 'string' ? newValue.substring(0,50)+'...': newValue) : newValue}`
-    );
 
     if (name === 'matches') {
       this._loadMatchesData(newValue);
@@ -125,7 +108,7 @@ class LeagueCalendar extends HTMLElement {
             const selectedDay = this._selectedDate.getDate();
             if (selectedDay === 2) {
                 // This is the off-by-one bug case
-                console.log('[LeagueCalendar] attributeChangedCallback: Detected timezone issue, keeping current selection:', this._selectedDate);
+                console.warn('[LeagueCalendar] attributeChangedCallback: Detected timezone issue, keeping current selection:', this._selectedDate);
                 this.render();
                 return;
             }
@@ -137,8 +120,6 @@ class LeagueCalendar extends HTMLElement {
   }
   
   _parseSelectedDateAttribute(dateString) {
-    console.log('[LeagueCalendar] _parseSelectedDateAttribute CALLED with:', dateString);
-    
     if (dateString && dateString !== 'null' && dateString !== 'undefined') {
         // Using Temporal API to parse the date
         try {
@@ -148,15 +129,12 @@ class LeagueCalendar extends HTMLElement {
             if (plainDate) {
                 // Store the Temporal date
                 this._selectedTemporal = plainDate;
-                console.log('[LeagueCalendar] _parseSelectedDateAttribute: using Temporal PlainDate:', plainDate.toString());
                 
                 // Store the original string
                 this._selectedDateString = dateString;
                 
                 // Also create a legacy Date for backward compatibility
                 this._selectedDate = TemporalUtils.toLegacyDate(plainDate);
-                console.log('[LeagueCalendar] _parseSelectedDateAttribute: legacy Date created:', 
-                    this._selectedDate.toString());
                 
                 // Update calendar month view if needed
                 if (this._selectedDate.getFullYear() !== this._calendarDate.getFullYear() ||
@@ -178,8 +156,6 @@ class LeagueCalendar extends HTMLElement {
             const month = parseInt(parts[1]) - 1; // Convert to 0-indexed month for Date
             const day = parseInt(parts[2]);
             
-            console.log(`[LeagueCalendar] _parseSelectedDateAttribute: fallback parsing: year=${year}, month=${month}, day=${day}`);
-            
             // Create a legacy Date at local midnight
             this._selectedDate = new Date(year, month, day);
             this._selectedDate.setHours(0, 0, 0, 0);
@@ -190,9 +166,6 @@ class LeagueCalendar extends HTMLElement {
             // Clear Temporal since we couldn't create it
             this._selectedTemporal = null;
             
-            console.log('[LeagueCalendar] _parseSelectedDateAttribute: _selectedDate set to:', 
-                this._selectedDate.toString());
-                
             // Update calendar month view if needed
             if (this._selectedDate.getFullYear() !== this._calendarDate.getFullYear() ||
                 this._selectedDate.getMonth() !== this._calendarDate.getMonth()) {
@@ -204,7 +177,7 @@ class LeagueCalendar extends HTMLElement {
     }
     
     // No date provided, invalid format, or null/undefined value - clear selection
-    console.log('[LeagueCalendar] _parseSelectedDateAttribute: Invalid input, clearing date selection');
+    console.warn('[LeagueCalendar] _parseSelectedDateAttribute: Invalid input, clearing date selection');
     this._selectedDate = null;
     this._selectedTemporal = null;
     this._selectedDateString = null;
@@ -212,15 +185,11 @@ class LeagueCalendar extends HTMLElement {
 
   _loadMatchesData(matchesData) {
     try {
-      console.log('[LeagueCalendar] _loadMatchesData started. Input type:', typeof matchesData);
       if (typeof matchesData === 'string') {
-        console.log('[LeagueCalendar] _loadMatchesData: Parsing matchesData string:', matchesData.substring(0, 200) + '...');
         this._matches = JSON.parse(matchesData);
       } else {
-        console.log('[LeagueCalendar] _loadMatchesData: Using matchesData as object.');
         this._matches = matchesData || [];
       }
-      console.log('[LeagueCalendar] _loadMatchesData: Parsed _matches count:', this._matches.length, 'First match (if any):', this._matches.length > 0 ? JSON.stringify(this._matches[0]) : 'N/A');
       this._processMatchDates();
       this.render();
     } catch (error) {
@@ -233,12 +202,11 @@ class LeagueCalendar extends HTMLElement {
   }
 
   _processMatchDates() {
-    console.log('[LeagueCalendar] _processMatchDates: Processing...');
     this._fixtureDates = new Set();
     this._resultDates = new Set();
     
     if (!this._matches || !Array.isArray(this._matches)) {
-      console.log('[LeagueCalendar] _processMatchDates: No matches found.');
+      console.warn('[LeagueCalendar] _processMatchDates: No matches found.');
       return;
     }
     
@@ -251,7 +219,6 @@ class LeagueCalendar extends HTMLElement {
         const matchPlainDate = TemporalUtils.parseISODate(match.date);
         
         if (matchPlainDate) {
-          console.log(`[LeagueCalendar] Match date from ${match.date} parsed as Temporal:`, matchPlainDate.toString());
           
           // Get UTC midnight timestamp for compatibility with existing sets
           const utcTimestamp = Date.UTC(
@@ -263,10 +230,8 @@ class LeagueCalendar extends HTMLElement {
           // Add to appropriate set based on whether it has a result
           if (match.result && (typeof match.result.homeScore === 'number' || typeof match.result.awayScore === 'number')) {
             this._resultDates.add(utcTimestamp);
-            console.log(`[LeagueCalendar] Added ${match.date} to resultDates as timestamp ${utcTimestamp}`);
           } else {
             this._fixtureDates.add(utcTimestamp);
-            console.log(`[LeagueCalendar] Added ${match.date} to fixtureDates as timestamp ${utcTimestamp}`);
           }
           
           continue; // Skip to next match, we've processed this one
@@ -293,19 +258,14 @@ class LeagueCalendar extends HTMLElement {
         
         if (match.result && (typeof match.result.homeScore === 'number' || typeof match.result.awayScore === 'number')) {
           this._resultDates.add(utcTimestamp);
-          console.log(`[LeagueCalendar] Fallback: Added ${match.date} to resultDates as timestamp ${utcTimestamp}`);
         } else {
           this._fixtureDates.add(utcTimestamp);
-          console.log(`[LeagueCalendar] Fallback: Added ${match.date} to fixtureDates as timestamp ${utcTimestamp}`);
         }
       } catch (err) {
         console.error(`[LeagueCalendar] Error processing date ${match.date}:`, err);
       }
     }
     
-    console.log('[LeagueCalendar] _processMatchDates: Finished.', 
-      'fixtureDates:', Array.from(this._fixtureDates), 
-      'resultDates:', Array.from(this._resultDates));
   }
 
   _showError(message) {
@@ -381,10 +341,6 @@ class LeagueCalendar extends HTMLElement {
     const year = this._calendarDate.getFullYear();
     const month = this._calendarDate.getMonth();
     
-    console.log(`[LeagueCalendar] _renderCalendarHTML: Rendering for ${year}-${month+1}. Today: ${new Date().toISOString().split('T')[0]}`);
-    console.log('[LeagueCalendar] _renderCalendarHTML: _selectedDate:', this._selectedDate ? this._selectedDate.toISOString() : 'null');
-    console.log('[LeagueCalendar] _renderCalendarHTML: Using _fixtureDates:', Array.from(this._fixtureDates), '_resultDates:', Array.from(this._resultDates));
-
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
     const daysInMonth = lastDayOfMonth.getDate();
@@ -436,22 +392,6 @@ class LeagueCalendar extends HTMLElement {
       // For comparison with _fixtureDates and _resultDates sets
       const cellUTCMidnightTimestamp = Date.UTC(year, month, day);
 
-      // Debug specific dates that might be problematic
-      if (day === 1 || day === 2) {
-        console.log(`[LeagueCalendar] DAY ${day} DEBUG:`,
-          'cellDateStr:', cellDateStr,
-          'cellTemporal:', cellTemporal ? cellTemporal.toString() : 'N/A',
-          'cellDateLocal:', cellDateLocal.toString(),
-          'cellDateLocal ISO:', cellDateLocal.toISOString(),
-          'cellTimestamp:', cellTimestamp,
-          'selectedDate (if any):', this._selectedDate ? this._selectedDate.toString() : null,
-          'selectedTemporal (if any):', this._selectedTemporal ? this._selectedTemporal.toString() : null,
-          'selectedDateString (if any):', this._selectedDateString,
-          'selectedDate timestamp (if any):', this._selectedDate ? this._selectedDate.getTime() : null,
-          'match?', this._isDateMatch(cellDateStr, cellTemporal, cellDateLocal)
-        );
-      }
-
       const classes = ['calendar-day'];
       
       // Check if this is today
@@ -470,7 +410,6 @@ class LeagueCalendar extends HTMLElement {
       const isSelected = this._isDateMatch(cellDateStr, cellTemporal, cellDateLocal);
       if (isSelected) {
         classes.push('selected');
-        console.log(`[LeagueCalendar] Day ${day} marked as SELECTED using isDateMatch`);
       }
 
       let tooltipContent = '';
@@ -532,7 +471,6 @@ class LeagueCalendar extends HTMLElement {
     
     const handleDayClick = (day) => {
         const dateStr = day.dataset.date; // YYYY-MM-DD
-        console.log('[LeagueCalendar] handleDayClick: clicked on date:', dateStr);
         
         if (dateStr) {
             // Use Temporal API to create a PlainDate
@@ -541,7 +479,6 @@ class LeagueCalendar extends HTMLElement {
                 const plainDate = TemporalUtils.parseISODate(dateStr);
                 
                 if (plainDate) {
-                    console.log('[LeagueCalendar] handleDayClick: created Temporal PlainDate:', plainDate.toString());
                 
                     // Store the PlainDate for internal use
                     this._selectedTemporal = plainDate;
@@ -567,7 +504,6 @@ class LeagueCalendar extends HTMLElement {
                         filterDate: dateStr
                     };
                     
-                    console.log('[LeagueCalendar] handleDayClick: dispatching event with detail:', JSON.stringify(eventDetail));
                     
                     // Dispatch the event with our standardized detail object
                     this.dispatchEvent(new LeagueCalendarEvent(eventDetail));
@@ -585,7 +521,6 @@ class LeagueCalendar extends HTMLElement {
                 const month = parseInt(parts[1]) - 1; // Month is 0-indexed for legacy Date
                 const dayOfMonth = parseInt(parts[2]);
                 
-                console.log(`[LeagueCalendar] handleDayClick: fallback using parsed year=${year}, month=${month}, day=${dayOfMonth}`);
                 
                 const localNewSelected = new Date(year, month, dayOfMonth);
                 localNewSelected.setHours(0, 0, 0, 0);
@@ -640,7 +575,6 @@ class LeagueCalendar extends HTMLElement {
    * @param {string} dateString - Date string in YYYY-MM-DD format
    */
   setSelectedDate(dateString) {
-    console.log('[LeagueCalendar] setSelectedDate called directly with:', dateString);
     if (dateString) {
       // Parse the string directly to avoid timezone issues
       const parts = dateString.split('-');
@@ -649,13 +583,9 @@ class LeagueCalendar extends HTMLElement {
         const month = parseInt(parts[1]) - 1; // Month is 0-indexed
         const day = parseInt(parts[2]);
         
-        console.log(`[LeagueCalendar] setSelectedDate: parsed directly year=${year}, month=${month}, day=${day}`);
         
         this._selectedDate = new Date(year, month, day);
         this._selectedDate.setHours(0, 0, 0, 0);
-        
-        console.log('[LeagueCalendar] setSelectedDate: _selectedDate set to:', 
-            this._selectedDate, 'ISO:', this._selectedDate.toISOString());
         
         // If date changes month/year, update calendar view
         if (this._calendarDate.getFullYear() !== year || 
@@ -681,7 +611,6 @@ class LeagueCalendar extends HTMLElement {
    * @param {Object} detail - The detail object from the calendar event 
    */
   handleSelectedDateDirectly(detail) {
-    console.log('[LeagueCalendar] handleSelectedDateDirectly called with:', JSON.stringify(detail));
     
     // Direct access to our needed properties without going through date parser
     if (detail && (detail.dateString || detail.filterDate)) {
@@ -693,13 +622,9 @@ class LeagueCalendar extends HTMLElement {
         const month = parseInt(parts[1]) - 1; // Month is 0-indexed  
         const day = parseInt(parts[2]);
         
-        console.log(`[LeagueCalendar] handleSelectedDateDirectly: using exact date parts year=${year}, month=${month}, day=${day}`);
-        
         const newSelectedDate = new Date(year, month, day);
         newSelectedDate.setHours(0, 0, 0, 0);
         this._selectedDate = newSelectedDate;
-        
-        console.log('[LeagueCalendar] handleSelectedDateDirectly: _selectedDate set to:', this._selectedDate);
         
         // Update the calendar view if necessary
         if (this._calendarDate.getFullYear() !== year || 
@@ -736,7 +661,6 @@ class LeagueCalendar extends HTMLElement {
     if (temporalDate && this._selectedTemporal) {
       const match = temporalDate.equals(this._selectedTemporal);
       if (match) {
-        console.log('[LeagueCalendar] _isDateMatch: Match using Temporal comparison');
         return true;
       }
     }
@@ -745,7 +669,6 @@ class LeagueCalendar extends HTMLElement {
     if (dateStr && this._selectedDateString) {
       const match = dateStr === this._selectedDateString;
       if (match) {
-        console.log('[LeagueCalendar] _isDateMatch: Match using string comparison');
         return true;
       }
     }
@@ -754,7 +677,6 @@ class LeagueCalendar extends HTMLElement {
     if (legacyDate && this._selectedDate) {
       const match = legacyDate.getTime() === this._selectedDate.getTime();
       if (match) {
-        console.log('[LeagueCalendar] _isDateMatch: Match using legacy Date timestamp comparison');
         return true;
       }
     }

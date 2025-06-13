@@ -30,7 +30,6 @@ import {
 class LeagueMatchesUpcoming extends HTMLElement {
   constructor() {
     super();
-    console.log('[LeagueMatchesUpcoming] constructor CALLED');
     this.shadow = this.attachShadow({ mode: 'open' });
     this.matches = [];
     this.currentPage = 0;
@@ -44,7 +43,6 @@ class LeagueMatchesUpcoming extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('[LeagueMatchesUpcoming] connectedCallback CALLED');
     if (this.hasAttribute('data')) {
       const initialData = this.getAttribute('data');
       this.loadData(initialData);
@@ -60,7 +58,6 @@ class LeagueMatchesUpcoming extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(`[LeagueMatchesUpcoming] attributeChangedCallback: ${name} changed from ${oldValue} to ${newValue}`);
     if (oldValue === newValue && name !== 'data') return;
 
     if (name === 'data') {
@@ -121,7 +118,6 @@ class LeagueMatchesUpcoming extends HTMLElement {
    * @param {string|Array} data
    */
   async loadData(data) {
-    console.log('[LeagueMatchesUpcoming] loadData received:', data, 'typeof:', typeof data);
     try {
       if (typeof data === 'string') {
         this.matches = JSON.parse(data);
@@ -312,14 +308,12 @@ class LeagueMatchesUpcoming extends HTMLElement {
       };
     }
     const matchLinks = this.shadow.querySelectorAll('.match-link');
-    console.log('[LeagueMatchesUpcoming] Number of .match-link elements:', matchLinks.length);
     matchLinks.forEach(link => {
       link.onclick = (e) => {
         e.preventDefault();
         const matchKey = link.dataset.matchKey;
         const match = this.matches.find(m => m.key === matchKey);
         if (match) {
-          console.log('[LeagueMatchesUpcoming] Dispatching matchClick event for match:', match);
           this.dispatchEvent(new LeagueMatchesUpcomingEvent({
             type: 'matchClick',
             match: match
