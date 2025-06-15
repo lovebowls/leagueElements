@@ -370,8 +370,8 @@ class LeagueAdminElement extends HTMLElement {
         }
         const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
         
-        if (this.matchModalMode === 'edit' && match.key) {
-          const idx = updatedLeague.matches.findIndex(m => m.key === match.key);
+        if (this.matchModalMode === 'edit' && match._id) {
+          const idx = updatedLeague.matches.findIndex(m => m._id === match._id);
           if (idx >= 0) {
             // Ensure a proper merge, especially of the result object
             updatedLeague.matches[idx] = {

@@ -262,6 +262,8 @@ class LeagueMatchesAttention extends HTMLElement {
     const conflictingIds = this._getConflictingMatchIds();
     return pageItems.map(match => {
       // Get display names for teams
+      const homeTeamId = match.homeTeam?._id;
+      const awayTeamId = match.awayTeam?._id;
       const homeTeamDisplay = match.homeTeam?.name || this.getTeamDisplayName(homeTeamId);
       const awayTeamDisplay = match.awayTeam?.name || this.getTeamDisplayName(awayTeamId);
       

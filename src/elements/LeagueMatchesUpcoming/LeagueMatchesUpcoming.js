@@ -260,7 +260,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
       return `
       <div class="match-item">
         ${dateDisplay}
-        <a href="#" class="match-link" data-match-key="${match.key}">
+        <a href="#" class="match-link" data-match-id="${match._id}">
           ${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}
         </a>
       </div>
@@ -311,8 +311,8 @@ class LeagueMatchesUpcoming extends HTMLElement {
     matchLinks.forEach(link => {
       link.onclick = (e) => {
         e.preventDefault();
-        const matchKey = link.dataset.matchKey;
-        const match = this.matches.find(m => m.key === matchKey);
+        const matchId = link.dataset.matchId;
+        const match = this.matches.find(m => m._id === matchId);
         if (match) {
           this.dispatchEvent(new LeagueMatchesUpcomingEvent({
             type: 'matchClick',

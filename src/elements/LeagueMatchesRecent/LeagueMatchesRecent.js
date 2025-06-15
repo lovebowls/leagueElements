@@ -245,7 +245,7 @@ class LeagueMatchesRecent extends HTMLElement {
 
       html += `
         ${dateDisplayHtml}
-        <div class="match-item list-item-shared" data-match-key="${match.key}">
+        <div class="match-item list-item-shared" data-match-id="${match._id}">
           <a href="#" class="match-link list-item-text-primary">
             ${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}
           </a>
@@ -305,9 +305,9 @@ class LeagueMatchesRecent extends HTMLElement {
     matchLinks.forEach(link => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
-        const matchKey = event.currentTarget.closest('.match-item').dataset.matchKey;
-        // Find the match object by key
-        const match = this.matches.find(m => m.key === matchKey);
+        const matchId = event.currentTarget.closest('.match-item').dataset.matchId;
+        // Find the match object by _id
+        const match = this.matches.find(m => m._id === matchId);
         if (match) {
           this.dispatchEvent(new LeagueMatchesRecentEvent({
             type: 'matchClick',

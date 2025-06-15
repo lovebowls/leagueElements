@@ -104,7 +104,7 @@ class LeagueElement extends HTMLElement {
       this.render();
     } catch (error) {
       console.error('[LeagueElement] Error parsing league data:', error);
-      this._showError('Failed to load league data');
+      this.showError('Failed to load league data');
     }
   }
 
@@ -356,7 +356,7 @@ class LeagueElement extends HTMLElement {
         // Create a new Match instance from the plain object received from the event
         const matchToSave = new Match(savedMatch);
         // Find the index of the match in the *League instance's* matches array
-        const matchIndex = this.data.matches.findIndex(m => m.key === matchToSave.key);
+        const matchIndex = this.data.matches.findIndex(m => m._id === matchToSave._id);
 
         if (matchIndex > -1) {
           // Existing match, update it directly on the League instance
@@ -682,7 +682,7 @@ class LeagueElement extends HTMLElement {
         if (conflictingTeams.length > 0) {
             matchesOnDay.forEach(match => {
                 if (conflictingTeams.includes(match.homeTeam._id) || conflictingTeams.includes(match.awayTeam._id)) {
-                    conflictingKeys.add(match.key);
+                    conflictingKeys.add(match._id);
                 }
             });
         }
