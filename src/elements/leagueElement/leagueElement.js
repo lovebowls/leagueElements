@@ -17,7 +17,7 @@ import '../leagueCalendar/LeagueCalendar.js';
 
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
-import { League } from '@lovebowls/leaguejs';
+import { League, Match } from '@lovebowls/leaguejs';
 
 class LeagueElement extends HTMLElement {
 
@@ -78,8 +78,9 @@ class LeagueElement extends HTMLElement {
       if (newValue) {
         try {
           const matchData = JSON.parse(newValue);
-          const teamsArray = (this.data && this.data.table && Array.isArray(this.data.table.leagueData))
-                            ? this.data.table.leagueData.map(t => t.teamName)
+          const leagueData = this._table;
+          const teamsArray = (leagueData && Array.isArray(leagueData))
+                            ? leagueData.map(t => t.teamName)
                             : [];
           this.openMatchModal(matchData, teamsArray, 'edit');
         } catch (error) {
@@ -93,35 +94,17 @@ class LeagueElement extends HTMLElement {
 
   async _parseAndLoadData(data) {
     try {
-      // Parse data if it's a string
-      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-
-      // Convert to League instance
-      this.data = new League(parsedData);
-      
-      // Ensure table data is available
-      this.data.table = this.data.getLeagueTable();
-
-      // Initialize selectedTeamsForGraph with top 3 teams
-      this.selectedTeamsForGraph.clear();
-      if (this.data.table.leagueData.length > 0) {
-        const sortedTeams = [...this.data.table.leagueData].sort((a, b) => b.points - a.points);
-        for (let i = 0; i < Math.min(sortedTeams.length, 3); i++) {
-          this.selectedTeamsForGraph.add(sortedTeams[i].teamName);
-        }
-      }
-      
-      // Prepare data for trends view
-      this.ensureTeamColors();
-      this._preparePointsOverTimeData();
-      
+      const raw = this.getAttribute('data');
+      console.log('[LeagueElement] Raw data attribute:', raw);
+      const parsed = JSON.parse(raw);
+      console.log('[LeagueElement] Parsed data:', parsed);
+      this.data = new League(parsed);
+      console.log('[LeagueElement] League instance:', this.data);
+      // Just call render() - it will handle all UI updates
       this.render();
-      this.dispatchEvent(new LeagueEvent({data: this.data}));
     } catch (error) {
-      const errorMessage = 'Failed to load league data';
-      this.showError(errorMessage);
-      console.error('Error loading league:', error);
-      this.dispatchEvent(new LeagueEvent({data, error: errorMessage}));
+      console.error('[LeagueElement] Error parsing league data:', error);
+      this._showError('Failed to load league data');
     }
   }
 
@@ -150,9 +133,11 @@ class LeagueElement extends HTMLElement {
   render() {
     // Generate table rows based on data if available
     let tableRows = '';
-    
-    if (this.data && this.data.table) {
+    const table = this._table;
+    console.log('[LeagueElement] _table:', table);
+    if (table && Array.isArray(table.leagueData)) {
       const processedLeagueData = this._getFilteredLeagueData();
+      console.log('[LeagueElement] processedLeagueData:', processedLeagueData);
 
       if (Array.isArray(processedLeagueData)) {
         tableRows = processedLeagueData.map(team => {
@@ -170,9 +155,6 @@ class LeagueElement extends HTMLElement {
               if (promotionSpots > 0 && team.currentRank <= promotionSpots) {
                 positionCellClass = 'pos-cell-promotion';
               } else if (relegationSpots > 0 && team.currentRank >= (numTeams - relegationSpots + 1)) {
-                // This condition correctly identifies teams in relegation spots from the bottom.
-                // e.g., if 10 teams and 2 relegation spots, teams ranked 9 and 10 are caught.
-                // (10 - 2 + 1 = 9). So rank >= 9.
                 positionCellClass = 'pos-cell-relegation';
               }
             }
@@ -187,17 +169,17 @@ class LeagueElement extends HTMLElement {
             <td class="position-cell ${positionCellClass}">${team.currentRank !== undefined ? team.currentRank : '-'} ${movementIndicator}</td>
             <td>${team.teamDisplayName}</td>
             <td>${team.points}</td>
-            <td title="${this.formatMatchList(team.allMatchesForTooltip, undefined, true)}">${team.played}</td>
-            <td title="${this.formatMatchList(team.allMatchesForTooltip, 'W', false)}">${team.won}</td>
-            <td title="${this.formatMatchList(team.allMatchesForTooltip, 'D', false)}">${team.drawn}</td>
-            <td title="${this.formatMatchList(team.allMatchesForTooltip, 'L', false)}">${team.lost}</td>
+            <td title="${this.formatMatchList(team.allMatchesForTooltip, team.teamId, undefined, true)}">${team.played}</td>
+            <td title="${this.formatMatchList(team.allMatchesForTooltip, team.teamId, 'W', false)}">${team.won}</td>
+            <td title="${this.formatMatchList(team.allMatchesForTooltip, team.teamId, 'D', false)}">${team.drawn}</td>
+            <td title="${this.formatMatchList(team.allMatchesForTooltip, team.teamId, 'L', false)}">${team.lost}</td>
             <td>${team.shotsFor}</td>
             <td>${team.shotsAgainst}</td>
             <td>${team.shotDifference}</td>
             <td class="form-cell">${this.renderForm(team.matches)}</td>
           </tr>
-        `; // Note: The template literal for each row ends here
-        }).join(''); // .join('') should be called on the result of .map()
+        `;
+        }).join('');
       } else {
         tableRows = `
           <tr>
@@ -207,6 +189,10 @@ class LeagueElement extends HTMLElement {
 
       // Store the title and tableRows for use in templates
       this.tableRows = tableRows;
+
+      // Prepare data for trends view and ensure team colors are set
+      this._preparePointsOverTimeData();
+      this.ensureTeamColors();
 
       // Render based on device type
       const baseTemplate = this._isMobile ? MOBILE_TEMPLATE : DESKTOP_TEMPLATE;
@@ -257,7 +243,7 @@ class LeagueElement extends HTMLElement {
         }
         this.setupResizer();
       }
-      this.setupPaging(); // Paging for sub-components is handled by them
+      this.setupPaging(); // Paging for sub-components is handled by them dispatching events
       this.setupTabs();
       this.setupTableFilterDropdown();
       if (this.activeView === 'trends') { // If trends tab is active by default (e.g. on reload/state persistence)
@@ -359,6 +345,7 @@ class LeagueElement extends HTMLElement {
 
       modal.addEventListener('match-save', (e) => {
         const savedMatch = e.detail.match;
+        console.log('[LeagueElement] match-save event received. Match data from modal:', JSON.parse(JSON.stringify(savedMatch)));
         if (!this.data || !this.data.matches) {
           // Should not happen if modal was opened with data, but safety check
           console.error('Cannot save match, league data or matches array is missing.');
@@ -366,28 +353,27 @@ class LeagueElement extends HTMLElement {
           return;
         }
 
-        const updatedLeagueData = JSON.parse(JSON.stringify(this.data));
-        const matchIndex = updatedLeagueData.matches.findIndex(m => m.key === savedMatch.key);
+        // Create a new Match instance from the plain object received from the event
+        const matchToSave = new Match(savedMatch);
+        // Find the index of the match in the *League instance's* matches array
+        const matchIndex = this.data.matches.findIndex(m => m.key === matchToSave.key);
 
         if (matchIndex > -1) {
-          // Existing match, update it
-          updatedLeagueData.matches[matchIndex] = savedMatch;
+          // Existing match, update it directly on the League instance
+          this.data.matches[matchIndex] = matchToSave;
         } else {
-          // New match (could be from matrix with a temp key, or a completely new match if UI allowed)
-          // The parent/handler of requestSaveLeague will be responsible for assigning a final key if temp
-          updatedLeagueData.matches.push(savedMatch);
+          // New match, push it to the League instance's matches array
+          this.data.matches.push(matchToSave);
         }
         
-        this.data = updatedLeagueData; // Update internal state
-        
-        // Before dispatching, create a clean copy of the data without the 'table' property
-        const dataToDispatch = { ...this.data };
-        if (dataToDispatch.table) {
-          delete dataToDispatch.table;
-        }
+        // Create a plain object representation of the league data for dispatching the event
+        const dataToDispatch = this.data.toJSON ? this.data.toJSON() : JSON.parse(JSON.stringify(this.data));
 
         this.dispatchEvent(new LeagueEvent({ type: 'requestSaveLeague', league: dataToDispatch }));
-        this._parseAndLoadData(this.data); // Reprocess and re-render
+        
+        // The component's data is now updated, so we just need to re-render
+        this.render();
+        
         this.closeMatchModal();
       });
       modal.addEventListener('match-cancel', () => {
@@ -562,11 +548,12 @@ class LeagueElement extends HTMLElement {
    * If resultType is provided, only matches of that type are included.
    * If not, all matches are included.
    * @param {Array<Object>} matches - Array of match objects
+   * @param {string} teamId - The ID of the team to check the result for.
    * @param {string} [resultType] - Optional: 'W', 'D', or 'L'
    * @param {boolean} [displayVerb=true] - Whether to show the verb (Won/Lost/Drew)
    * @returns {string} Tooltip string
    */
-  formatMatchList(matches = [], resultType, displayVerb = true) {
+  formatMatchList(matches = [], teamId, resultType, displayVerb = true) {
     if (!Array.isArray(matches) || matches.length === 0) {
       if (resultType) {
         return `No ${resultType === 'W' ? 'wins' : resultType === 'L' ? 'losses' : 'draws'} recorded`;
@@ -577,9 +564,28 @@ class LeagueElement extends HTMLElement {
     // Filter if resultType is provided
     let filtered = matches;
     if (resultType) {
-      filtered = matches.filter(
-        match => match && match.result && match.result.toUpperCase() === resultType
-      );
+      filtered = matches.filter(match => {
+        if (!match || !match.result || typeof match.result.homeScore !== 'number' || typeof match.result.awayScore !== 'number') {
+          return false;
+        }
+
+        const homeId = match.homeTeam?._id;
+        const awayId = match.awayTeam?._id;
+        const { homeScore, awayScore } = match.result;
+
+        let resultForTeam = '';
+        if (homeId === teamId) {
+          if (homeScore > awayScore) resultForTeam = 'W';
+          else if (homeScore < awayScore) resultForTeam = 'L';
+          else resultForTeam = 'D';
+        } else if (awayId === teamId) {
+          if (awayScore > homeScore) resultForTeam = 'W';
+          else if (awayScore < homeScore) resultForTeam = 'L';
+          else resultForTeam = 'D';
+        }
+        
+        return resultForTeam === resultType;
+      });
     }
 
     // Sort by date ascending - matches should already have a valid 'date' property
@@ -588,8 +594,8 @@ class LeagueElement extends HTMLElement {
     const tooltipContent = filtered.map(match => {
       if (!match || !match.result || !match.date || 
           !match.homeTeam || !match.awayTeam || 
-          typeof match.homeScore !== 'number' || 
-          typeof match.awayScore !== 'number') {
+          typeof match.result.homeScore !== 'number' || 
+          typeof match.result.awayScore !== 'number') {
         return 'Invalid match data for tooltip';
       }
       
@@ -601,9 +607,17 @@ class LeagueElement extends HTMLElement {
       const awayTeamDisplay = match.awayTeamDisplayName || this.getTeamDisplayName(awayTeamId) || awayTeamId;
       
       let resultVerb = '';
-      if (match.result.toUpperCase() === 'W') resultVerb = 'Won';
-      else if (match.result.toUpperCase() === 'L') resultVerb = 'Lost';
-      else if (match.result.toUpperCase() === 'D') resultVerb = 'Drew';
+      const { homeScore, awayScore } = match.result;
+      
+      if (homeTeamId === teamId) {
+        if (homeScore > awayScore) resultVerb = 'Won';
+        else if (homeScore < awayScore) resultVerb = 'Lost';
+        else resultVerb = 'Drew';
+      } else if (awayTeamId === teamId) {
+        if (awayScore > homeScore) resultVerb = 'Won';
+        else if (awayScore < homeScore) resultVerb = 'Lost';
+        else resultVerb = 'Drew';
+      }
 
       const dateStr = new Date(match.date).toLocaleDateString();
       const matchDetails = `${homeTeamDisplay} ${match.homeScore}-${match.awayScore} ${awayTeamDisplay}`;
@@ -712,12 +726,17 @@ class LeagueElement extends HTMLElement {
         if (this.activeView !== tab.dataset.view) { // Only act if view is actually changing
           this.activeView = tab.dataset.view;
           this.render(); // Change state, then re-render. Render will call setupTabs again.
-          // After re-render, if the new active view is trends, set up its interactivity.
+          // After re-render, set up interactivity for the new active view
           // This ensures elements are in the DOM before attaching listeners.
           if (this.activeView === 'trends') {
             // Defer slightly to ensure DOM update cycle is complete from render()
             Promise.resolve().then(() => {
                 this.setupTrendsViewInteractivity();
+            });
+          } else if (this.activeView === 'matrix') {
+            // Set up matrix event listeners after DOM is ready
+            Promise.resolve().then(() => {
+                this.setupMatrixEventListeners();
             });
           }
         }
@@ -726,248 +745,131 @@ class LeagueElement extends HTMLElement {
   }
 
   _prepareMatrixData() {
-    if (!this.data || !this.data.table || !Array.isArray(this.data.table.leagueData) || !Array.isArray(this.data.matches)) {
+    console.log('Current league data:', this._table);
+
+    if (!this.data || !this._table || !this.data.matches) {
+      console.warn('Cannot prepare matrix data: Required data is missing');
       return null;
     }
 
-    // Get team IDs from the league data
-    const teams = [...new Set(this.data.table.leagueData.map(t => t.teamId))].sort();
-    const matchesMap = new Map();
-    
-    this.data.matches.forEach(match => {
-      const homeTeamId = match.homeTeam._id;
-      const awayTeamId = match.awayTeam._id;
-      
-      // Ensure matches are mapped consistently using team IDs
-      if (homeTeamId && awayTeamId) {
-        matchesMap.set(`${homeTeamId}_vs_${awayTeamId}`, match);
+    // Extract the leagueData array from the table object
+    const tableData = this._table;
+    const teams = Array.isArray(tableData) ? tableData : (tableData.leagueData || []);
+    const matches = this.data.matches;
+
+    if (!Array.isArray(teams) || teams.length === 0) {
+      console.warn('Cannot prepare matrix data: No teams found in league data');
+      return null;
+    }
+
+    // Create a map of team names to their matches
+    const teamMatches = new Map();
+    teams.forEach(team => {
+      teamMatches.set(team.teamName, []);
+    });
+
+    // Populate the matches for each team
+    matches.forEach(match => {
+      if (match.homeTeam && match.awayTeam) {
+        const homeTeam = teamMatches.get(match.homeTeam);
+        const awayTeam = teamMatches.get(match.awayTeam);
+        if (homeTeam) homeTeam.push(match);
+        if (awayTeam) awayTeam.push(match);
       }
     });
 
-    const matrix = {};
-    teams.forEach(homeTeam => {
-      matrix[homeTeam] = {};
-      teams.forEach(awayTeam => {
-        let match = null;
-        let status = 'none';
-        let tooltip = '';
-        const matchKey = `${homeTeam}_vs_${awayTeam}`;
+    return {
+      teams,
+      teamMatches
+    };
+  }
 
-        if (homeTeam === awayTeam) {
-          status = 'same';
-          tooltip = ''; // Remove tooltip for diagonal cells
-        } else if (matchesMap.has(matchKey)) {
-          match = matchesMap.get(matchKey);
-          if (match.result && typeof match.result.homeScore === 'number' && typeof match.result.awayScore === 'number') {
-            status = 'played';
-            
-            // Get display names for tooltip
-            const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
-            const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
-            
-            tooltip = `${new Date(match.date).toLocaleDateString()}: ${homeTeamDisplay} ${match.result.homeScore} - ${match.result.awayScore} ${awayTeamDisplay}`;
-          } else {
-            status = 'scheduled';
-            
-            // Get display names for tooltip
-            const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
-            const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
-            
-            tooltip = match.date ? `Scheduled: ${new Date(match.date).toLocaleDateString()} - ${homeTeamDisplay} vs ${awayTeamDisplay}` : `Scheduled: ${homeTeamDisplay} vs ${awayTeamDisplay} (No date)`;
-          }
+  _handleMatchSave(e) {
+    if (!e.detail || !e.detail.match) {
+      console.warn('Invalid match data received');
+      return;
+    }
+
+    const matchData = e.detail.match;
+    
+    // Update the match in this.data.matches
+    if (this.data && this.data.matches) {
+      this.data.matches = this.data.matches.map(m =>
+        m._id === matchData._id ? matchData : m
+      );
+    }
+
+    // Trigger a re-render to update the UI
+    this.render();
+  }
+
+  _getFilteredLeagueData() {
+    const table = this._table;
+    if (!this.data || !this.data.matches || !table || !Array.isArray(table.leagueData)) {
+      return [];
+    }
+
+    const allTeamIdsInLeague = table.leagueData.map(t => t.teamId);
+    const matchesSubset = this.data.matches.slice(0, this.data.matches.length);
+    return this._calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague);
+  }
+
+  _getTeamsFromLeagueData() {
+    if (this.data && this.data.teams) {
+      return this.data.teams;
+    } else if (this.data && this._table) {
+      const tableData = this._table;
+      const teams = Array.isArray(tableData) ? tableData : (tableData.leagueData || []);
+      return teams.map(team => ({
+        _id: team.teamId,
+        name: team.teamName
+      }));
+    }
+    return [];
+  }
+
+  setupTrendsViewInteractivity() {
+    // Graph Type Selector
+    const graphTypeSelect = this.shadow.querySelector('#graph-type-select');
+    if (graphTypeSelect) {
+      graphTypeSelect.addEventListener('change', (event) => {
+        this.activeTrendGraphType = event.target.value;
+        // Re-render or update the specific graph content
+        // For now, if we had multiple graph types, this would trigger a different draw function
+        // or pass type to a generic draw function.
+        if (this.activeTrendGraphType === 'pointsOverTime') {
+          this.drawPointsOverTimeSVG(); // Redraw the current graph type
         } else {
-          status = 'none';
-          
-          // Get display names for tooltip
-          const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
-          const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
-          
-          tooltip = `${homeTeamDisplay} vs ${awayTeamDisplay} - No match scheduled`;
+          // Handle other graph types in the future
+          const svg = this.shadow.querySelector('#points-over-time-svg');
+          if (svg) svg.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Selected graph type '${this.activeTrendGraphType}' is not yet implemented.</text>`;
+          const legendDiv = this.shadow.querySelector('.trends-graph-legend');
+          if (legendDiv) legendDiv.innerHTML = '';
         }
-        matrix[homeTeam][awayTeam] = { match, status, tooltip };
       });
-    });
-
-    return { teams, matrix };
-  }
-
-  renderMatrix() {
-    const matrixData = this._prepareMatrixData();
-
-    if (!matrixData) {
-      return '<div class="error">Matrix data is unavailable or incomplete.</div>';
     }
 
-    const { teams, matrix } = matrixData;
-    if (teams.length === 0) {
-        return '<div class="error">No teams available for matrix.</div>';
+    // Team Toggle Checkboxes (event delegation on legend container)
+    const legendDiv = this.shadow.querySelector('.trends-graph-legend');
+    if (legendDiv) {
+      legendDiv.addEventListener('change', (event) => {
+        if (event.target.matches('.trends-team-toggle-cb')) {
+          const teamName = event.target.value;
+          if (event.target.checked) {
+            this.selectedTeamsForGraph.add(teamName);
+          } else {
+            this.selectedTeamsForGraph.delete(teamName);
+          }
+          this.drawPointsOverTimeSVG(); // Redraw graph with new team selection
+        }
+      });
     }
-    
-    // Mobile gets a completely different HTML structure using tables instead of grid
-    if (this._isMobile) {
-      let html = '<table class="matrix-table">';
-      
-      // Header row with column team names
-      html += '<tr><th></th>';
-      teams.forEach(team => {
-        const teamDisplay = this.getTeamDisplayName(team);
-        html += `<th class="top-header" title="${this.escapeHtml(teamDisplay)}">
-                <div class="vertical-text">${this.escapeHtml(teamDisplay)}</div>
-                </th>`;
-      });
-      html += '</tr>';
-      
-      // Main data rows
-      teams.forEach(homeTeam => {
-        const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
-        
-        html += '<tr>';
-        html += `<th class="row-header" title="${this.escapeHtml(homeTeamDisplay)}">${this.escapeHtml(homeTeamDisplay)}</th>`;
-        
-        teams.forEach(awayTeam => {
-          const cellData = matrix[homeTeam][awayTeam];
-          let cellClass = '';
-          let content = '';
-          
-          if (homeTeam === awayTeam) {
-            cellClass = 'matrix-cell-same';
-          } else if (cellData.status === 'played') {
-            cellClass = 'matrix-cell-played';
-            content = `<span class="matrix-score">${cellData.match.result.homeScore}-${cellData.match.result.awayScore}</span>`;
-          } else if (cellData.status === 'scheduled') {
-            cellClass = 'matrix-cell-scheduled';
-            content = `<span class="scheduled-indicator">•</span>`;
-          } else if (cellData.status === 'none') {
-            cellClass = 'matrix-cell-none';
-            content = `<span class="add-match-icon">+</span>`;
-          }
-          
-          // Create tooltip text
-          let tooltipText = '';
-          if (cellData.tooltip) {
-            tooltipText = `title="${this.escapeHtml(cellData.tooltip)}"`;
-          }
-          
-          html += `<td class="${cellClass}" ${tooltipText} data-home-team="${this.escapeHtml(homeTeam)}" data-away-team="${this.escapeHtml(awayTeam)}">${content}</td>`;
-        });
-        
-        html += '</tr>';
-      });
-      
-      html += '</table>';
-      
-      Promise.resolve().then(() => this.setupMatrixEventListeners());
-      return html;
-    }
-    
-    // Desktop layout - keep the original grid approach
-    const cellSize = '80px';
-    
-    let html = `<div class="matrix-grid" style="grid-template-columns: ${cellSize} repeat(${teams.length}, ${cellSize});">`;
 
-    // Header row (top-left empty cell + away teams)
-    html += '<div class="matrix-cell matrix-header-cell"></div>'; // Top-left empty
-    
-    teams.forEach(awayTeam => {
-      const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
-      html += `<div class="matrix-cell matrix-header-cell" title="${this.escapeHtml(awayTeamDisplay)}">
-               <div class="matrix-team-name-x">${this.escapeHtml(awayTeamDisplay)}</div>
-               </div>`;
-    });
-
-    // Matrix rows (home teams + match cells)
-    teams.forEach(homeTeam => {
-      const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
-      
-      // Home team header cell
-      html += `<div class="matrix-cell matrix-header-cell" title="${this.escapeHtml(homeTeamDisplay)}">
-               <div class="matrix-team-name-y">${this.escapeHtml(homeTeamDisplay)}</div>
-               </div>`;
-      
-      // Match cells for this row
-      teams.forEach(awayTeam => {
-        const cellData = matrix[homeTeam][awayTeam];
-        let content = '';
-        
-        if (cellData.status === 'played') {
-          content = `<span class="matrix-score">${cellData.match.result.homeScore}-${cellData.match.result.awayScore}</span>`;
-        } else if (cellData.status === 'none') {
-          content = `<span class="add-match-icon">+</span>`;
-        }
-
-        // Special handling for diagonal cells (same team)
-        const cellClass = cellData.status === 'same' ? 'matrix-cell-same-team' : `matrix-cell-${cellData.status}`;
-        
-        // Update tooltip text to use display names
-        let tooltipText = cellData.tooltip;
-        if (cellData.match) {
-          const homeTeamId = cellData.match.homeTeam._id;
-          const awayTeamId = cellData.match.awayTeam._id;
-          
-          const homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
-          const awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
-          
-          if (cellData.status === 'played') {
-            tooltipText = `${new Date(cellData.match.date).toLocaleDateString()}: ${homeTeamDisplay} ${cellData.match.result.homeScore} - ${cellData.match.result.awayScore} ${awayTeamDisplay}`;
-          } else if (cellData.status === 'scheduled') {
-            tooltipText = cellData.match.date ? `Scheduled: ${new Date(cellData.match.date).toLocaleDateString()} - ${homeTeamDisplay} vs ${awayTeamDisplay}` : `Scheduled: ${homeTeamDisplay} vs ${awayTeamDisplay} (No date)`;
-          }
-        } else if (cellData.status === 'none') {
-          const homeTeamDisplay = this.getTeamDisplayName(homeTeam);
-          const awayTeamDisplay = this.getTeamDisplayName(awayTeam);
-          tooltipText = `${homeTeamDisplay} vs ${awayTeamDisplay} - No match scheduled`;
-        }
-        
-        const tooltipHtml = tooltipText ? `<div class="tooltip">${this.escapeHtml(tooltipText)}</div>` : '';
-
-        html += `
-          <div 
-            class="matrix-cell ${cellClass}" 
-            data-home-team="${this.escapeHtml(homeTeam)}" 
-            data-away-team="${this.escapeHtml(awayTeam)}"
-          >
-            ${content}
-            ${tooltipHtml}
-          </div>
-        `;
-      });
-    });
-
-    html += '</div>';
-    
-    Promise.resolve().then(() => this.setupMatrixEventListeners());
-    return html;
-  }
-
-  setupMatrixEventListeners() {
-    const selector = this._isMobile ? '.matrix-table td' : '.matrix-grid .matrix-cell:not(.matrix-header-cell)';
-    
-    const matrixCells = this.shadow.querySelectorAll(selector);
-    matrixCells.forEach(cell => {
-      cell.onclick = () => {
-        const homeTeamId = cell.dataset.homeTeam;
-        const awayTeamId = cell.dataset.awayTeam;
-        if (homeTeamId === awayTeamId) return;
-        const matrixData = this._prepareMatrixData();
-        if (!matrixData || !matrixData.matrix[homeTeamId] || !matrixData.matrix[homeTeamId][awayTeamId]) return;
-        const cellData = matrixData.matrix[homeTeamId][awayTeamId];
-        let matchObject = cellData.match;
-        if (!matchObject) {
-          matchObject = {
-            homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
-            awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
-            date: null,
-            result: null,
-            key: `temp_${homeTeamId}_vs_${awayTeamId}_${Date.now()}`
-          };
-        }
-        // Use openMatchModal instead of event
-        const teams = this._getTeamsFromLeagueData();
-        // Determine mode: new only for empty cells, edit for scheduled or played
-        const mode = cellData.status === 'none' ? 'new' : 'edit';
-        this.openMatchModal(matchObject, teams, mode);
-      };
-    });
+    // Call this once during setup if the trends view is active, to ensure interactivity is live
+    // However, render() / _fillTemplate handles calling drawPointsOverTimeSVG which populates legend,
+    // so event listeners should be set up after legend is populated.
+    // The best place to call this is after render has completed and if the trends tab is active.
+    // We can also ensure it's called from setupTabs when trends tab becomes active.
   }
 
   // START - Placeholder for Trends View Methods
@@ -1023,15 +925,18 @@ class LeagueElement extends HTMLElement {
   }
 
   _preparePointsOverTimeData() {
+    const tableData = this._table;
+    const table = Array.isArray(tableData) ? tableData : (tableData?.leagueData || []);
+    
     if (!this.data || 
         !this.data.matches || !Array.isArray(this.data.matches) || 
-        !this.data.table || !this.data.table.leagueData || !Array.isArray(this.data.table.leagueData)) {
+        !Array.isArray(table) || table.length === 0) {
       console.warn('_preparePointsOverTimeData: Essential data is missing. Clearing chart data.');
       this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: [] };
       return;
     }
 
-    const allTeamIds = this.data.table.leagueData.map(team => team.teamId);
+    const allTeamIds = table.map(team => team.teamId);
     if (allTeamIds.length === 0) {
       console.warn('_preparePointsOverTimeData: No teams found in leagueData. Clearing chart data.');
       this.pointsOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: [] };
@@ -1119,51 +1024,39 @@ class LeagueElement extends HTMLElement {
   }
 
   ensureTeamColors() {
-    if (!this.data || !this.data.table || !Array.isArray(this.data.table.leagueData)) {
+    const tableData = this._table;
+    const teams = Array.isArray(tableData) ? tableData : (tableData?.leagueData || []);
+    
+    if (!this.data || !Array.isArray(teams) || teams.length === 0) {
       console.warn('Cannot ensure team colors: leagueData is missing.');
-      this.teamColors = {}; // Reset or ensure it's an empty object
       return;
     }
 
-    const PREDEFINED_COLORS = [
-      '#1f77b4',  // Muted Blue
-      '#ff7f0e',  // Safety Orange
-      '#2ca02c',  // Cooked Asparagus Green
-      '#d62728',  // Brick Red
-      '#9467bd',  // Muted Purple
-      '#8c564b',  // Chestnut Brown
-      '#e377c2',  // Raspberry Sorbet Pink
-      '#7f7f7f',  // Middle Gray
-      '#bcbd22',  // Curry Yellow-Green
-      '#17becf',  // Dark Cyan
-      '#aec7e8',  // Light Blue
-      '#ffbb78',  // Light Orange
-      '#98df8a',  // Light Green
-      '#ff9896',  // Light Red
-      '#c5b0d5',  // Light Purple
-    ];
+    // Initialize teamColors if it doesn't exist
+    if (!this.teamColors) {
+      this.teamColors = {};
+    }
 
-    let colorIndex = 0;
-    const teams = this.data.table.leagueData;
-
-    // First, assign colors to teams that are already in teamColors but might have an old color
-    // (or ensure existing tracked teams get a color if they somehow missed out)
-    // This part is more about maintaining consistency if teams are already tracked.
-    // For a fresh assignment, the loop below is key.
-
+    // Assign colors to teams that don't have one
     teams.forEach(team => {
-      if (!this.teamColors[team.teamId]) {
-        this.teamColors[team.teamId] = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
-        colorIndex++;
+      if (!this.teamColors[team.teamName]) {
+        // Generate a random color
+        const hue = Math.random() * 360;
+        const saturation = 70 + Math.random() * 30; // 70-100%
+        const lightness = 45 + Math.random() * 10; // 45-55%
+        const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        this.teamColors[team.teamName] = color;
       }
     });
 
     // Ensure any team in selectedTeamsForGraph (even if not in current leagueData, though unlikely) has a color
-    // This is a defensive step.
-    this.selectedTeamsForGraph.forEach(teamId => {
-      if (!this.teamColors[teamId]) {
-        this.teamColors[teamId] = PREDEFINED_COLORS[colorIndex % PREDEFINED_COLORS.length];
-        colorIndex++;
+    this.selectedTeamsForGraph.forEach(teamName => {
+      if (!this.teamColors[teamName]) {
+        const hue = Math.random() * 360;
+        const saturation = 70 + Math.random() * 30;
+        const lightness = 45 + Math.random() * 10;
+        const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        this.teamColors[teamName] = color;
       }
     });
   }
@@ -1356,284 +1249,9 @@ class LeagueElement extends HTMLElement {
       }
     });
   }
-
-  setupTrendsViewInteractivity() {
-    // Graph Type Selector
-    const graphTypeSelect = this.shadow.querySelector('#graph-type-select');
-    if (graphTypeSelect) {
-      graphTypeSelect.addEventListener('change', (event) => {
-        this.activeTrendGraphType = event.target.value;
-        // Re-render or update the specific graph content
-        // For now, if we had multiple graph types, this would trigger a different draw function
-        // or pass type to a generic draw function.
-        if (this.activeTrendGraphType === 'pointsOverTime') {
-          this.drawPointsOverTimeSVG(); // Redraw the current graph type
-        } else {
-          // Handle other graph types in the future
-          const svg = this.shadow.querySelector('#points-over-time-svg');
-          if (svg) svg.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Selected graph type '${this.activeTrendGraphType}' is not yet implemented.</text>`;
-          const legendDiv = this.shadow.querySelector('.trends-graph-legend');
-          if (legendDiv) legendDiv.innerHTML = '';
-        }
-      });
-    }
-
-    // Team Toggle Checkboxes (event delegation on legend container)
-    const legendDiv = this.shadow.querySelector('.trends-graph-legend');
-    if (legendDiv) {
-      legendDiv.addEventListener('change', (event) => {
-        if (event.target.matches('.trends-team-toggle-cb')) {
-          const teamName = event.target.value;
-          if (event.target.checked) {
-            this.selectedTeamsForGraph.add(teamName);
-          } else {
-            this.selectedTeamsForGraph.delete(teamName);
-          }
-          this.drawPointsOverTimeSVG(); // Redraw graph with new team selection
-        }
-      });
-    }
-
-    // Call this once during setup if the trends view is active, to ensure interactivity is live
-    // However, render() / _fillTemplate handles calling drawPointsOverTimeSVG which populates legend,
-    // so event listeners should be set up after legend is populated.
-    // The best place to call this is after render has completed and if the trends tab is active.
-    // We can also ensure it's called from setupTabs when trends tab becomes active.
-  }
   // END - Placeholder for Trends View Methods
 
   // START - New methods for table filtering and data processing
-
-  _getFilteredLeagueData() {
-    if (!this.data || !this.data.matches || !this.data.table || !this.data.table.leagueData) {
-      return [];
-    }
-
-    // Get team IDs from league data
-    const allTeamIdsInLeague = this.data.table.leagueData.map(t => t.teamId);
-    const allMatchesWithResults = this.data.matches.filter(m => 
-      m.result && 
-      typeof m.result.homeScore === 'number' && 
-      typeof m.result.awayScore === 'number'
-    );
-
-    // Calculate the full current league table based on this.tableFilter
-    const currentFilteredLeague = allTeamIdsInLeague.map(teamId => {
-      let played = 0;
-      let won = 0;
-      let drawn = 0;
-      let lost = 0;
-      let shotsFor = 0;
-      let shotsAgainst = 0;
-      let points = 0;
-      const teamFilteredMatches = []; // For form icons and tooltips
-
-      allMatchesWithResults.forEach(match => {
-        if (!match.result || typeof match.result.homeScore !== 'number' || typeof match.result.awayScore !== 'number') {
-          return; // Skip matches without results
-        }
-
-        // Get team IDs from match
-        const homeTeamId = match.homeTeam._id;
-        const awayTeamId = match.awayTeam._id;
-        
-        if (!homeTeamId || !awayTeamId) {
-          return; // Skip if team IDs are missing
-        }
-
-        const homeScore = match.result.homeScore;
-        const awayScore = match.result.awayScore;
-        let matchResultForTeam = ''; // W, D, L for the current team in this match
-
-        if (this.tableFilter === 'home') {
-          if (homeTeamId === teamId) {
-            played++;
-            shotsFor += homeScore;
-            shotsAgainst += awayScore;
-            if (homeScore > awayScore) {
-              won++; points += 3; matchResultForTeam = 'W';
-            } else if (homeScore === awayScore) {
-              drawn++; points += 1; matchResultForTeam = 'D';
-            } else {
-              lost++; matchResultForTeam = 'L';
-            }
-            teamFilteredMatches.push({ 
-              result: matchResultForTeam, 
-              date: match.date, 
-              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
-              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
-              homeScore, 
-              awayScore,
-              // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
-              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
-            });
-          }
-        } else if (this.tableFilter === 'away') {
-          if (awayTeamId === teamId) {
-            played++;
-            shotsFor += awayScore;
-            shotsAgainst += homeScore;
-            if (awayScore > homeScore) {
-              won++; points += 3; matchResultForTeam = 'W';
-            } else if (awayScore === homeScore) {
-              drawn++; points += 1; matchResultForTeam = 'D';
-            } else {
-              lost++; matchResultForTeam = 'L';
-            }
-            teamFilteredMatches.push({ 
-              result: matchResultForTeam, 
-              date: match.date, 
-              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
-              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
-              homeScore, 
-              awayScore,
-              // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
-              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
-            });
-          }
-        } else { // 'overall'
-          if (homeTeamId === teamId) {
-            played++;
-            shotsFor += homeScore;
-            shotsAgainst += awayScore;
-            if (homeScore > awayScore) {
-              won++; points += 3; matchResultForTeam = 'W';
-            } else if (homeScore === awayScore) {
-              drawn++; points += 1; matchResultForTeam = 'D';
-            } else {
-              lost++; matchResultForTeam = 'L';
-            }
-            teamFilteredMatches.push({ 
-              result: matchResultForTeam, 
-              date: match.date, 
-              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
-              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
-              homeScore, 
-              awayScore,
-              // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
-              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
-            });
-          } else if (awayTeamId === teamId) {
-            played++;
-            shotsFor += awayScore;
-            shotsAgainst += homeScore;
-            if (awayScore > homeScore) {
-              won++; points += 3; matchResultForTeam = 'W';
-            } else if (awayScore === homeScore) {
-              drawn++; points += 1; matchResultForTeam = 'D';
-            } else {
-              lost++; matchResultForTeam = 'L';
-            }
-            teamFilteredMatches.push({ 
-              result: matchResultForTeam, 
-              date: match.date, 
-              homeTeam: { _id: homeTeamId, name: this.getTeamDisplayName(homeTeamId) },
-              awayTeam: { _id: awayTeamId, name: this.getTeamDisplayName(awayTeamId) },
-              homeScore, 
-              awayScore,
-              // Add display names for tooltip readability
-              homeTeamDisplayName: this.getTeamDisplayName(homeTeamId),
-              awayTeamDisplayName: this.getTeamDisplayName(awayTeamId)
-            });
-          }
-        }
-      });
-
-      teamFilteredMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      return {
-        teamId: teamId, // Store the team ID
-        teamName: teamId, // Legacy support
-        teamDisplayName: this.getTeamDisplayName(teamId), // Add display name for the team
-        played,
-        won,
-        drawn,
-        lost,
-        shotsFor,
-        shotsAgainst,
-        shotDifference: shotsFor - shotsAgainst,
-        points,
-        matches: teamFilteredMatches.slice(0, 5).map(m => ({
-          result: m.result,
-          description: `${new Date(m.date).toLocaleDateString()}: ${m.homeTeamDisplayName} ${m.homeScore}-${m.awayScore} ${m.awayTeamDisplayName}`
-        })),
-        allMatchesForTooltip: teamFilteredMatches,
-        inPromotionPosition: false,
-        inRelegationPosition: false
-      };
-    });
-
-    // Sort teams to establish their rank based on points, shotDifference, etc.
-    currentFilteredLeague.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.shotDifference !== a.shotDifference) return b.shotDifference - a.shotDifference;
-      if (b.shotsFor !== a.shotsFor) return b.shotsFor - a.shotsFor;
-      return a.teamDisplayName.localeCompare(b.teamDisplayName); // Use display name for sort
-    });
-
-    // Assign currentRank based on the primary sort for the current view (overall, home, away)
-    currentFilteredLeague.forEach((team, index) => {
-      team.currentRank = index + 1;
-    });
-
-    // Rank movement and promotion/relegation logic, primarily for 'overall' view
-    if (this.tableFilter === 'overall') {
-      let effectivePreviousRanks = null;
-
-      // Always calculate effectivePreviousRanks based on data before the last match day
-      const uniqueResultDates = [...new Set(allMatchesWithResults.map(m => {
-        if (!m.date) return null; // Should not happen if filtered by result, but defensive
-        return new Date(m.date).setHours(0,0,0,0);
-      }).filter(date => date !== null))].sort((a,b) => a - b);
-
-      if (uniqueResultDates.length >= 2) {
-          const lastActualMatchDayTimestamp = uniqueResultDates[uniqueResultDates.length - 1];
-          const matchesForBaseline = allMatchesWithResults.filter(match => {
-              if (!match.date) return false; // Ensure match.date exists
-              const matchDateTimestamp = new Date(match.date).setHours(0,0,0,0);
-              return matchDateTimestamp < lastActualMatchDayTimestamp;
-          });
-          if (matchesForBaseline.length > 0) {
-              effectivePreviousRanks = this._calculateRanksFromMatches(matchesForBaseline, allTeamIdsInLeague);
-          }
-      }
-      // If uniqueResultDates < 2 or matchesForBaseline is empty, effectivePreviousRanks remains null.
-
-      // Apply movement and promotion/relegation to the currentFilteredLeague (which is already sorted for 'overall')
-      currentFilteredLeague.forEach(team => {
-        // currentRank is already set from the main sort
-        if (effectivePreviousRanks && effectivePreviousRanks[team.teamId] !== undefined) {
-          const previousRank = effectivePreviousRanks[team.teamId];
-          team.rankMovement = previousRank - team.currentRank;
-        } else {
-          team.rankMovement = 0; // No previous data or team not in baseline
-        }
-
-        // Promotion/relegation for overall table
-        if (this.data && this.data.table && this.data.table.metaData) {
-          const promotionPlaces = this.data.table.metaData.promotionPlaces || 0;
-          const relegationPlaces = this.data.table.metaData.relegationPlaces || 0;
-          team.inPromotionPosition = promotionPlaces > 0 && team.currentRank <= promotionPlaces;
-          team.inRelegationPosition = relegationPlaces > 0 && team.currentRank >= (currentFilteredLeague.length - relegationPlaces + 1);
-        } else {
-          team.inPromotionPosition = false;
-          team.inRelegationPosition = false;
-        }
-      });
-
-    } else { // For 'home' or 'away' filters, rank is per that table, no overall movement shown
-      currentFilteredLeague.forEach(team => {
-        team.rankMovement = 0;
-        team.inPromotionPosition = false;
-        team.inRelegationPosition = false;
-      });
-    }
-    
-    return currentFilteredLeague;
-  }
 
   setupTableFilterDropdown() {
     const filterSelect = this.shadow.querySelector('#table-filter-select');
@@ -1675,7 +1293,23 @@ class LeagueElement extends HTMLElement {
    */
   _calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague) {
     if (!matchesSubset || matchesSubset.length === 0 || !allTeamIdsInLeague || allTeamIdsInLeague.length === 0) {
-      return null;
+      // Return an array of teams with zeroed stats if no matches
+      return allTeamIdsInLeague.map(teamId => ({
+        teamId,
+        teamDisplayName: this.getTeamDisplayName(teamId),
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        shotsFor: 0,
+        shotsAgainst: 0,
+        shotDifference: 0,
+        points: 0,
+        currentRank: undefined,
+        rankMovement: undefined,
+        matches: [],
+        allMatchesForTooltip: []
+      }));
     }
 
     const stats = allTeamIdsInLeague.map(teamId => {
@@ -1686,24 +1320,22 @@ class LeagueElement extends HTMLElement {
       let shotsFor = 0;
       let shotsAgainst = 0;
       let points = 0;
+      let matches = [];
+      let allMatchesForTooltip = [];
 
       matchesSubset.forEach(match => {
         // Ensure match has a result and valid scores
         if (!match.result || typeof match.result.homeScore !== 'number' || typeof match.result.awayScore !== 'number') {
           return; 
         }
-        
         // Get team IDs from match
         const homeTeamId = match.homeTeam._id;
         const awayTeamId = match.awayTeam._id;
-        
         if (!homeTeamId || !awayTeamId) {
           return; // Skip if team IDs are missing
         }
-        
         const homeScore = match.result.homeScore;
         const awayScore = match.result.awayScore;
-
         if (homeTeamId === teamId) {
           played++;
           shotsFor += homeScore;
@@ -1711,6 +1343,8 @@ class LeagueElement extends HTMLElement {
           if (homeScore > awayScore) { won++; points += 3; }
           else if (homeScore === awayScore) { drawn++; points += 1; }
           else { lost++; }
+          matches.push(match);
+          allMatchesForTooltip.push(match);
         } else if (awayTeamId === teamId) {
           played++;
           shotsFor += awayScore;
@@ -1718,8 +1352,39 @@ class LeagueElement extends HTMLElement {
           if (awayScore > homeScore) { won++; points += 3; }
           else if (awayScore === homeScore) { drawn++; points += 1; }
           else { lost++; }
+          matches.push(match);
+          allMatchesForTooltip.push(match);
         }
       });
+
+      // Sort matches by date to get the most recent for the form guide
+      matches.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      const formMatches = matches.slice(0, 5).map(match => {
+        const homeTeamId = match.homeTeam._id;
+        const awayTeamId = match.awayTeam._id;
+        const homeScore = match.result.homeScore;
+        const awayScore = match.result.awayScore;
+
+        let resultForTeam = '';
+        if (homeTeamId === teamId) {
+          if (homeScore > awayScore) { resultForTeam = 'W'; }
+          else if (homeScore < awayScore) { resultForTeam = 'L'; }
+          else { resultForTeam = 'D'; }
+        } else { // awayTeamId === teamId
+          if (awayScore > homeScore) { resultForTeam = 'W'; }
+          else if (awayScore < homeScore) { resultForTeam = 'L'; }
+          else { resultForTeam = 'D'; }
+        }
+
+        const homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
+        const awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
+        const dateStr = new Date(match.date).toLocaleDateString();
+        const description = `${homeTeamDisplay} ${homeScore}-${awayScore} ${awayTeamDisplay} on ${dateStr}`;
+
+        return { result: resultForTeam, description };
+      });
+
       return {
         teamId,
         teamDisplayName: this.getTeamDisplayName(teamId),
@@ -1730,7 +1395,9 @@ class LeagueElement extends HTMLElement {
         shotsFor,
         shotsAgainst,
         shotDifference: shotsFor - shotsAgainst,
-        points
+        points,
+        matches: formMatches,
+        allMatchesForTooltip
       };
     });
 
@@ -1742,12 +1409,13 @@ class LeagueElement extends HTMLElement {
       return a.teamDisplayName.localeCompare(b.teamDisplayName);
     });
 
-    const rankMap = {};
+    // Assign currentRank and rankMovement if needed
     stats.forEach((team, index) => {
-      rankMap[team.teamId] = index + 1; // 1-indexed rank
+      team.currentRank = index + 1; // 1-indexed rank
+      // rankMovement can be calculated here if you have previous data
     });
-    
-    return rankMap;
+
+    return stats;
   }
 
   /**
@@ -1757,12 +1425,34 @@ class LeagueElement extends HTMLElement {
    * @param {'edit'|'new'} mode
    */
   openMatchModal(matchData, teams, mode = 'edit') {
+    console.group('[LeagueElement] openMatchModal');
+    console.log('Opening match modal with data:', {
+      matchData,
+      teams,
+      mode,
+      currentLeagueData: this._table
+    });
+    
     this.matchModalOpen = true;
     this.matchModalData = matchData;
     this.matchModalTeams = teams;
     this.matchModalMode = mode;
 
     this.render();
+
+    // If user is viewing the matrix, refresh its contents after modal interaction
+    if (this.activeView === 'matrix') {
+      const selector = this._isMobile
+        ? '#mobile-matrix-view .matrix-container'
+        : '#desktop-matrix-view .matrix-container';
+      const matrixContainer = this.shadow.querySelector(selector);
+      if (matrixContainer) {
+        // Re-generate matrix HTML and re-attach listeners
+        matrixContainer.innerHTML = this.renderMatrix();
+        this.setupMatrixEventListeners();
+      }
+    }
+    console.groupEnd();
   }
 
   /**
@@ -1939,23 +1629,6 @@ class LeagueElement extends HTMLElement {
     return teamId;
   }
 
-  // Helper method to get teams from league data with fallback
-  _getTeamsFromLeagueData() {
-    // First try to use teams directly from data
-    if (this.data && this.data.teams && Array.isArray(this.data.teams)) {
-      return this.data.teams;
-    } 
-    // If not available, try to extract from table data
-    else if (this.data && this.data.table && this.data.table.leagueData) {
-      return this.data.table.leagueData.map(team => ({
-        _id: team.teamId,
-        name: team.teamDisplayName || this.getTeamDisplayName(team.teamId)
-      }));
-    }
-    // Return empty array if no teams found
-    return [];
-  }
-
   /**
    * Get a shortened version of team name for mobile display
    * @param {string} teamName - The full team name
@@ -1981,6 +1654,269 @@ class LeagueElement extends HTMLElement {
     // Last resort: just use first 3 characters
     return teamName.substring(0, 3).toUpperCase();
   }
+
+  get _table() {
+    if (!this.data) {
+      console.warn('[LeagueElement] _table: No league data available');
+      return undefined;
+    }
+    return this.data.getLeagueTable();
+  }
+
+  _updateUI() {
+    // Get current league data
+    const table = this._table;
+    if (!table) {
+      console.warn('No league table data available for UI update');
+      return;
+    }
+
+    // Update the UI with the latest data
+    this._updateLeagueTable(table);
+    this._updateMatrixView(table);
+    this._updateFixturesView(table);
+  }
+
+  _updateLeagueTable(table) {
+    console.log('Updating league table with data:', table);
+    if (!table || !table.leagueData || !Array.isArray(table.leagueData)) {
+      console.warn('Invalid league data for table update');
+      return;
+    }
+
+    // Only update if table view is active
+    if (this.activeView !== 'table') {
+      console.log('Table view is not active, skipping update');
+      return;
+    }
+
+    // Select the correct view container based on mobile/desktop
+    const viewContainer = this._isMobile ? 
+      this.shadowRoot.querySelector('#mobile-table-view') :
+      this.shadowRoot.querySelector('#desktop-table-view');
+
+    if (!viewContainer) {
+      console.warn('Table view container not found');
+      return;
+    }
+
+    const tableBody = viewContainer.querySelector('table tbody');
+    console.log('Table body:', tableBody);
+    if (!tableBody) return;
+
+    // Clear existing rows
+    tableBody.innerHTML = '';
+
+    // Add new rows
+    table.leagueData.forEach(team => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${team.position}</td>
+        <td>${team.teamName}</td>
+        <td>${team.played}</td>
+        <td>${team.won}</td>
+        <td>${team.drawn}</td>
+        <td>${team.lost}</td>
+        <td>${team.shotsFor}</td>
+        <td>${team.shotsAgainst}</td>
+        <td>${team.shotDifference}</td>
+        <td>${team.points}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  _updateMatrixView(table) {
+    if (!table || !table.leagueData || !Array.isArray(table.leagueData)) {
+      console.warn('Invalid league data for matrix update');
+      return;
+    }
+
+    const matrixContainer = this.shadowRoot.querySelector('#matrixView');
+    if (!matrixContainer) return;
+
+    // Clear existing content
+    matrixContainer.innerHTML = '';
+
+    // Create matrix table
+    const matrixTable = document.createElement('table');
+    matrixTable.className = 'matrix-table';
+
+    // Create header row
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = '<th></th>' + table.leagueData.map(team => `<th>${team.teamName}</th>`).join('');
+    matrixTable.appendChild(headerRow);
+
+    // Create data rows
+    table.leagueData.forEach(team => {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${team.teamName}</td>` + 
+        table.leagueData.map(opponent => {
+          if (opponent.teamName === team.teamName) return '<td class="diagonal"></td>';
+          const match = this.data.getMatch(team.teamName, opponent.teamName);
+          if (!match) return '<td>-</td>';
+          return `<td>${match.homeShots}-${match.awayShots}</td>`;
+        }).join('');
+      matrixTable.appendChild(row);
+    });
+
+    matrixContainer.appendChild(matrixTable);
+  }
+
+  _updateFixturesView(table) {
+    if (!table || !table.leagueData || !Array.isArray(table.leagueData)) {
+      console.warn('Invalid league data for fixtures update');
+      return;
+    }
+
+    const fixturesContainer = this.shadowRoot.querySelector('#fixturesView');
+    if (!fixturesContainer) return;
+
+    // Clear existing content
+    fixturesContainer.innerHTML = '';
+
+    // Get all matches
+    const matches = this.data.getAllMatches();
+    if (!matches || matches.length === 0) {
+      fixturesContainer.innerHTML = '<p>No fixtures available</p>';
+      return;
+    }
+
+    // Group matches by round
+    const matchesByRound = {};
+    matches.forEach(match => {
+      if (!matchesByRound[match.round]) {
+        matchesByRound[match.round] = [];
+      }
+      matchesByRound[match.round].push(match);
+    });
+
+    // Create fixtures table
+    const fixturesTable = document.createElement('table');
+    fixturesTable.className = 'fixtures-table';
+
+    // Add header
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = '<th>Round</th><th>Home Team</th><th>Score</th><th>Away Team</th><th>Actions</th>';
+    fixturesTable.appendChild(headerRow);
+
+    // Add matches
+    Object.keys(matchesByRound).sort((a, b) => a - b).forEach(round => {
+      matchesByRound[round].forEach(match => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${round}</td>
+          <td>${match.homeTeam}</td>
+          <td>${match.homeShots}-${match.awayShots}</td>
+          <td>${match.awayTeam}</td>
+          <td>
+            <button class="edit-match" data-match='${JSON.stringify(match)}'>Edit</button>
+          </td>
+        `;
+        fixturesTable.appendChild(row);
+      });
+    });
+
+    fixturesContainer.appendChild(fixturesTable);
+
+    // Add event listeners for edit buttons
+    fixturesContainer.querySelectorAll('.edit-match').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const matchData = JSON.parse(e.target.dataset.match);
+        const teamsArray = table.leagueData.map(t => t.teamName);
+        this.openMatchModal(matchData, teamsArray, 'edit');
+      });
+    });
+  }
+
+  // END - Placeholder for Trends View Methods
+
+  // START - Matrix View Methods
+  renderMatrix() {
+    const matrixData = this._prepareMatrixData();
+    if (!matrixData) {
+      return '<p>Matrix data is not available.</p>';
+    }
+
+    const { teams, teamMatches } = matrixData;
+    
+    if (!teams || teams.length === 0) {
+      return '<p>No teams available for matrix view.</p>';
+    }
+
+    // Create the matrix table
+    let matrixHTML = '<table class="matrix-table">';
+    
+    // Header row
+    matrixHTML += '<tr><th></th>';
+    teams.forEach(team => {
+      const displayName = this._isMobile ? 
+        this._getShortTeamName(team.teamDisplayName || team.teamName) : 
+        (team.teamDisplayName || team.teamName);
+      matrixHTML += `<th title="${this.escapeHtml(team.teamDisplayName || team.teamName)}">${this.escapeHtml(displayName)}</th>`;
+    });
+    matrixHTML += '</tr>';
+
+    // Data rows
+    teams.forEach(homeTeam => {
+      const homeDisplayName = this._isMobile ? 
+        this._getShortTeamName(homeTeam.teamDisplayName || homeTeam.teamName) : 
+        (homeTeam.teamDisplayName || homeTeam.teamName);
+      
+      matrixHTML += `<tr><td class="matrix-team-name" title="${this.escapeHtml(homeTeam.teamDisplayName || homeTeam.teamName)}">${this.escapeHtml(homeDisplayName)}</td>`;
+      
+      teams.forEach(awayTeam => {
+        if (homeTeam.teamId === awayTeam.teamId) {
+          // Diagonal cell - same team
+          matrixHTML += '<td class="matrix-diagonal">-</td>';
+        } else {
+          // Find match between these teams
+          const match = this._findMatchBetweenTeams(homeTeam.teamId, awayTeam.teamId);
+          if (match && match.result) {
+            const homeScore = match.result.homeScore;
+            const awayScore = match.result.awayScore;
+            const dateStr = new Date(match.date).toLocaleDateString();
+            const tooltip = `${homeTeam.teamDisplayName || homeTeam.teamName} vs ${awayTeam.teamDisplayName || awayTeam.teamName} on ${dateStr}`;
+            
+            matrixHTML += `<td class="matrix-result" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>${homeScore}-${awayScore}</td>`;
+          } else {
+            // No match played yet
+            matrixHTML += '<td class="matrix-no-match">-</td>';
+          }
+        }
+      });
+      matrixHTML += '</tr>';
+    });
+    
+    matrixHTML += '</table>';
+    return matrixHTML;
+  }
+
+  _findMatchBetweenTeams(homeTeamId, awayTeamId) {
+    if (!this.data || !this.data.matches) return null;
+    
+    return this.data.matches.find(match => {
+      const matchHomeId = match.homeTeam?._id;
+      const matchAwayId = match.awayTeam?._id;
+      return matchHomeId === homeTeamId && matchAwayId === awayTeamId;
+    });
+  }
+
+  setupMatrixEventListeners() {
+    const matrixCells = this.shadow.querySelectorAll('.matrix-result');
+    matrixCells.forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        try {
+          const matchData = JSON.parse(e.target.dataset.match);
+          const teams = this._getTeamsFromLeagueData();
+          this.openMatchModal(matchData, teams, 'edit');
+        } catch (error) {
+          console.error('Error opening match modal from matrix:', error);
+        }
+      });
+    });
+  }
+  // END - Matrix View Methods
 }
 
 // Register the custom element

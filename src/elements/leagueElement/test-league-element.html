@@ -45,27 +45,41 @@
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const leagueId = urlParams.get('leagueId');
-
-        if (!leagueId) {
-          throw new Error("No leagueId provided in the URL. Please navigate from the admin page.");
-        }
-
         const storedData = sessionStorage.getItem(STORAGE_KEY);
-        if (storedData) {
-          const allLeagues = JSON.parse(storedData).leagues;
-          const league = allLeagues.find(l => (l._id || l.name) === leagueId);
-          if (league) {
-            return league;
-          } else {
-            throw new Error(`League with ID "${leagueId}" not found in sessionStorage.`);
-          }
-        } else {
+
+        if (!storedData) {
           throw new Error("No data found in sessionStorage. Please start from the admin page.");
         }
+
+        const parsedData = JSON.parse(storedData);
+        console.log('SessionStorage data:', parsedData);
+        
+        if (!parsedData.leagues || !Array.isArray(parsedData.leagues) || parsedData.leagues.length === 0) {
+          throw new Error("No leagues found in sessionStorage data.");
+        }
+
+        // If no leagueId provided, use the first league
+        if (!leagueId) {
+          console.log('No leagueId provided in URL, using first league from cache');
+          return parsedData.leagues[0];
+        }
+
+        // Try to find the specific league
+        const league = parsedData.leagues.find(l => (l._id || l.name) === leagueId);
+        if (league) {
+          console.log('Found requested league:', league);
+          return league;
+        }
+
+        // If league not found, log available leagues and use first one
+        console.warn(`League with ID "${leagueId}" not found in sessionStorage. Available leagues:`, 
+          parsedData.leagues.map(l => ({ id: l._id, name: l.name })));
+        console.log('Falling back to first league in cache');
+        return parsedData.leagues[0];
       } catch (e) {
         console.error('Error loading data from session storage:', e);
-        // Return null to indicate failure
-        return null;
+        // Instead of returning null, throw the error to be caught by the outer try-catch
+        throw e;
       }
     }
     
@@ -127,16 +141,23 @@
     el.setAttribute('team-map', JSON.stringify(teamMap));
     
     // Initialize with saved or default data - AFTER setting lovebowls-teams
-    const initialData = loadLeagueData();
-
-    if (initialData) {
-      el.setAttribute('data', JSON.stringify(initialData));
-    } else {
+    try {
+      const initialData = loadLeagueData();
+      if (initialData) {
+        el.setAttribute('data', JSON.stringify(initialData));
+      }
+    } catch (error) {
       // Handle the error case where data could not be loaded
       document.body.innerHTML = `
         <h1 style="color: red;">Error Loading League</h1>
-        <p>Could not load league data. This can happen if you navigated to this page directly.</p>
+        <p>Could not load league data: ${error.message}</p>
         <p>Please <a href="../leagueAdminElement/test-league-admin-element.html">return to the Admin Page</a> and select a league to view.</p>
+        <p>Debug Info:</p>
+        <pre>${JSON.stringify({
+          sessionStorageKey: STORAGE_KEY,
+          sessionStorageExists: !!sessionStorage.getItem(STORAGE_KEY),
+          error: error.message
+        }, null, 2)}</pre>
       `;
       // Stop further script execution
       throw new Error("Stopping script execution due to data load failure.");
@@ -153,7 +174,7 @@
     // Listen for league update events from leagueElement.js
     el.addEventListener('league-event', (e) => {
       // Check if this is an update request
-      if (e.detail && e.detail.type === 'requestUpdateLeague' && e.detail.league) {
+      if (e.detail && e.detail.type === 'requestSaveLeague' && e.detail.league) {
         const updatedLeague = e.detail.league;
         
         // Clear any attention reasons from matches after saving

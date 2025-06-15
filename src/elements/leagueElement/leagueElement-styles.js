@@ -820,7 +820,7 @@ export const BASE_STYLES = `
               </div>
             </div>
             <div class="content">
-              <table>
+              <table id="leagueTable">
                 ${TABLE_HEADER}
                 <tbody>
                   {{tableRows}}
@@ -878,7 +878,7 @@ export const BASE_STYLES = `
               </div>
             </div>
             <div class="content">
-              <table>
+              <table id="leagueTable">
                 ${TABLE_HEADER}
                 <tbody>
                   {{tableRows}}
