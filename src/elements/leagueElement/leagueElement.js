@@ -1844,51 +1844,77 @@ class LeagueElement extends HTMLElement {
       return '<p>No teams available for matrix view.</p>';
     }
 
-    // Create the matrix table
-    let matrixHTML = '<table class="matrix-table">';
+    const numTeams = teams.length;
     
-    // Header row
-    matrixHTML += '<tr><th></th>';
+    // Create the matrix using CSS Grid
+    let matrixHTML = `<div class="matrix-grid" style="grid-template-columns: repeat(${numTeams + 1}, 1fr);">`;
+    
+    // Empty top-left corner cell
+    matrixHTML += '<div class="matrix-cell matrix-header-cell"></div>';
+    
+    // Header row (team names across the top)
     teams.forEach(team => {
       const displayName = this._isMobile ? 
         this._getShortTeamName(team.teamDisplayName || team.teamName) : 
         (team.teamDisplayName || team.teamName);
-      matrixHTML += `<th title="${this.escapeHtml(team.teamDisplayName || team.teamName)}">${this.escapeHtml(displayName)}</th>`;
+      matrixHTML += `<div class="matrix-cell matrix-header-cell" title="${this.escapeHtml(team.teamDisplayName || team.teamName)}">
+        <span class="matrix-team-name-x">${this.escapeHtml(displayName)}</span>
+      </div>`;
     });
-    matrixHTML += '</tr>';
 
     // Data rows
     teams.forEach(homeTeam => {
+      // Row header (team name on the left)
       const homeDisplayName = this._isMobile ? 
         this._getShortTeamName(homeTeam.teamDisplayName || homeTeam.teamName) : 
         (homeTeam.teamDisplayName || homeTeam.teamName);
       
-      matrixHTML += `<tr><td class="matrix-team-name" title="${this.escapeHtml(homeTeam.teamDisplayName || homeTeam.teamName)}">${this.escapeHtml(homeDisplayName)}</td>`;
+      matrixHTML += `<div class="matrix-cell matrix-header-cell" title="${this.escapeHtml(homeTeam.teamDisplayName || homeTeam.teamName)}">
+        <span class="matrix-team-name-y">${this.escapeHtml(homeDisplayName)}</span>
+      </div>`;
       
+      // Data cells for this row
       teams.forEach(awayTeam => {
         if (homeTeam.teamId === awayTeam.teamId) {
           // Diagonal cell - same team
-          matrixHTML += '<td class="matrix-diagonal">-</td>';
+          matrixHTML += '<div class="matrix-cell matrix-cell-same-team"></div>';
         } else {
           // Find match between these teams
           const match = this._findMatchBetweenTeams(homeTeam.teamId, awayTeam.teamId);
           if (match && match.result) {
+            // Match has been played
             const homeScore = match.result.homeScore;
             const awayScore = match.result.awayScore;
             const dateStr = new Date(match.date).toLocaleDateString();
             const tooltip = `${homeTeam.teamDisplayName || homeTeam.teamName} vs ${awayTeam.teamDisplayName || awayTeam.teamName} on ${dateStr}`;
             
-            matrixHTML += `<td class="matrix-result" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>${homeScore}-${awayScore}</td>`;
+            matrixHTML += `<div class="matrix-cell matrix-cell-played" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>
+              <span class="matrix-score">${homeScore}-${awayScore}</span>
+              <div class="tooltip">${this.escapeHtml(tooltip)}</div>
+            </div>`;
+          } else if (match && !match.result) {
+            // Match is scheduled but not played
+            const dateStr = match.date ? new Date(match.date).toLocaleDateString() : 'Date TBD';
+            const tooltip = `${homeTeam.teamDisplayName || homeTeam.teamName} vs ${awayTeam.teamDisplayName || awayTeam.teamName} - ${dateStr}`;
+            
+            matrixHTML += `<div class="matrix-cell matrix-cell-scheduled" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>
+              <span>vs</span>
+              <div class="tooltip">${this.escapeHtml(tooltip)}</div>
+            </div>`;
           } else {
-            // No match played yet
-            matrixHTML += '<td class="matrix-no-match">-</td>';
+            // No match scheduled
+            const tooltip = `No match scheduled: ${homeTeam.teamDisplayName || homeTeam.teamName} vs ${awayTeam.teamDisplayName || awayTeam.teamName}`;
+            
+            matrixHTML += `<div class="matrix-cell matrix-cell-none" title="${this.escapeHtml(tooltip)}">
+              <span class="add-match-icon">+</span>
+              <div class="tooltip">${this.escapeHtml(tooltip)}</div>
+            </div>`;
           }
         }
       });
-      matrixHTML += '</tr>';
     });
     
-    matrixHTML += '</table>';
+    matrixHTML += '</div>';
     return matrixHTML;
   }
 
@@ -1903,16 +1929,25 @@ class LeagueElement extends HTMLElement {
   }
 
   setupMatrixEventListeners() {
-    const matrixCells = this.shadow.querySelectorAll('.matrix-result');
+    const matrixCells = this.shadow.querySelectorAll('.matrix-cell[data-match]');
     matrixCells.forEach(cell => {
       cell.addEventListener('click', (e) => {
         try {
-          const matchData = JSON.parse(e.target.dataset.match);
+          const matchData = JSON.parse(e.currentTarget.dataset.match);
           const teams = this._getTeamsFromLeagueData();
           this.openMatchModal(matchData, teams, 'edit');
         } catch (error) {
           console.error('Error opening match modal from matrix:', error);
         }
+      });
+    });
+
+    // Also handle clicks on empty cells to create new matches
+    const emptyCells = this.shadow.querySelectorAll('.matrix-cell-none');
+    emptyCells.forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        // You could implement new match creation here if desired
+        console.log('Clicked empty matrix cell - could create new match');
       });
     });
   }
