@@ -935,26 +935,13 @@ class LeagueElement extends HTMLElement {
     // Graph Type Selector
     const graphTypeSelect = this.shadow.querySelector('#graph-type-select');
     if (graphTypeSelect) {
+      graphTypeSelect.value = this.activeTrendGraphType; // Set initial value
       graphTypeSelect.addEventListener('change', (event) => {
         this.activeTrendGraphType = event.target.value;
-        // Re-render or update the specific graph content
-        // For now, if we had multiple graph types, this would trigger a different draw function
-        // or pass type to a generic draw function.
-        if (this.activeTrendGraphType === 'pointsOverTime') {
-          this.drawPointsOverTimeSVG(); // Redraw the current graph type
-        } else if (this.activeTrendGraphType === 'shotsForVsAgainst') {
-          this._prepareShotsForVsAgainstData();
-          this.drawShotsForVsAgainstSVG();
-        } else if (this.activeTrendGraphType === 'formOverTime') {
-          this._prepareFormOverTimeData();
-          this.drawFormOverTimeSVG();
-        } else {
-          // Handle other graph types in the future
-          const svg = this.shadow.querySelector('#points-over-time-svg');
-          if (svg) svg.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Selected graph type '${this.activeTrendGraphType}' is not yet implemented.</text>`;
-          const legendDiv = this.shadow.querySelector('.trends-graph-legend');
-          if (legendDiv) legendDiv.innerHTML = '';
-        }
+        // Re-rendering is the simplest way to handle the view change,
+        // as it will correctly call the appropriate draw function
+        // within renderTrendsViewContent.
+        this.render();
       });
     }
 
