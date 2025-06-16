@@ -199,44 +199,8 @@
       logEvent(`League with ID ${leagueId} deleted`);
     });
 
-    // Handle league reset events
-    el.addEventListener('requestResetLeague', (e) => {
-      const leagueId = e.detail.leagueId;
-      console.log(`[TestPage] requestResetLeague received for ID: ${leagueId}`);
-      const currentData = loadLeagueData();
-      
-      // Find the league to reset
-      const leagueToReset = currentData.find(league => 
-        ((league._id || league.name) === leagueId)
-      );
-      
-      if (!leagueToReset) {
-        console.error(`League with ID ${leagueId} not found for reset`);
-        logEvent(`Error: League with ID ${leagueId} not found for reset`);
-        return;
-      }
-      
-      // Generate a fresh league with the same name and settings but new teams and matches
-      const freshLeague = generateTestLeagueData(lovebowlsTeamsData, 6, leagueToReset.name);
-      
-      // Replace the old league with the fresh one, preserving the original ID
-      freshLeague._id = leagueToReset._id;
-      
-      const updatedLeagues = currentData.map(league => {
-        if ((league._id || league.name) === leagueId) {
-          return freshLeague;
-        }
-        return league;
-      });
-      
-      // Save and update
-      saveLeagueData(updatedLeagues);
-      el.setAttribute('data', JSON.stringify(updatedLeagues));
-      logEvent(`League "${leagueToReset.name}" reset with fresh test data including skill-based results`);
-      
-      // Log the generated data for debugging
-      console.log('Reset league data:', freshLeague);
-    });
+    // Note: Individual league reset is now handled internally by the LeagueAdminElement
+    // The requestResetLeague event is no longer dispatched for individual league resets
 
     // Handle league view events
     el.addEventListener('requestViewLeagueTable', (e) => {

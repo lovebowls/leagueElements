@@ -6,6 +6,7 @@ import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
+import { generateResetMatches } from '../../utils/data.js';
 
 // Define custom event types for the new element
 class LeagueAdminElementEvent extends CustomEvent {
@@ -780,29 +781,17 @@ class LeagueAdminElement extends HTMLElement {
 
       Swal.default.fire({ 
         customClass: this._getSwalCustomClasses(),
-        title: 'Reset League?',
-        text: `Are you sure you want to reset "${leagueName}"? This will remove all teams, matches, and scores. This action cannot be undone.`,
+        title: 'Reset League Matches?',
+        text: `Are you sure you want to reset matches for "${leagueName}"? This will clear all matches and generate new ones with the existing teams. This action cannot be undone.`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, reset league',
+        confirmButtonText: 'Yes, reset matches',
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6'
       }).then((result) => {
         if (result.isConfirmed) {
-          this.dispatchEvent(new LeagueAdminElementEvent('requestResetLeague', {
-            leagueId: leagueToResetObject._id || leagueToResetObject.name, // Use the actual ID from the found object
-            leagueName: leagueName
-          }));
-
-          // Optionally, show a success message after dispatching
-          Swal.default.fire({
-            customClass: this._getSwalCustomClasses(),
-            title: 'League Reset Requested',
-            text: `"${leagueName}" is being reset.`,
-            icon: 'info', // Use 'info' as the actual reset might be asynchronous
-            timer: 2500,
-            showConfirmButton: false
-          });
+          // Handle reset internally - preserve teams, regenerate matches
+          this._resetLeagueMatches(leagueToResetObject);
         }
         // Always hide the menu after the dialog is interacted with
         this._hideGlobalLeagueMenu();
@@ -811,6 +800,80 @@ class LeagueAdminElement extends HTMLElement {
       this.showError(`League with ID "${leagueIdToReset}" not found to reset.`);
       console.error(`[Reset League] League with ID "${leagueIdToReset}" (from _currentLeagueIdForMenu) not found in this._leagues.`);
       this._hideGlobalLeagueMenu(); // Hide menu if league not found
+    }
+  }
+
+  /**
+   * Reset matches for a league while preserving teams
+   * @param {Object} leagueToReset - The league object to reset matches for
+   */
+  _resetLeagueMatches(leagueToReset) {
+    try {
+      const leagueName = leagueToReset.name || leagueToReset._id || 'Unknown League';
+      
+      // Check if league has teams
+      if (!leagueToReset.teams || !Array.isArray(leagueToReset.teams) || leagueToReset.teams.length < 2) {
+        Swal.default.fire({
+          customClass: this._getSwalCustomClasses(),
+          title: 'Cannot Reset Matches',
+          text: `"${leagueName}" needs at least 2 teams to generate matches.`,
+          icon: 'warning',
+          timer: 3000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      // Create a deep copy of the league to avoid modifying the original during processing
+      const updatedLeague = JSON.parse(JSON.stringify(leagueToReset));
+      
+      // Clear existing matches
+      updatedLeague.matches = [];
+      
+      // Generate new matches using existing teams (all unscheduled with null dates and results)
+      const newMatches = generateResetMatches(updatedLeague.teams, updatedLeague.settings);
+      updatedLeague.matches = newMatches;
+      
+      // Update the league in the internal _leagues array
+      const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === (leagueToReset._id || leagueToReset.name));
+      if (leagueIndex !== -1) {
+        this._leagues[leagueIndex] = updatedLeague;
+        
+        // Dispatch event to save the updated league
+        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', {
+          leagueData: updatedLeague
+        }));
+        
+        // Re-render to reflect changes
+        this.render();
+        
+        // Show success message
+        Swal.default.fire({
+          customClass: this._getSwalCustomClasses(),
+          title: 'Matches Reset Successfully',
+          text: `"${leagueName}" matches have been reset. ${newMatches.length} new matches generated.`,
+          icon: 'success',
+          timer: 3000,
+          showConfirmButton: false
+        });
+        
+        console.log(`[Reset League] Successfully reset matches for "${leagueName}". Generated ${newMatches.length} matches.`);
+      } else {
+        throw new Error('League not found in internal array after reset');
+      }
+      
+    } catch (error) {
+      console.error('[Reset League] Error during match reset:', error);
+      this.showError(`Failed to reset league matches: ${error.message}`);
+      
+      Swal.default.fire({
+        customClass: this._getSwalCustomClasses(),
+        title: 'Reset Failed',
+        text: `Failed to reset matches: ${error.message}`,
+        icon: 'error',
+        timer: 4000,
+        showConfirmButton: false
+      });
     }
   }
   
