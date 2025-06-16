@@ -957,6 +957,7 @@ class LeagueElement extends HTMLElement {
             this.selectedTeamsForGraph.delete(teamId);
           }
           // Redraw the appropriate graph based on active type
+          // No need to call render() here, just redraw the SVG content.
           if (this.activeTrendGraphType === 'shotsForVsAgainst') {
             this.drawShotsForVsAgainstSVG();
           } else if (this.activeTrendGraphType === 'formOverTime') {
@@ -978,19 +979,21 @@ class LeagueElement extends HTMLElement {
   // START - Placeholder for Trends View Methods
   renderTrendsViewContent() {
     // This will be expanded in the next steps
-    let teamTogglesHTML = '<p>No teams available for graphing.</p>'; // This will be removed
-    let legendHTML = ''; // Legend is now fully populated by drawPointsOverTimeSVG
+    let legendHTML = ''; // Legend is now fully populated by the specific draw...SVG function
     let graphAreaHTML = '<svg id="points-over-time-svg" width="100%" height="100%"></svg>'; // Height 100% to fill parent
 
-    // Data availability checks for graph area, not for toggles anymore
-    if (!this.pointsOverTimeChartData || !this.pointsOverTimeChartData.dates || this.pointsOverTimeChartData.dates.length === 0) {
-        if (this.pointsOverTimeChartData && this.pointsOverTimeChartData.allTeamNames && this.pointsOverTimeChartData.allTeamNames.length === 0) {
-            graphAreaHTML = '<p style="text-align:center; padding-top: 20px;">Graph cannot be displayed: No team data.</p>';
-        } else if (this.pointsOverTimeChartData && this.pointsOverTimeChartData.dates.length === 0 && this.pointsOverTimeChartData.allTeamNames && this.pointsOverTimeChartData.allTeamNames.length > 0) {
-            graphAreaHTML = '<p style="text-align:center; padding-top: 20px;">Graph cannot be displayed: No match data with results found.</p>';
-        } else {
-            graphAreaHTML = '<p style="text-align:center; padding-top: 20px;">Graph cannot be displayed: Data unavailable or insufficient.</p>';
-        }
+    // Data availability checks for graph area
+    const hasDataForPoints = this.pointsOverTimeChartData && this.pointsOverTimeChartData.dates && this.pointsOverTimeChartData.dates.length > 0;
+    const hasDataForShots = this.shotsForVsAgainstData && this.shotsForVsAgainstData.teams && this.shotsForVsAgainstData.teams.length > 0;
+    const hasDataForForm = this.formOverTimeChartData && this.formOverTimeChartData.dates && this.formOverTimeChartData.dates.length > 0;
+
+    let dataUnavailable = false;
+    if (this.activeTrendGraphType === 'pointsOverTime' && !hasDataForPoints) dataUnavailable = true;
+    if (this.activeTrendGraphType === 'shotsForVsAgainst' && !hasDataForShots) dataUnavailable = true;
+    if (this.activeTrendGraphType === 'formOverTime' && !hasDataForForm) dataUnavailable = true;
+
+    if (dataUnavailable) {
+        graphAreaHTML = '<p style="text-align:center; padding-top: 20px;">Graph cannot be displayed: Data unavailable or insufficient for the selected type.</p>';
     }
     
     // Defer drawing the SVG until after this content is in the DOM
@@ -1017,7 +1020,7 @@ class LeagueElement extends HTMLElement {
           <label for="graph-type-select">Graph Type:</label>
           <div class="dropdown-shared">
             <select id="graph-type-select" class="dropdown-select-shared">
-              <option value="pointsOverTime" selected>Points Over Time</option>
+              <option value="pointsOverTime">Points Over Time</option>
               <option value="shotsForVsAgainst">Shots For vs Against</option>
               <option value="formOverTime">Form Over Time</option>
               <!-- Future graph types will be added here -->
@@ -1025,9 +1028,8 @@ class LeagueElement extends HTMLElement {
           </div>
         </div>
         <div class="trends-content-area">
-          <!-- trends-team-toggles div is removed -->
           <div class="trends-graph-legend">
-            ${legendHTML} <!-- Initially empty, populated by drawPointsOverTimeSVG -->
+            ${legendHTML} <!-- Initially empty, populated by the draw...SVG functions -->
           </div>
           <div class="trends-graph-area">
             ${graphAreaHTML}
@@ -1530,7 +1532,11 @@ class LeagueElement extends HTMLElement {
     const legendDiv = this.shadow.querySelector('.trends-graph-legend');
 
     if (!svg || !legendDiv) {
-      console.error('SVG or Legend container not found for shots scatter plot.');
+      // This can happen briefly during a re-render, so we'll add a check.
+      // If the trends view isn't active, we shouldn't be trying to draw.
+      if (this.activeView === 'trends') {
+        console.error('SVG or Legend container not found for shots scatter plot.');
+      }
       return;
     }
 
@@ -1764,7 +1770,9 @@ class LeagueElement extends HTMLElement {
     const legendDiv = this.shadow.querySelector('.trends-graph-legend');
 
     if (!svg || !legendDiv) {
-      console.error('SVG or Legend container not found for form over time graph.');
+      if (this.activeView === 'trends') {
+        console.error('SVG or Legend container not found for form over time graph.');
+      }
       return;
     }
 

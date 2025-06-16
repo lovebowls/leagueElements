@@ -4,6 +4,7 @@ import * as Swal from 'sweetalert2';
 import { sweetAlertGlobalStyles, sweetAlertMobileOverrides } from '../shared-styles.js';
 import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
+import '../leagueResetModal/leagueResetModal.js';
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 import { generateResetMatches } from '../../utils/data.js';
@@ -44,6 +45,9 @@ class LeagueAdminElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
+
+    // New properties for reset modal management
+    this.resetModalOpen = false;
 
     this._boundHandleDocumentClickForGlobalMenu = null; // For global menu closing
   }
@@ -404,6 +408,39 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       let modal = this.shadow.querySelector('league-match');
       if (modal) modal.remove();
+    }
+
+    // Handle reset modal
+    if (this.resetModalOpen && this._leagueToReset) {
+      let resetModal = this.shadow.querySelector('league-reset-modal');
+      if (resetModal) resetModal.remove();
+      
+      resetModal = document.createElement('league-reset-modal');
+      resetModal.open = true;
+      resetModal.isMobile = this._isMobile;
+      resetModal.leagueName = this._leagueToReset.name || 'Unknown League';
+      resetModal.teamCount = (this._leagueToReset.teams || []).length;
+      resetModal.leagueSettings = this._leagueToReset.settings || {};
+      
+      resetModal.addEventListener('reset-save', (e) => {
+        const { schedulingParams, estimatedMatches, dateRange } = e.detail;
+        const leagueToReset = this._leagueToReset; // Store reference before closing modal
+        
+        // Close modal first
+        this._closeResetModal();
+        
+        // Perform the reset with scheduling parameters
+        this._resetLeagueMatches(leagueToReset, schedulingParams);
+      });
+      
+      resetModal.addEventListener('reset-cancel', () => {
+        this._closeResetModal();
+      });
+      
+      this.shadow.appendChild(resetModal);
+    } else {
+      let resetModal = this.shadow.querySelector('league-reset-modal');
+      if (resetModal) resetModal.remove();
     }
   }
   
@@ -777,25 +814,9 @@ class LeagueAdminElement extends HTMLElement {
     const leagueToResetObject = Array.isArray(this._leagues) ? this._leagues.find(l => (l._id || l.name) === leagueIdToReset) : null;
 
     if (leagueToResetObject) {
-      const leagueName = leagueToResetObject.name || leagueToResetObject._id || 'this league';
-
-      Swal.default.fire({ 
-        customClass: this._getSwalCustomClasses(),
-        title: 'Reset League Matches?',
-        text: `Are you sure you want to reset matches for "${leagueName}"? This will clear all matches and generate new ones with the existing teams. This action cannot be undone.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, reset matches',
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Handle reset internally - preserve teams, regenerate matches
-          this._resetLeagueMatches(leagueToResetObject);
-        }
-        // Always hide the menu after the dialog is interacted with
-        this._hideGlobalLeagueMenu();
-      });
+      // Open the reset modal instead of SweetAlert2
+      this._openResetModal(leagueToResetObject);
+      this._hideGlobalLeagueMenu(); // Hide menu when opening modal
     } else {
       this.showError(`League with ID "${leagueIdToReset}" not found to reset.`);
       console.error(`[Reset League] League with ID "${leagueIdToReset}" (from _currentLeagueIdForMenu) not found in this._leagues.`);
@@ -804,10 +825,30 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   /**
+   * Open the reset modal for a league
+   * @param {Object} league - The league object to reset
+   */
+  _openResetModal(league) {
+    this.resetModalOpen = true;
+    this._leagueToReset = league; // Store the league for later use
+    this.render();
+  }
+
+  /**
+   * Close the reset modal
+   */
+  _closeResetModal() {
+    this.resetModalOpen = false;
+    this._leagueToReset = null;
+    this.render();
+  }
+
+  /**
    * Reset matches for a league while preserving teams
    * @param {Object} leagueToReset - The league object to reset matches for
+   * @param {Object} schedulingParams - The scheduling parameters from the modal
    */
-  _resetLeagueMatches(leagueToReset) {
+  _resetLeagueMatches(leagueToReset, schedulingParams = null) {
     try {
       const leagueName = leagueToReset.name || leagueToReset._id || 'Unknown League';
       
@@ -830,8 +871,8 @@ class LeagueAdminElement extends HTMLElement {
       // Clear existing matches
       updatedLeague.matches = [];
       
-      // Generate new matches using existing teams (all unscheduled with null dates and results)
-      const newMatches = generateResetMatches(updatedLeague.teams, updatedLeague.settings);
+      // Generate new matches using existing teams with scheduling parameters
+      const newMatches = generateResetMatches(updatedLeague.teams, updatedLeague.settings, schedulingParams);
       updatedLeague.matches = newMatches;
       
       // Update the league in the internal _leagues array
@@ -847,13 +888,30 @@ class LeagueAdminElement extends HTMLElement {
         // Re-render to reflect changes
         this.render();
         
-        // Show success message
+        // Show success message with scheduling info
+        let successMessage = `"${leagueName}" matches have been reset. ${newMatches.length} new matches generated.`;
+        
+        if (schedulingParams) {
+          const scheduledMatches = newMatches.filter(m => m.date !== null);
+          const unscheduledMatches = newMatches.length - scheduledMatches.length;
+          
+          if (scheduledMatches.length > 0) {
+            const firstDate = scheduledMatches[0]?.date;
+            const lastDate = scheduledMatches[scheduledMatches.length - 1]?.date;
+            successMessage += ` Matches scheduled from ${firstDate} to ${lastDate}.`;
+          }
+          
+          if (unscheduledMatches > 0) {
+            successMessage += ` ${unscheduledMatches} matches remain unscheduled.`;
+          }
+        }
+        
         Swal.default.fire({
           customClass: this._getSwalCustomClasses(),
           title: 'Matches Reset Successfully',
-          text: `"${leagueName}" matches have been reset. ${newMatches.length} new matches generated.`,
+          text: successMessage,
           icon: 'success',
-          timer: 3000,
+          timer: 4000,
           showConfirmButton: false
         });
         
