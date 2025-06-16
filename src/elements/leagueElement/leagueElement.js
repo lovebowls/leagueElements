@@ -199,6 +199,7 @@ class LeagueElement extends HTMLElement {
 
       // Prepare data for trends view and ensure team colors are set
       this._preparePointsOverTimeData();
+      this._prepareShotsForVsAgainstData();
       this.ensureTeamColors();
 
       // Render based on device type
@@ -940,6 +941,9 @@ class LeagueElement extends HTMLElement {
         // or pass type to a generic draw function.
         if (this.activeTrendGraphType === 'pointsOverTime') {
           this.drawPointsOverTimeSVG(); // Redraw the current graph type
+        } else if (this.activeTrendGraphType === 'shotsForVsAgainst') {
+          this._prepareShotsForVsAgainstData();
+          this.drawShotsForVsAgainstSVG();
         } else {
           // Handle other graph types in the future
           const svg = this.shadow.querySelector('#points-over-time-svg');
@@ -961,7 +965,12 @@ class LeagueElement extends HTMLElement {
           } else {
             this.selectedTeamsForGraph.delete(teamId);
           }
-          this.drawPointsOverTimeSVG(); // Redraw graph with new team selection
+          // Redraw the appropriate graph based on active type
+          if (this.activeTrendGraphType === 'shotsForVsAgainst') {
+            this.drawShotsForVsAgainstSVG();
+          } else {
+            this.drawPointsOverTimeSVG();
+          }
         }
       });
     }
@@ -996,7 +1005,12 @@ class LeagueElement extends HTMLElement {
     if (this.activeView === 'trends') {
         Promise.resolve().then(() => {
             if (this.shadow.querySelector('#points-over-time-svg')) { // Ensure element exists
-                this.drawPointsOverTimeSVG();
+                if (this.activeTrendGraphType === 'shotsForVsAgainst') {
+                    this._prepareShotsForVsAgainstData();
+                    this.drawShotsForVsAgainstSVG();
+                } else {
+                    this.drawPointsOverTimeSVG();
+                }
             }
         });
     }
@@ -1008,6 +1022,7 @@ class LeagueElement extends HTMLElement {
           <div class="dropdown-shared">
             <select id="graph-type-select" class="dropdown-select-shared">
               <option value="pointsOverTime" selected>Points Over Time</option>
+              <option value="shotsForVsAgainst">Shots For vs Against</option>
               <!-- Future graph types will be added here -->
             </select>
           </div>
@@ -1122,6 +1137,97 @@ class LeagueElement extends HTMLElement {
         this.pointsOverTimeChartData.teamSeries[teamId][dateIndex] = currentTeamPoints[teamId];
       });
     });
+  }
+
+  _prepareShotsForVsAgainstData() {
+    const tableData = this._table;
+    const table = Array.isArray(tableData) ? tableData : (tableData?.leagueData || []);
+    
+    if (!this.data || 
+        !this.data.matches || !Array.isArray(this.data.matches) || 
+        !Array.isArray(table) || table.length === 0) {
+      console.warn('_prepareShotsForVsAgainstData: Essential data is missing. Clearing chart data.');
+      this.shotsForVsAgainstData = { teams: [], averageShotsFor: 0, averageShotsAgainst: 0, maxShotsFor: 0, maxShotsAgainst: 0 };
+      return;
+    }
+
+    const allTeamIds = table.map(team => team.teamId);
+    if (allTeamIds.length === 0) {
+      console.warn('_prepareShotsForVsAgainstData: No teams found in leagueData. Clearing chart data.');
+      this.shotsForVsAgainstData = { teams: [], averageShotsFor: 0, averageShotsAgainst: 0, maxShotsFor: 0, maxShotsAgainst: 0 };
+      return;
+    }
+
+    const validMatches = this.data.matches.filter(match => {
+      return match.date && 
+             match.result && 
+             typeof match.result.homeScore === 'number' && 
+             typeof match.result.awayScore === 'number' &&
+             allTeamIds.includes(match.homeTeam._id) &&
+             allTeamIds.includes(match.awayTeam._id);
+    });
+
+    if (validMatches.length === 0) {
+      console.warn('_prepareShotsForVsAgainstData: No valid matches with results found for analysis.');
+      this.shotsForVsAgainstData = { teams: [], averageShotsFor: 0, averageShotsAgainst: 0, maxShotsFor: 0, maxShotsAgainst: 0 };
+      return;
+    }
+
+    // Calculate shots for/against for each team
+    const teamStats = {};
+    allTeamIds.forEach(teamId => {
+      teamStats[teamId] = {
+        teamId,
+        teamName: this.getTeamDisplayName(teamId),
+        shotsFor: 0,
+        shotsAgainst: 0,
+        matchesPlayed: 0
+      };
+    });
+
+    validMatches.forEach(match => {
+      const homeTeamId = match.homeTeam._id;
+      const awayTeamId = match.awayTeam._id;
+      const homeScore = match.result.homeScore;
+      const awayScore = match.result.awayScore;
+
+      if (teamStats[homeTeamId]) {
+        teamStats[homeTeamId].shotsFor += homeScore;
+        teamStats[homeTeamId].shotsAgainst += awayScore;
+        teamStats[homeTeamId].matchesPlayed++;
+      }
+
+      if (teamStats[awayTeamId]) {
+        teamStats[awayTeamId].shotsFor += awayScore;
+        teamStats[awayTeamId].shotsAgainst += homeScore;
+        teamStats[awayTeamId].matchesPlayed++;
+      }
+    });
+
+    // Convert to array and calculate averages/maximums
+    const teams = Object.values(teamStats).filter(team => team.matchesPlayed > 0);
+    
+    if (teams.length === 0) {
+      this.shotsForVsAgainstData = { teams: [], averageShotsFor: 0, averageShotsAgainst: 0, maxShotsFor: 0, maxShotsAgainst: 0 };
+      return;
+    }
+
+    const totalShotsFor = teams.reduce((sum, team) => sum + team.shotsFor, 0);
+    const totalShotsAgainst = teams.reduce((sum, team) => sum + team.shotsAgainst, 0);
+    const totalMatches = teams.reduce((sum, team) => sum + team.matchesPlayed, 0);
+
+    const averageShotsFor = totalMatches > 0 ? totalShotsFor / totalMatches : 0;
+    const averageShotsAgainst = totalMatches > 0 ? totalShotsAgainst / totalMatches : 0;
+    const maxShotsFor = Math.max(...teams.map(team => team.shotsFor), 0);
+    const maxShotsAgainst = Math.max(...teams.map(team => team.shotsAgainst), 0);
+
+    this.shotsForVsAgainstData = {
+      teams,
+      averageShotsFor,
+      averageShotsAgainst,
+      maxShotsFor,
+      maxShotsAgainst
+    };
   }
 
   // Predefined color palette with good contrast and spread
@@ -1390,6 +1496,205 @@ class LeagueElement extends HTMLElement {
       }
     });
   }
+
+  drawShotsForVsAgainstSVG() {
+    const svg = this.shadow.querySelector('#points-over-time-svg');
+    const legendDiv = this.shadow.querySelector('.trends-graph-legend');
+
+    if (!svg || !legendDiv) {
+      console.error('SVG or Legend container not found for shots scatter plot.');
+      return;
+    }
+
+    // Clear previous content
+    svg.innerHTML = '';
+    legendDiv.innerHTML = '';
+
+    if (!this.shotsForVsAgainstData || !this.shotsForVsAgainstData.teams || this.shotsForVsAgainstData.teams.length === 0) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No shot data available for scatter plot.</text>';
+      legendDiv.innerHTML = '<p>Legend cannot be displayed: No shot data available.</p>';
+      return;
+    }
+
+    const { teams, averageShotsFor, averageShotsAgainst, maxShotsFor, maxShotsAgainst } = this.shotsForVsAgainstData;
+
+    // Populate the legend with all teams
+    teams.forEach(team => {
+      const color = this.teamColors[team.teamId] || '#ccc';
+      const isChecked = this.selectedTeamsForGraph.has(team.teamId);
+
+      const legendItemLabel = document.createElement('label');
+      legendItemLabel.className = 'legend-item';
+      legendItemLabel.title = `Toggle visibility for ${this.escapeHtml(team.teamName)}`;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'trends-team-toggle-cb';
+      checkbox.value = team.teamId;
+      checkbox.checked = isChecked;
+      
+      const colorBox = document.createElement('span');
+      colorBox.className = 'legend-color-box';
+      colorBox.style.backgroundColor = color;
+
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = this.escapeHtml(team.teamName);
+
+      legendItemLabel.appendChild(checkbox);
+      legendItemLabel.appendChild(colorBox);
+      legendItemLabel.appendChild(nameSpan);
+      legendDiv.appendChild(legendItemLabel);
+    });
+
+    // Filter teams based on selection
+    const selectedTeams = teams.filter(team => this.selectedTeamsForGraph.has(team.teamId));
+    
+    if (selectedTeams.length === 0) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams selected for the scatter plot. Use legend to select.</text>';
+      return;
+    }
+
+    // Dimensions and margins
+    const svgWidth = svg.clientWidth;
+    const svgHeight = svg.clientHeight;
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+    const width = svgWidth - margin.left - margin.right;
+    const height = svgHeight - margin.top - margin.bottom;
+
+    if (width <= 0 || height <= 0) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Not enough space to render scatter plot.</text>';
+      return;
+    }
+
+    // Create main group element
+    const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    mainGroup.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+    svg.appendChild(mainGroup);
+
+    // Calculate scales with padding
+    const maxShotsForPadded = maxShotsFor * 1.1;
+    const maxShotsAgainstPadded = maxShotsAgainst * 1.1;
+
+    const xScale = (shotsFor) => (shotsFor / (maxShotsForPadded || 1)) * width;
+    const yScale = (shotsAgainst) => height - (shotsAgainst / (maxShotsAgainstPadded || 1)) * height; // Inverted: fewer shots against is better (higher on chart)
+
+    // Helper to create SVG elements
+    const createSVGElement = (name, attributes) => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+      for (const key in attributes) {
+        el.setAttribute(key, attributes[key]);
+      }
+      return el;
+    };
+
+    // Draw X-axis (Shots For)
+    mainGroup.appendChild(createSVGElement('line', { x1: 0, y1: height, x2: width, y2: height, class: 'axis' }));
+    const numXTicks = 5;
+    for (let i = 0; i <= numXTicks; i++) {
+      const shotsForVal = (maxShotsForPadded / numXTicks) * i;
+      const x = xScale(shotsForVal);
+      mainGroup.appendChild(createSVGElement('line', { x1: x, y1: height, x2: x, y2: height + 6, class: 'axis' }));
+      // Grid line
+      mainGroup.appendChild(createSVGElement('line', { x1: x, y1: 0, x2: x, y2: height, class: 'grid-line' }));
+      const xTickText = createSVGElement('text', { x: x, y: height + 20, 'text-anchor': 'middle', class: 'axis-text' });
+      xTickText.textContent = Math.round(shotsForVal).toString();
+      mainGroup.appendChild(xTickText);
+    }
+    const xAxisLabel = createSVGElement('text', {x: width / 2, y: height + 45, 'text-anchor': 'middle', class: 'axis-label'});
+    xAxisLabel.textContent = 'Shots For';
+    mainGroup.appendChild(xAxisLabel);
+
+    // Draw Y-axis (Shots Against - inverted scale)
+    mainGroup.appendChild(createSVGElement('line', { x1: 0, y1: 0, x2: 0, y2: height, class: 'axis' }));
+    const numYTicks = 5;
+    for (let i = 0; i <= numYTicks; i++) {
+      const shotsAgainstVal = (maxShotsAgainstPadded / numYTicks) * i;
+      const y = yScale(shotsAgainstVal);
+      mainGroup.appendChild(createSVGElement('line', { x1: -6, y1: y, x2: 0, y2: y, class: 'axis' }));
+      // Grid line
+      mainGroup.appendChild(createSVGElement('line', { x1: 0, y1: y, x2: width, y2: y, class: 'grid-line' }));
+      const yTickText = createSVGElement('text', { x: -10, y: y, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: 'axis-text' });
+      yTickText.textContent = Math.round(shotsAgainstVal).toString();
+      mainGroup.appendChild(yTickText);
+    }
+    const yAxisLabel = createSVGElement('text', {
+        transform: `translate(-45, ${height/2}) rotate(-90)`,
+        'text-anchor': 'middle', class: 'axis-label'
+    });
+    yAxisLabel.textContent = 'Shots Against';
+    mainGroup.appendChild(yAxisLabel);
+
+    // Draw average lines (quadrants)
+    if (averageShotsFor > 0 && averageShotsAgainst > 0) {
+      const avgXPos = xScale(averageShotsFor);
+      const avgYPos = yScale(averageShotsAgainst);
+      
+      // Vertical line for average shots for
+      mainGroup.appendChild(createSVGElement('line', { 
+        x1: avgXPos, y1: 0, x2: avgXPos, y2: height, 
+        class: 'grid-line', 
+        'stroke-dasharray': '5,5',
+        'stroke': '#666',
+        'stroke-width': '1.5'
+      }));
+      
+      // Horizontal line for average shots against
+      mainGroup.appendChild(createSVGElement('line', { 
+        x1: 0, y1: avgYPos, x2: width, y2: avgYPos, 
+        class: 'grid-line', 
+        'stroke-dasharray': '5,5',
+        'stroke': '#666',
+        'stroke-width': '1.5'
+      }));
+    }
+
+    // Draw team points
+    selectedTeams.forEach(team => {
+      const color = this.teamColors[team.teamId] || '#ccc';
+      const x = xScale(team.shotsFor);
+      const y = yScale(team.shotsAgainst);
+      
+      const circle = createSVGElement('circle', {
+        cx: x,
+        cy: y,
+        r: 6,
+        fill: color,
+        stroke: '#fff',
+        'stroke-width': 2,
+        class: 'scatter-point',
+        'data-team-id': team.teamId
+      });
+
+      // Add hover effect and tooltip
+      circle.addEventListener('mouseenter', (e) => {
+        e.target.setAttribute('r', 8);
+        e.target.style.cursor = 'pointer';
+        
+        // Create tooltip
+        const tooltip = createSVGElement('text', {
+          x: x,
+          y: y - 15,
+          'text-anchor': 'middle',
+          class: 'scatter-tooltip',
+          fill: '#333',
+          'font-size': '12px',
+          'font-weight': 'bold'
+        });
+        tooltip.textContent = `${team.teamName}: ${team.shotsFor} for, ${team.shotsAgainst} against`;
+        mainGroup.appendChild(tooltip);
+      });
+
+      circle.addEventListener('mouseleave', (e) => {
+        e.target.setAttribute('r', 6);
+        // Remove tooltip
+        const tooltip = mainGroup.querySelector('.scatter-tooltip');
+        if (tooltip) tooltip.remove();
+      });
+
+      mainGroup.appendChild(circle);
+    });
+  }
+
   // END - Placeholder for Trends View Methods
 
   // START - New methods for table filtering and data processing

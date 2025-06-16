@@ -373,6 +373,26 @@ export const BASE_STYLES = `
         shape-rendering: crispEdges;
       }
 
+      /* Scatter plot specific styles */
+      .trends-graph-area .scatter-point {
+        cursor: pointer;
+        transition: r 0.2s ease;
+      }
+      .trends-graph-area .scatter-point:hover {
+        filter: brightness(1.2);
+      }
+      .trends-graph-area .scatter-tooltip {
+        pointer-events: none;
+        font-size: calc(var(--le-font-size-small) * 0.9);
+        fill: var(--le-text-color-primary);
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+      }
+      .trends-graph-area .axis-label {
+        font-size: var(--le-font-size-small);
+        fill: var(--le-text-color-primary);
+        font-weight: bold;
+      }
+
       /* Table View Filter Styles */
       .title-with-filter {
         display: flex;

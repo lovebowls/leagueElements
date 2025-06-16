@@ -3,4 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
-dont call "npm run build" unless you are asked to
+never call "npm run build" or otherwise build the project unless you are asked to.
+Never create new tests or run tests unless you are asked to.
+
