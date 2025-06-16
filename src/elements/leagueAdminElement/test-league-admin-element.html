@@ -146,21 +146,41 @@
       const updatedLeague = e.detail.leagueData;
       const currentData = loadLeagueData();
       
-      // Find and update the specific league
-      const updatedLeagues = currentData.map(league => {
-        if (league._id === updatedLeague._id || league.name === updatedLeague.name) {
-          return updatedLeague;
-        }
-        return league;
-      });
-      
-      // Save updated data
-      saveLeagueData(updatedLeagues);
-      
-      // Update the component with new data
-      el.setAttribute('data', JSON.stringify(updatedLeagues));
-      
-      logEvent(`League "${updatedLeague.name}" updated and saved`);
+      // Check if this is a new league (no _id) or an existing league
+      if (!updatedLeague._id) {
+        // New league - generate an ID and add to the array
+        updatedLeague._id = `league-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        updatedLeague.teams = updatedLeague.teams || [];
+        updatedLeague.matches = updatedLeague.matches || [];
+        updatedLeague.createdAt = new Date();
+        updatedLeague.updatedAt = new Date();
+        
+        const updatedLeagues = [...currentData, updatedLeague];
+        
+        // Save updated data
+        saveLeagueData(updatedLeagues);
+        
+        // Update the component with new data
+        el.setAttribute('data', JSON.stringify(updatedLeagues));
+        
+        logEvent(`New league "${updatedLeague.name}" created and saved`);
+      } else {
+        // Existing league - find and update
+        const updatedLeagues = currentData.map(league => {
+          if (league._id === updatedLeague._id || league.name === updatedLeague.name) {
+            return updatedLeague;
+          }
+          return league;
+        });
+        
+        // Save updated data
+        saveLeagueData(updatedLeagues);
+        
+        // Update the component with new data
+        el.setAttribute('data', JSON.stringify(updatedLeagues));
+        
+        logEvent(`League "${updatedLeague.name}" updated and saved`);
+      }
     });
     
     // Handle league delete events
