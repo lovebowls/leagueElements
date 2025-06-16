@@ -17,7 +17,7 @@
 <body>
   <h1>Test: &lt;league-element&gt;</h1>
   <div>
-    <button id="reset-data-btn" style="margin-bottom: 1em; padding: 0.5em; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset to Default Data</button>
+    <button id="reset-data-btn" style="margin-bottom: 1em; padding: 0.5em; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Current League</button>
   </div>
   <!-- Remove hardcoded data attribute; we'll set it via JavaScript after checking session storage -->
   <league-element id="test-league"></league-element>
@@ -165,10 +165,61 @@
     
     // Handle Reset button
     document.getElementById('reset-data-btn').addEventListener('click', () => {
-      // This button is now problematic as it generates its own data.
-      // For now, we'll disable it to prevent creating inconsistent data.
-      logEvent('Reset button is disabled on this page to maintain data integrity.');
-      alert('Resetting a single league from this view is not supported in the test harness to avoid data inconsistencies.');
+      try {
+        // Get current league data to identify which league to reset
+        const currentLeagueData = loadLeagueData();
+        if (!currentLeagueData || !currentLeagueData._id) {
+          logEvent('Error: Cannot reset - no current league data found');
+          alert('Cannot reset: No current league data found');
+          return;
+        }
+
+        const leagueId = currentLeagueData._id;
+        const leagueName = currentLeagueData.name || 'Test League';
+        
+        // Get all leagues from session storage
+        const allLeaguesData = sessionStorage.getItem(STORAGE_KEY);
+        if (!allLeaguesData) {
+          logEvent('Error: Cannot reset - no session storage data found');
+          alert('Cannot reset: No session storage data found');
+          return;
+        }
+
+        const parsedData = JSON.parse(allLeaguesData);
+        if (!parsedData.leagues || !Array.isArray(parsedData.leagues)) {
+          logEvent('Error: Cannot reset - invalid session storage format');
+          alert('Cannot reset: Invalid session storage format');
+          return;
+        }
+
+        // Generate fresh test data for this league
+        const freshLeague = generateTestLeagueData(lovebowlsTeamsData, 6, leagueName);
+        
+        // Preserve the original league ID to maintain consistency
+        freshLeague._id = leagueId;
+        
+        // Update the league in the array
+        const updatedLeagues = parsedData.leagues.map(league => {
+          if (league._id === leagueId || league.name === leagueName) {
+            return freshLeague;
+          }
+          return league;
+        });
+
+        // Save updated leagues back to session storage
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ leagues: updatedLeagues }));
+        
+        // Update the component with the fresh league data
+        el.setAttribute('data', JSON.stringify(freshLeague));
+        
+        logEvent(`League "${leagueName}" reset with fresh test data including skill-based results`);
+        console.log('Reset league data:', freshLeague);
+        
+      } catch (error) {
+        console.error('Error resetting league:', error);
+        logEvent(`Error resetting league: ${error.message}`);
+        alert(`Error resetting league: ${error.message}`);
+      }
     });
     
     // Listen for league update events from leagueElement.js

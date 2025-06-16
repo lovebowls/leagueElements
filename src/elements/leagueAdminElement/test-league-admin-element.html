@@ -24,7 +24,7 @@
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../../../dist/browser/leagueAdminElement.js';
-    import { generateMultipleTestLeagues } from '../../test-data/league-test-data.js';
+    import { generateMultipleTestLeagues, generateTestLeagueData } from '../../test-data/league-test-data.js';
 
     const el = document.getElementById('test-league-admin');
     const STORAGE_KEY = 'lovebowlsTestHarnessData';
@@ -177,6 +177,45 @@
       saveLeagueData(updatedLeagues);
       el.setAttribute('data', JSON.stringify(updatedLeagues));
       logEvent(`League with ID ${leagueId} deleted`);
+    });
+
+    // Handle league reset events
+    el.addEventListener('requestResetLeague', (e) => {
+      const leagueId = e.detail.leagueId;
+      console.log(`[TestPage] requestResetLeague received for ID: ${leagueId}`);
+      const currentData = loadLeagueData();
+      
+      // Find the league to reset
+      const leagueToReset = currentData.find(league => 
+        ((league._id || league.name) === leagueId)
+      );
+      
+      if (!leagueToReset) {
+        console.error(`League with ID ${leagueId} not found for reset`);
+        logEvent(`Error: League with ID ${leagueId} not found for reset`);
+        return;
+      }
+      
+      // Generate a fresh league with the same name and settings but new teams and matches
+      const freshLeague = generateTestLeagueData(lovebowlsTeamsData, 6, leagueToReset.name);
+      
+      // Replace the old league with the fresh one, preserving the original ID
+      freshLeague._id = leagueToReset._id;
+      
+      const updatedLeagues = currentData.map(league => {
+        if ((league._id || league.name) === leagueId) {
+          return freshLeague;
+        }
+        return league;
+      });
+      
+      // Save and update
+      saveLeagueData(updatedLeagues);
+      el.setAttribute('data', JSON.stringify(updatedLeagues));
+      logEvent(`League "${leagueToReset.name}" reset with fresh test data including skill-based results`);
+      
+      // Log the generated data for debugging
+      console.log('Reset league data:', freshLeague);
     });
 
     // Handle league view events

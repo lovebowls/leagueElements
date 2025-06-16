@@ -133,7 +133,8 @@ class LeagueElement extends HTMLElement {
       .replace('{{trendsViewContent}}', this.activeView === 'trends' ? this.renderTrendsViewContent() : '')
       .replace('{{overallSelected}}', this.tableFilter === 'overall' ? 'selected' : '')
       .replace('{{homeSelected}}', this.tableFilter === 'home' ? 'selected' : '')
-      .replace('{{awaySelected}}', this.tableFilter === 'away' ? 'selected' : '');
+      .replace('{{awaySelected}}', this.tableFilter === 'away' ? 'selected' : '')
+      .replace('{{formSelected}}', this.tableFilter === 'form' ? 'selected' : '');
   }
 
   render() {
@@ -512,7 +513,8 @@ class LeagueElement extends HTMLElement {
         return ''; // Return empty string for other invalid data
     }
   
-    return matches.map(match => {
+    // Reverse the matches array so most recent appears on the right
+    return matches.slice().reverse().map(match => {
       // Ensure match object and properties exist
       if (!match || typeof match.result !== 'string' || typeof match.description !== 'string') {
           console.warn('Invalid match object within matches array:', match);
@@ -816,8 +818,101 @@ class LeagueElement extends HTMLElement {
     }
 
     const allTeamIdsInLeague = table.leagueData.map(t => t.teamId);
-    const matchesSubset = this.data.matches.slice(0, this.data.matches.length);
-    return this._calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague);
+    let matchesSubset = this.data.matches.slice(0, this.data.matches.length);
+    
+    // For home/away filters, we don't filter the matches themselves,
+    // but rather calculate stats differently in _calculateRanksFromMatches
+    // The filtering logic is handled there by checking home/away context
+    
+    const stats = this._calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague);
+    
+    // Apply form-based sorting if form filter is selected
+    if (this.tableFilter === 'form') {
+      return this._sortByForm(stats);
+    }
+    
+    return stats;
+  }
+
+  /**
+   * Sorts teams by their recent form using a weighted scoring system.
+   * More recent matches have higher weight in the calculation.
+   * @param {Array<Object>} stats - Array of team statistics objects
+   * @returns {Array<Object>} Teams sorted by form score (best form first)
+   */
+  _sortByForm(stats) {
+    // Calculate form score for each team
+    const teamsWithFormScore = stats.map(team => {
+      const formScore = this._calculateFormScore(team.matches);
+      return {
+        ...team,
+        formScore: formScore
+      };
+    });
+
+    // Sort by form score (highest first), then by points as tiebreaker
+    teamsWithFormScore.sort((a, b) => {
+      if (Math.abs(b.formScore - a.formScore) > 0.01) { // Use small epsilon for float comparison
+        return b.formScore - a.formScore;
+      }
+      // Tiebreaker: use points, then goal difference, then goals for
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.shotDifference !== a.shotDifference) return b.shotDifference - a.shotDifference;
+      if (b.shotsFor !== a.shotsFor) return b.shotsFor - a.shotsFor;
+      return a.teamDisplayName.localeCompare(b.teamDisplayName);
+    });
+
+    // Reassign ranks based on form sorting
+    teamsWithFormScore.forEach((team, index) => {
+      team.currentRank = index + 1;
+    });
+
+    return teamsWithFormScore;
+  }
+
+  /**
+   * Calculates a weighted form score based on recent match results.
+   * Uses a standard methodology: W=3pts, D=1pt, L=0pts with heavy recency weighting.
+   * Most recent matches have higher impact on the score.
+   * @param {Array<Object>} formMatches - Array of recent match objects with result and description
+   * @returns {number} Form score (0-15 for 5 matches, proportionally scaled for fewer)
+   */
+  _calculateFormScore(formMatches) {
+    if (!Array.isArray(formMatches) || formMatches.length === 0) {
+      return 0;
+    }
+
+    // Much higher weights for recent matches: most recent gets 5x weight of oldest
+    // This ensures recent form has a dominant impact on ranking
+    const weights = [1.0, 0.8, 0.6, 0.4, 0.2]; // Most recent to oldest
+    let totalScore = 0;
+    let totalWeight = 0;
+
+    formMatches.forEach((match, index) => {
+      if (index >= 5) return; // Only consider last 5 matches
+      
+      const weight = weights[index];
+      let matchPoints = 0;
+
+      // Convert result to points
+      if (match.result === 'W') {
+        matchPoints = 3;
+      } else if (match.result === 'D') {
+        matchPoints = 1;
+      } else if (match.result === 'L') {
+        matchPoints = 0;
+      }
+
+      totalScore += matchPoints * weight;
+      totalWeight += weight;
+    });
+
+    // Scale the score to maintain a reasonable range while emphasizing recent form
+    // The scaling ensures teams with fewer matches aren't unfairly penalized
+    const maxPossibleWeight = weights.slice(0, Math.min(formMatches.length, 5)).reduce((sum, w) => sum + w, 0);
+    const scaledScore = totalWeight > 0 ? (totalScore / totalWeight) * 3 : 0; // Scale to 0-3 per match average
+    
+    return Math.round(scaledScore * 1000) / 1000; // Round to 3 decimal places for better precision
   }
 
   _getTeamsFromLeagueData() {
@@ -860,11 +955,11 @@ class LeagueElement extends HTMLElement {
     if (legendDiv) {
       legendDiv.addEventListener('change', (event) => {
         if (event.target.matches('.trends-team-toggle-cb')) {
-          const teamName = event.target.value;
+          const teamId = event.target.value;
           if (event.target.checked) {
-            this.selectedTeamsForGraph.add(teamName);
+            this.selectedTeamsForGraph.add(teamId);
           } else {
-            this.selectedTeamsForGraph.delete(teamName);
+            this.selectedTeamsForGraph.delete(teamId);
           }
           this.drawPointsOverTimeSVG(); // Redraw graph with new team selection
         }
@@ -919,11 +1014,11 @@ class LeagueElement extends HTMLElement {
         </div>
         <div class="trends-content-area">
           <!-- trends-team-toggles div is removed -->
-          <div class="trends-graph-area">
-            ${graphAreaHTML}
-          </div>
           <div class="trends-graph-legend">
             ${legendHTML} <!-- Initially empty, populated by drawPointsOverTimeSVG -->
+          </div>
+          <div class="trends-graph-area">
+            ${graphAreaHTML}
           </div>
         </div>
       </div>
@@ -1029,6 +1124,30 @@ class LeagueElement extends HTMLElement {
     });
   }
 
+  // Predefined color palette with good contrast and spread
+  static TEAM_COLORS = [
+    '#e74c3c', // Red
+    '#3498db', // Blue
+    '#2ecc71', // Green
+    '#f39c12', // Orange
+    '#9b59b6', // Purple
+    '#1abc9c', // Turquoise
+    '#e67e22', // Dark Orange
+    '#34495e', // Dark Blue Gray
+    '#f1c40f', // Yellow
+    '#e91e63', // Pink
+    '#00bcd4', // Cyan
+    '#4caf50', // Light Green
+    '#ff9800', // Amber
+    '#673ab7', // Deep Purple
+    '#795548', // Brown
+    '#607d8b', // Blue Gray
+    '#ff5722', // Deep Orange
+    '#009688', // Teal
+    '#8bc34a', // Light Green
+    '#ffc107'  // Golden Yellow
+  ];
+
   ensureTeamColors() {
     const tableData = this._table;
     const teams = Array.isArray(tableData) ? tableData : (tableData?.leagueData || []);
@@ -1043,26 +1162,42 @@ class LeagueElement extends HTMLElement {
       this.teamColors = {};
     }
 
+    // Keep track of used color indices to ensure good distribution
+    if (!this._usedColorIndices) {
+      this._usedColorIndices = new Set();
+    }
+
     // Assign colors to teams that don't have one
+    // Use teamId as the key to match how _preparePointsOverTimeData stores team identifiers
     teams.forEach(team => {
-      if (!this.teamColors[team.teamName]) {
-        // Generate a random color
-        const hue = Math.random() * 360;
-        const saturation = 70 + Math.random() * 30; // 70-100%
-        const lightness = 45 + Math.random() * 10; // 45-55%
-        const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-        this.teamColors[team.teamName] = color;
+      if (!this.teamColors[team.teamId]) {
+        // Find the next available color index
+        let colorIndex = this._usedColorIndices.size % LeagueElement.TEAM_COLORS.length;
+        
+        // If we've used all colors, start over but try to avoid recently used ones
+        if (this._usedColorIndices.size >= LeagueElement.TEAM_COLORS.length) {
+          // Reset and start from a different offset to get better distribution on second round
+          const offset = Math.floor(this._usedColorIndices.size / LeagueElement.TEAM_COLORS.length);
+          colorIndex = (colorIndex + offset) % LeagueElement.TEAM_COLORS.length;
+        }
+        
+        this.teamColors[team.teamId] = LeagueElement.TEAM_COLORS[colorIndex];
+        this._usedColorIndices.add(colorIndex);
       }
     });
 
     // Ensure any team in selectedTeamsForGraph (even if not in current leagueData, though unlikely) has a color
-    this.selectedTeamsForGraph.forEach(teamName => {
-      if (!this.teamColors[teamName]) {
-        const hue = Math.random() * 360;
-        const saturation = 70 + Math.random() * 30;
-        const lightness = 45 + Math.random() * 10;
-        const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-        this.teamColors[teamName] = color;
+    this.selectedTeamsForGraph.forEach(teamId => {
+      if (!this.teamColors[teamId]) {
+        let colorIndex = this._usedColorIndices.size % LeagueElement.TEAM_COLORS.length;
+        
+        if (this._usedColorIndices.size >= LeagueElement.TEAM_COLORS.length) {
+          const offset = Math.floor(this._usedColorIndices.size / LeagueElement.TEAM_COLORS.length);
+          colorIndex = (colorIndex + offset) % LeagueElement.TEAM_COLORS.length;
+        }
+        
+        this.teamColors[teamId] = LeagueElement.TEAM_COLORS[colorIndex];
+        this._usedColorIndices.add(colorIndex);
       }
     });
   }
@@ -1092,10 +1227,10 @@ class LeagueElement extends HTMLElement {
 
     // Always populate the legend first, so controls are available
     if (allTeamNames && allTeamNames.length > 0) {
-        allTeamNames.forEach(teamName => {
-            const color = this.teamColors[teamName] || '#ccc';
-            const isChecked = this.selectedTeamsForGraph.has(teamName);
-            const teamDisplayName = this.getTeamDisplayName(teamName);
+        allTeamNames.forEach(teamId => {
+            const color = this.teamColors[teamId] || '#ccc';
+            const isChecked = this.selectedTeamsForGraph.has(teamId);
+            const teamDisplayName = this.getTeamDisplayName(teamId);
 
             const legendItemLabel = document.createElement('label');
             legendItemLabel.className = 'legend-item';
@@ -1104,7 +1239,7 @@ class LeagueElement extends HTMLElement {
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'trends-team-toggle-cb';
-            checkbox.value = teamName; // Keep original ID as value for data lookups
+            checkbox.value = teamId; // Keep original ID as value for data lookups
             checkbox.checked = isChecked;
             
             const colorBox = document.createElement('span');
@@ -1161,9 +1296,9 @@ class LeagueElement extends HTMLElement {
     const maxDate = dates[dates.length - 1];
     
     let maxPoints = 0;
-    selectedTeams.forEach(teamName => {
-      if (teamSeries[teamName]) {
-        const teamMaxPoints = Math.max(...teamSeries[teamName], 0);
+    selectedTeams.forEach(teamId => {
+      if (teamSeries[teamId]) {
+        const teamMaxPoints = Math.max(...teamSeries[teamId], 0);
         if (teamMaxPoints > maxPoints) maxPoints = teamMaxPoints;
       }
     });
@@ -1241,9 +1376,9 @@ class LeagueElement extends HTMLElement {
     mainGroup.appendChild(yAxisLabel);
 
     // Draw lines for selected teams
-    selectedTeams.forEach(teamName => {
-      const teamPointData = teamSeries[teamName];
-      const color = this.teamColors[teamName] || '#ccc';
+    selectedTeams.forEach(teamId => {
+      const teamPointData = teamSeries[teamId];
+      const color = this.teamColors[teamId] || '#ccc';
 
       if (teamPointData && teamPointData.length === dates.length && dates.length > 1) {
         let pathData = 'M';
@@ -1280,7 +1415,8 @@ class LeagueElement extends HTMLElement {
   renderRankMovementIndicator(movement) {
     let content = ''; // Default is empty for no change
     
-    // Only show indicators for actual movement
+    // Only show indicators for actual movement and only in overall view
+    // Form view shows current form ranking, not historical movement
     if (typeof movement === 'number' && movement !== 0 && this.tableFilter === 'overall') {
       if (movement > 0) { // Moved up
         content = `<span class="rank-up" title="Moved up ${movement} position${movement !== 1 ? 's' : ''}">▲</span>`;
@@ -1342,7 +1478,12 @@ class LeagueElement extends HTMLElement {
         }
         const homeScore = match.result.homeScore;
         const awayScore = match.result.awayScore;
+        
+        // Handle home matches for this team
         if (homeTeamId === teamId) {
+          // Skip if we're filtering for away matches only
+          if (this.tableFilter === 'away') return;
+          
           played++;
           shotsFor += homeScore;
           shotsAgainst += awayScore;
@@ -1351,7 +1492,12 @@ class LeagueElement extends HTMLElement {
           else { lost++; }
           matches.push(match);
           allMatchesForTooltip.push(match);
-        } else if (awayTeamId === teamId) {
+        } 
+        // Handle away matches for this team
+        else if (awayTeamId === teamId) {
+          // Skip if we're filtering for home matches only
+          if (this.tableFilter === 'home') return;
+          
           played++;
           shotsFor += awayScore;
           shotsAgainst += homeScore;

@@ -777,6 +777,19 @@ export const BASE_STYLES = `
         color: var(--le-form-color-w); /* MODIFIED (using win color for general score display) */
         font-weight: bold;
       }
+
+      /* Desktop-specific trends legend layout - multi-column */
+      .trends-graph-legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--le-padding-xs);
+        column-gap: var(--le-padding-m);
+      }
+      
+      .trends-graph-legend .legend-item {
+        margin-bottom: var(--le-padding-xs);
+        break-inside: avoid; /* Prevent breaking legend items across columns */
+      }
     `;
 
   // Table header template
@@ -816,6 +829,7 @@ export const BASE_STYLES = `
                   <option value="overall" {{overallSelected}}>Overall</option>
                   <option value="home" {{homeSelected}}>Home</option>
                   <option value="away" {{awaySelected}}>Away</option>
+                  <option value="form" {{formSelected}}>Form</option>
                 </select>
               </div>
             </div>
@@ -874,6 +888,7 @@ export const BASE_STYLES = `
                   <option value="overall" {{overallSelected}}>Overall</option>
                   <option value="home" {{homeSelected}}>Home</option>
                   <option value="away" {{awaySelected}}>Away</option>
+                  <option value="form" {{formSelected}}>Form</option>
                 </select>
               </div>
             </div>

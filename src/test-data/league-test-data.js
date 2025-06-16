@@ -10,50 +10,122 @@ function generateUniqueId() {
 }
 
 /**
- * Generate a test match object for testing using LeagueJS Match class
- * @param {Team} homeTeam - The home team object
- * @param {Team} awayTeam - The away team object
- * @param {number} index - Index to help create unique dates
- * @returns {Match} A test match object
+ * Generate a skill level for a team (0.1 to 1.0, where 1.0 is strongest)
+ * @returns {number} Team skill level
  */
-function generateTestMatch(homeTeam, awayTeam, index = 0) {
-  const baseDate = new Date('2024-01-01');
-  baseDate.setDate(baseDate.getDate() + index);
-  
-  const matchData = {
-    _id: `match-${generateUniqueId()}`,
-    date: baseDate,
-    homeTeam,
-    awayTeam,
-    status: 'scheduled',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  // Add random result 70% of the time
-  if (Math.random() > 0.3) {
-    const homeScore = Math.floor(Math.random() * 21);
-    const awayScore = Math.floor(Math.random() * 21);
-    
-    matchData.result = {
-      homeScore,
-      awayScore,
-      homeRinks: Math.max(1, Math.floor(Math.random() * 4)),
-      awayRinks: Math.max(1, Math.floor(Math.random() * 4)),
-      homeShots: homeScore,
-      awayShots: awayScore,
-      completed: true
-    };
-    matchData.status = 'played';
-  }
-  
-  const match = new Match(matchData);
-  
-  return match;
+function generateTeamSkill() {
+  // Generate skill levels with some variation but not too extreme
+  // Most teams will be between 0.3 and 0.8, with occasional very strong/weak teams
+  const random = Math.random();
+  if (random < 0.1) return 0.1 + Math.random() * 0.2; // 10% chance of weak team (0.1-0.3)
+  if (random > 0.9) return 0.8 + Math.random() * 0.2; // 10% chance of strong team (0.8-1.0)
+  return 0.3 + Math.random() * 0.5; // 80% chance of average team (0.3-0.8)
 }
 
 /**
- * Generate test league data for testing using LeagueJS
+ * Calculate match result based on team skills with some randomness
+ * @param {number} homeSkill - Home team skill level (0.1-1.0)
+ * @param {number} awaySkill - Away team skill level (0.1-1.0)
+ * @returns {Object} Match result with homeScore and awayScore
+ */
+function calculateSkillBasedResult(homeSkill, awaySkill) {
+  // Home advantage factor (small boost for home team)
+  const homeAdvantage = 0.1;
+  const adjustedHomeSkill = Math.min(1.0, homeSkill + homeAdvantage);
+  
+  // Calculate relative strength difference
+  const totalSkill = adjustedHomeSkill + awaySkill;
+  const homeWinProbability = adjustedHomeSkill / totalSkill;
+  
+  // Add some randomness to make results less predictable
+  const randomFactor = 0.3; // 30% randomness
+  const skillFactor = 1 - randomFactor;
+  const finalHomeWinProb = (homeWinProbability * skillFactor) + (Math.random() * randomFactor);
+  
+  // Generate base scores (typically 8-20 for bowls)
+  const baseScore = 8 + Math.floor(Math.random() * 13); // 8-20
+  const scoreDifference = Math.floor(Math.random() * 8) + 1; // 1-8 point difference
+  
+  let homeScore, awayScore;
+  
+  if (finalHomeWinProb > 0.6) {
+    // Home team wins
+    homeScore = baseScore + scoreDifference;
+    awayScore = baseScore;
+  } else if (finalHomeWinProb < 0.4) {
+    // Away team wins
+    homeScore = baseScore;
+    awayScore = baseScore + scoreDifference;
+  } else {
+    // Close match or draw
+    if (Math.random() < 0.15) {
+      // 15% chance of draw in close matches
+      homeScore = awayScore = baseScore;
+    } else {
+      // Narrow win for one team
+      const narrowDiff = Math.floor(Math.random() * 3) + 1; // 1-3 point difference
+      if (Math.random() < 0.5) {
+        homeScore = baseScore + narrowDiff;
+        awayScore = baseScore;
+      } else {
+        homeScore = baseScore;
+        awayScore = baseScore + narrowDiff;
+      }
+    }
+  }
+  
+  return { homeScore, awayScore };
+}
+
+/**
+ * Generate a test match object with skill-based results
+ * @param {Team} homeTeam - The home team object
+ * @param {Team} awayTeam - The away team object
+ * @param {Date} matchDate - The date for this match
+ * @param {number} homeSkill - Home team skill level
+ * @param {number} awaySkill - Away team skill level
+ * @param {boolean} shouldHaveResult - Whether this match should have a result
+ * @returns {Object} A test match object in the format expected by the system
+ */
+function generateTestMatch(homeTeam, awayTeam, matchDate, homeSkill, awaySkill, shouldHaveResult = true) {
+  const matchData = {
+    _id: `match-${generateUniqueId()}`,
+    homeTeam: {
+      _id: homeTeam._id,
+      name: homeTeam.name
+    },
+    awayTeam: {
+      _id: awayTeam._id,
+      name: awayTeam.name
+    },
+    date: matchDate.toISOString().split('T')[0], // Format as YYYY-MM-DD string like the modal does
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  // Add result if this is a past match
+  if (shouldHaveResult) {
+    const result = calculateSkillBasedResult(homeSkill, awaySkill);
+    
+    matchData.result = {
+      played: true,
+      homeScore: result.homeScore,
+      awayScore: result.awayScore,
+      homePoints: result.homeScore > result.awayScore ? 2 : (result.homeScore === result.awayScore ? 1 : 0),
+      awayPoints: result.awayScore > result.homeScore ? 2 : (result.homeScore === result.awayScore ? 1 : 0),
+      rinkPointsUsed: false
+    };
+  } else {
+    // Explicitly set result to null for future matches
+    matchData.result = null;
+  }
+  
+  // Return the plain object instead of creating a Match instance
+  return matchData;
+}
+
+/**
+ * Generate test league data for testing using LeagueJS with skill-based results
  * @param {Array} lovebowlsTeams - Array of lovebowls teams to use
  * @param {number} [teamCount=4] - Number of teams to include (min 4, max 12)
  * @param {string} [leagueName='Test League'] - Name for the test league
@@ -70,7 +142,7 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
     pointsForLoss: 0,
     promotionPositions: 1,
     relegationPositions: 1,
-    timesTeamsPlayOther: 1,
+    timesTeamsPlayOther: 2, // Each team plays each other twice (home and away)
     rinkPoints: {
       enabled: Math.random() > 0.5,
       pointsPerRinkWin: 2,
@@ -90,8 +162,9 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
     updatedAt: new Date()
   });
   
-  // Add teams to the league
+  // Add teams to the league with skill levels
   const teams = [];
+  const teamSkills = new Map(); // Store skill levels for each team
   const lovebowlsTeamsToUse = lovebowlsTeams.slice(0, teamCount);
   
   // Add LoveBowls teams first
@@ -105,6 +178,7 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
     });
     league.addTeam(team);
     teams.push(team);
+    teamSkills.set(team._id, generateTeamSkill());
   });
   
   // Add remaining teams if needed
@@ -118,31 +192,82 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
     });
     league.addTeam(team);
     teams.push(team);
+    teamSkills.set(team._id, generateTeamSkill());
   }
   
-  // Generate and add matches
+  // Generate match schedule with dates
+  const today = new Date();
+  const matches = [];
+  
+  // Calculate total number of matches (each team plays each other twice)
+  const totalMatches = teamCount * (teamCount - 1) * settings.timesTeamsPlayOther;
+  
+  // 80% of matches should be in the past with results, 20% in the future without results
+  const pastMatchCount = Math.floor(totalMatches * 0.8);
+  
+  // Generate all possible match combinations
   let matchIndex = 0;
-  for (let i = 0; i < teams.length; i++) {
-    for (let j = i + 1; j < teams.length; j++) {
-      // Home and away matches
-      const homeMatch = generateTestMatch(
-        teams[i],
-        teams[j],
-        matchIndex++
-      );
-
-      const awayMatch = generateTestMatch(
-        teams[j],
-        teams[i],
-        matchIndex++
-      );
-      league.addMatch(homeMatch);
-      league.addMatch(awayMatch);
+  const allMatchPairs = [];
+  
+  for (let round = 0; round < settings.timesTeamsPlayOther; round++) {
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = 0; j < teams.length; j++) {
+        if (i !== j) {
+          allMatchPairs.push({
+            homeTeam: teams[i],
+            awayTeam: teams[j],
+            round: round + 1
+          });
+        }
+      }
     }
   }
   
-  // Initialize fixtures to ensure proper scheduling
-  league.initialiseFixtures();
+  // Shuffle the matches to create a more realistic schedule
+  for (let i = allMatchPairs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allMatchPairs[i], allMatchPairs[j]] = [allMatchPairs[j], allMatchPairs[i]];
+  }
+  
+  // Generate matches with dates
+  allMatchPairs.forEach((matchPair, index) => {
+    const isPastMatch = index < pastMatchCount;
+    
+    let matchDate;
+    if (isPastMatch) {
+      // Past matches: spread over the last 12 weeks
+      const weeksAgo = Math.floor((index / pastMatchCount) * 12);
+      const daysAgo = (weeksAgo * 7) + Math.floor(Math.random() * 7);
+      matchDate = new Date(today);
+      matchDate.setDate(today.getDate() - daysAgo);
+    } else {
+      // Future matches: spread over the next 8 weeks
+      const futureIndex = index - pastMatchCount;
+      const totalFutureMatches = allMatchPairs.length - pastMatchCount;
+      const weeksAhead = Math.floor((futureIndex / totalFutureMatches) * 8) + 1;
+      const daysAhead = (weeksAhead * 7) + Math.floor(Math.random() * 7);
+      matchDate = new Date(today);
+      matchDate.setDate(today.getDate() + daysAhead);
+    }
+    
+    const homeSkill = teamSkills.get(matchPair.homeTeam._id);
+    const awaySkill = teamSkills.get(matchPair.awayTeam._id);
+    
+    const matchData = generateTestMatch(
+      matchPair.homeTeam,
+      matchPair.awayTeam,
+      matchDate,
+      homeSkill,
+      awaySkill,
+      isPastMatch
+    );
+    
+    // Add the match data directly to the league's matches array
+    league.matches.push(matchData);
+  });
+  
+  // Don't call initialiseFixtures as it might override our match data
+  // league.initialiseFixtures();
   
   return league;
 }
