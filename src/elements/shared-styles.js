@@ -325,7 +325,7 @@ export const listItemStyles = `
   /* Example of a text part within a list item that should grow */
   .list-item-shared .list-item-text-primary {
     flex-grow: 1;
-    font-size: var(--le-font-size-medium, 1.15em); /* Added explicit font size */
+    font-size: var(--le-font-size-small, 1.0em); /* Added explicit font size */
     /* Potentially add text overflow properties if needed */
     /* white-space: nowrap; */
     /* overflow: hidden; */

@@ -15,6 +15,7 @@ import {
     DESKTOP_STYLES,
     TEMPLATE
 } from './LeagueMatchesUpcoming-styles.js';
+import { TemporalUtils } from '../../utils/temporalUtils.js';
 
 /**
  * Custom element to display upcoming fixtures with paging and optional date filtering.
@@ -251,16 +252,16 @@ class LeagueMatchesUpcoming extends HTMLElement {
       
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0);
-      const matchDateStr = currentDateObj.toLocaleDateString();
+      const matchDateStr = TemporalUtils.formatDateString(currentDateObj);
       let dateDisplay = '';
       if (matchDateStr !== lastDate) {
         dateDisplay = `<div class="match-date">${matchDateStr}</div>`;
         lastDate = matchDateStr;
       }
       return `
-      <div class="match-item">
+      <div class="match-link list-item-text-primary">
         ${dateDisplay}
-        <a href="#" class="match-link" data-match-id="${match._id}">
+        <a href="#" class="match-link list-item-text-primary" data-match-id="${match._id}">
           ${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}
         </a>
       </div>

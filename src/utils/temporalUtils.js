@@ -184,5 +184,28 @@ export const TemporalUtils = {
              plainDate1.month === plainDate2.month && 
              plainDate1.day === plainDate2.day;
     }
+  },
+
+  /**
+   * Format a date to display format with ordinal suffix (e.g., "25th Aug")
+   * @param {Date} date - JavaScript Date object
+   * @returns {string} Formatted date string
+   */
+  formatDateString(date) {
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    
+    // Add ordinal suffix to day
+    const getOrdinalSuffix = (day) => {
+      if (day > 3 && day < 21) return 'th';
+      switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+      }
+    };
+    
+    return `${day}${getOrdinalSuffix(day)} ${month}`;
   }
 }; 

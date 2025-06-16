@@ -15,6 +15,7 @@ import {
     DESKTOP_STYLES,
     TEMPLATE
 } from './LeagueMatchesRecent-styles.js';
+import { TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueMatchesRecent extends HTMLElement {
   constructor() {
@@ -236,7 +237,7 @@ class LeagueMatchesRecent extends HTMLElement {
       
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0); 
-      const matchDateStr = currentDateObj.toLocaleDateString();
+      const matchDateStr = TemporalUtils.formatDateString(currentDateObj);
       let dateDisplayHtml = '';
       if (matchDateStr !== lastDate) {
         dateDisplayHtml = `<div class="match-date">${matchDateStr}</div>`;

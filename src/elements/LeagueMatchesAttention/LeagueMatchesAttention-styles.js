@@ -22,20 +22,6 @@ export const BASE_STYLES = `
         font-size: 0.85em;
         margin-bottom: var(--le-padding-xs, 0.2em);
       }
-      .match-link {
-        color: var(--le-text-color-accent, #2196f3);
-        text-decoration: none;
-        transition: color 0.2s;
-        flex-grow: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        min-width: 0;
-      }
-      .match-link:hover {
-        color: var(--le-text-color-accent-hover, #1976d2);
-        text-decoration: underline;
-      }
       .paging-controls {
         display: flex;
         justify-content: flex-end;
