@@ -49,6 +49,10 @@ class LeagueAdminElement extends HTMLElement {
     // New properties for reset modal management
     this.resetModalOpen = false;
 
+    // Properties for new league creation confirmation
+    this._pendingNewLeagueData = null; // Store league data for post-creation confirmation
+    this._isWaitingForNewLeagueConfirmation = false;
+
     this._boundHandleDocumentClickForGlobalMenu = null; // For global menu closing
   }
 
@@ -229,6 +233,9 @@ class LeagueAdminElement extends HTMLElement {
 
     // Apply current league ID selection after data is loaded
     this._applyCurrentLeagueIdSelection();
+    
+    // Check if we need to show new league confirmation dialog
+    this._checkForNewLeagueConfirmation();
   }
 
   // Parse lovebowls teams data from attribute - expects {_id, name} format
@@ -1532,6 +1539,12 @@ class LeagueAdminElement extends HTMLElement {
         }
     }
     
+    // Store information if this is a new league creation
+    if (this._modalMode === 'new') {
+      this._pendingNewLeagueData = leagueData;
+      this._isWaitingForNewLeagueConfirmation = true;
+    }
+    
     this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData }));
     this._hideModal();
     this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action (if it was open due to edit)
@@ -1553,6 +1566,73 @@ class LeagueAdminElement extends HTMLElement {
       confirmButton: mobileStyled,
       cancelButton: mobileStyled,
     };
+  }
+
+  /**
+   * Check if we need to show new league confirmation dialog
+   */
+  _checkForNewLeagueConfirmation() {
+    if (!this._isWaitingForNewLeagueConfirmation || !this._pendingNewLeagueData) {
+      return;
+    }
+
+    // Find the newly created league in the current data
+    const newLeague = this._leagues.find(league => 
+      league.name === this._pendingNewLeagueData.name && 
+      (!this._pendingNewLeagueData._id || league._id === this._pendingNewLeagueData._id)
+    );
+
+    if (newLeague) {
+      // Reset the waiting state
+      this._isWaitingForNewLeagueConfirmation = false;
+      this._pendingNewLeagueData = null;
+      
+      // Show the confirmation dialog
+      this._showNewLeagueConfirmationDialog(newLeague);
+    }
+  }
+
+  /**
+   * Show confirmation dialog after creating a new league
+   * @param {Object} newLeague - The newly created league object
+   */
+  _showNewLeagueConfirmationDialog(newLeague) {
+    const leagueName = newLeague.name || 'your new league';
+    
+    Swal.default.fire({
+      customClass: this._getSwalCustomClasses(),
+      title: 'League Created Successfully!',
+      html: `
+        <p>"${leagueName}" has been created successfully.</p>
+        <div style="margin-top: 1rem;">
+          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="goToScheduler" checked style="margin: 0;">
+            <span>Go to match scheduler</span>
+          </label>
+        </div>
+      `,
+      icon: 'success',
+      showCancelButton: true,
+      confirmButtonText: 'OK',
+      cancelButtonText: 'Close',
+      preConfirm: () => {
+        return document.getElementById('goToScheduler').checked;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const shouldGoToScheduler = result.value;
+        
+        if (shouldGoToScheduler) {
+          // Select the newly created league first
+          this._selectedLeagueId = newLeague._id || newLeague.name;
+          this._updateButtonStates();
+          this.render(); // Re-render to show the selected league
+          
+          // Open the reset modal to schedule matches
+          this._openResetModal(newLeague);
+        }
+      }
+    });
   }
 
   // --- Action Button Handlers ---
