@@ -94,17 +94,23 @@ class LeagueElement extends HTMLElement {
 
   async _parseAndLoadData(data) {
     try {
-      const raw = this.getAttribute('data');
-      console.log('[LeagueElement] Raw data attribute:', raw);
-      const parsed = JSON.parse(raw);
+      // Use the passed data parameter, not the attribute
+      const parsed = typeof data === 'string' ? JSON.parse(data) : data;
       console.log('[LeagueElement] Parsed data:', parsed);
       this.data = new League(parsed);
       console.log('[LeagueElement] League instance:', this.data);
+      
+      // Dispatch event with League instance
+      this.dispatchEvent(new LeagueEvent({ data: this.data }));
+      
       // Just call render() - it will handle all UI updates
       this.render();
     } catch (error) {
       console.error('[LeagueElement] Error parsing league data:', error);
       this.showError('Failed to load league data');
+      
+      // Dispatch error event
+      this.dispatchEvent(new LeagueEvent({ error: error.message }));
     }
   }
 
@@ -620,7 +626,7 @@ class LeagueElement extends HTMLElement {
       }
 
       const dateStr = new Date(match.date).toLocaleDateString();
-      const matchDetails = `${homeTeamDisplay} ${match.homeScore}-${match.awayScore} ${awayTeamDisplay}`;
+      const matchDetails = `${homeTeamDisplay} ${homeScore}-${awayScore} ${awayTeamDisplay}`;
       return `${displayVerb ? resultVerb + ' ' : ''}${matchDetails} on ${dateStr}`;
     }).join('\n');
 
