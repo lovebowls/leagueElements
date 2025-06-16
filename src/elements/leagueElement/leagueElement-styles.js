@@ -431,6 +431,12 @@ export const BASE_STYLES = `
         font-size: 0.85em; /* Slightly smaller font size */
         line-height: 1; /* Ensure consistent line height */
       }
+      .rank-up {
+        color: var(--le-rank-up-color);
+      }
+      .rank-down {
+        color: var(--le-rank-down-color);
+      }
       .pos-cell-promotion {
         background-color: var(--le-background-color-promotion); 
         color: var(--le-text-color-on-primary); 

@@ -18,6 +18,7 @@ import '../leagueCalendar/LeagueCalendar.js';
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
 import { League, Match } from '@lovebowls/leaguejs';
+import { FormUtils } from '../../utils/formUtils.js';
 
 class LeagueElement extends HTMLElement {
 
@@ -200,6 +201,7 @@ class LeagueElement extends HTMLElement {
       // Prepare data for trends view and ensure team colors are set
       this._preparePointsOverTimeData();
       this._prepareShotsForVsAgainstData();
+      this._prepareFormOverTimeData();
       this.ensureTeamColors();
 
       // Render based on device type
@@ -876,15 +878,15 @@ class LeagueElement extends HTMLElement {
    * Uses a standard methodology: W=3pts, D=1pt, L=0pts with heavy recency weighting.
    * Most recent matches have higher impact on the score.
    * @param {Array<Object>} formMatches - Array of recent match objects with result and description
-   * @returns {number} Form score (0-15 for 5 matches, proportionally scaled for fewer)
+   * @returns {number} Form score (0-3 range, proportionally scaled for fewer matches)
    */
   _calculateFormScore(formMatches) {
     if (!Array.isArray(formMatches) || formMatches.length === 0) {
       return 0;
     }
 
-    // Much higher weights for recent matches: most recent gets 5x weight of oldest
-    // This ensures recent form has a dominant impact on ranking
+    // Convert form match objects to the format expected by the generalized function
+    // This is a bridge between the old format and the new generalized approach
     const weights = [1.0, 0.8, 0.6, 0.4, 0.2]; // Most recent to oldest
     let totalScore = 0;
     let totalWeight = 0;
@@ -910,7 +912,6 @@ class LeagueElement extends HTMLElement {
 
     // Scale the score to maintain a reasonable range while emphasizing recent form
     // The scaling ensures teams with fewer matches aren't unfairly penalized
-    const maxPossibleWeight = weights.slice(0, Math.min(formMatches.length, 5)).reduce((sum, w) => sum + w, 0);
     const scaledScore = totalWeight > 0 ? (totalScore / totalWeight) * 3 : 0; // Scale to 0-3 per match average
     
     return Math.round(scaledScore * 1000) / 1000; // Round to 3 decimal places for better precision
@@ -944,6 +945,9 @@ class LeagueElement extends HTMLElement {
         } else if (this.activeTrendGraphType === 'shotsForVsAgainst') {
           this._prepareShotsForVsAgainstData();
           this.drawShotsForVsAgainstSVG();
+        } else if (this.activeTrendGraphType === 'formOverTime') {
+          this._prepareFormOverTimeData();
+          this.drawFormOverTimeSVG();
         } else {
           // Handle other graph types in the future
           const svg = this.shadow.querySelector('#points-over-time-svg');
@@ -968,6 +972,8 @@ class LeagueElement extends HTMLElement {
           // Redraw the appropriate graph based on active type
           if (this.activeTrendGraphType === 'shotsForVsAgainst') {
             this.drawShotsForVsAgainstSVG();
+          } else if (this.activeTrendGraphType === 'formOverTime') {
+            this.drawFormOverTimeSVG();
           } else {
             this.drawPointsOverTimeSVG();
           }
@@ -1008,6 +1014,9 @@ class LeagueElement extends HTMLElement {
                 if (this.activeTrendGraphType === 'shotsForVsAgainst') {
                     this._prepareShotsForVsAgainstData();
                     this.drawShotsForVsAgainstSVG();
+                } else if (this.activeTrendGraphType === 'formOverTime') {
+                    this._prepareFormOverTimeData();
+                    this.drawFormOverTimeSVG();
                 } else {
                     this.drawPointsOverTimeSVG();
                 }
@@ -1023,6 +1032,7 @@ class LeagueElement extends HTMLElement {
             <select id="graph-type-select" class="dropdown-select-shared">
               <option value="pointsOverTime" selected>Points Over Time</option>
               <option value="shotsForVsAgainst">Shots For vs Against</option>
+              <option value="formOverTime">Form Over Time</option>
               <!-- Future graph types will be added here -->
             </select>
           </div>
@@ -1228,6 +1238,37 @@ class LeagueElement extends HTMLElement {
       maxShotsFor,
       maxShotsAgainst
     };
+  }
+
+  _prepareFormOverTimeData() {
+    const tableData = this._table;
+    const table = Array.isArray(tableData) ? tableData : (tableData?.leagueData || []);
+    
+    if (!this.data || 
+        !this.data.matches || !Array.isArray(this.data.matches) || 
+        !Array.isArray(table) || table.length === 0) {
+      console.warn('_prepareFormOverTimeData: Essential data is missing. Clearing chart data.');
+      this.formOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: [] };
+      return;
+    }
+
+    const allTeamIds = table.map(team => team.teamId);
+    if (allTeamIds.length === 0) {
+      console.warn('_prepareFormOverTimeData: No teams found in leagueData. Clearing chart data.');
+      this.formOverTimeChartData = { dates: [], teamSeries: {}, allTeamNames: [] };
+      return;
+    }
+
+    // Use FormUtils to generate form over time data
+    this.formOverTimeChartData = FormUtils.generateFormOverTimeData(
+      allTeamIds, 
+      this.data.matches, 
+      this.tableFilter
+    );
+
+    // Update the property names to match existing chart structure
+    this.formOverTimeChartData.allTeamNames = this.formOverTimeChartData.allTeamIds;
+    delete this.formOverTimeChartData.allTeamIds;
   }
 
   // Predefined color palette with good contrast and spread
@@ -1695,6 +1736,220 @@ class LeagueElement extends HTMLElement {
     });
   }
 
+  /**
+   * Apply simple moving average smoothing to a data series
+   * @param {Array<number>} data - Array of numeric values to smooth
+   * @param {number} windowSize - Size of the smoothing window (default: 3)
+   * @returns {Array<number>} Smoothed data array
+   */
+  _smoothDataSeries(data, windowSize = 8) {
+    if (!Array.isArray(data) || data.length === 0) return data;
+    if (windowSize <= 1) return data;
+    
+    const smoothed = [];
+    const halfWindow = Math.floor(windowSize / 2);
+    
+    for (let i = 0; i < data.length; i++) {
+      let sum = 0;
+      let count = 0;
+      
+      // Calculate the window bounds
+      const start = Math.max(0, i - halfWindow);
+      const end = Math.min(data.length - 1, i + halfWindow);
+      
+      // Sum values in the window
+      for (let j = start; j <= end; j++) {
+        if (typeof data[j] === 'number' && !isNaN(data[j])) {
+          sum += data[j];
+          count++;
+        }
+      }
+      
+      // Calculate average, fallback to original value if no valid data
+      smoothed[i] = count > 0 ? sum / count : data[i];
+    }
+    
+    return smoothed;
+  }
+
+  drawFormOverTimeSVG() {
+    const svg = this.shadow.querySelector('#points-over-time-svg');
+    const legendDiv = this.shadow.querySelector('.trends-graph-legend');
+
+    if (!svg || !legendDiv) {
+      console.error('SVG or Legend container not found for form over time graph.');
+      return;
+    }
+
+    // Clear previous content
+    svg.innerHTML = '';
+    legendDiv.innerHTML = '';
+
+    if (!this.formOverTimeChartData || 
+        !this.formOverTimeChartData.dates || 
+        !this.formOverTimeChartData.teamSeries) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Form over time data is unavailable.</text>';
+      legendDiv.innerHTML = '<p>Legend cannot be displayed: Data unavailable.</p>';
+      return;
+    }
+
+    const { dates, teamSeries, allTeamNames } = this.formOverTimeChartData;
+
+    // Always populate the legend first, so controls are available
+    if (allTeamNames && allTeamNames.length > 0) {
+        allTeamNames.forEach(teamId => {
+            const color = this.teamColors[teamId] || '#ccc';
+            const isChecked = this.selectedTeamsForGraph.has(teamId);
+            const teamDisplayName = this.getTeamDisplayName(teamId);
+
+            const legendItemLabel = document.createElement('label');
+            legendItemLabel.className = 'legend-item';
+            legendItemLabel.title = `Toggle visibility for ${this.escapeHtml(teamDisplayName)}`;
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'trends-team-toggle-cb';
+            checkbox.value = teamId;
+            checkbox.checked = isChecked;
+            
+            const colorBox = document.createElement('span');
+            colorBox.className = 'legend-color-box';
+            colorBox.style.backgroundColor = color;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = this.escapeHtml(teamDisplayName);
+
+            legendItemLabel.appendChild(checkbox);
+            legendItemLabel.appendChild(colorBox);
+            legendItemLabel.appendChild(nameSpan);
+            legendDiv.appendChild(legendItemLabel);
+        });
+    } else {
+        legendDiv.innerHTML = '<p>No teams available for legend.</p>';
+        svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams available in data.</text>';
+        return;
+    }
+
+    if (dates.length === 0) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No dates available for form graphing.</text>';
+      return;
+    }
+
+    const selectedTeams = Array.from(this.selectedTeamsForGraph);
+    if (selectedTeams.length === 0) {
+      svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams selected for the form graph. Use legend to select.</text>';
+      return;
+    }
+
+    // Dimensions and margins
+    const svgWidth = svg.clientWidth;
+    const svgHeight = svg.clientHeight;
+    const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+    const width = svgWidth - margin.left - margin.right;
+    const height = svgHeight - margin.top - margin.bottom;
+
+    if (width <= 0 || height <= 0) {
+        svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">Not enough space to render form graph.</text>';
+        return;
+    }
+
+    // Create main group element
+    const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    mainGroup.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+    svg.appendChild(mainGroup);
+
+    // Scales
+    const minDate = dates[0];
+    const maxDate = dates[dates.length - 1];
+    
+    // Form scores are in 0-1 range (0% to 100% success rate)
+    const maxFormScore = 1;
+
+    const xScale = (date) => (date - minDate) / (maxDate - minDate || 1) * width;
+    const yScale = (formScore) => height - (formScore / maxFormScore) * height;
+
+    // Helper to create SVG elements
+    const createSVGElement = (name, attributes) => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+      for (const key in attributes) {
+        el.setAttribute(key, attributes[key]);
+      }
+      return el;
+    };
+
+    // Draw X-axis
+    mainGroup.appendChild(createSVGElement('line', { x1: 0, y1: height, x2: width, y2: height, class: 'axis' }));
+    const numXTicks = Math.min(dates.length, 5);
+    let lastDisplayedMonth = null;
+
+    if (dates.length > 0) {
+        for (let i = 0; i < numXTicks; i++) {
+            const tickDateIndex = Math.floor(i * (dates.length -1) / (numXTicks -1 < 1 ? 1 : numXTicks -1));
+            const dateVal = dates[tickDateIndex];
+            const x = xScale(dateVal);
+            mainGroup.appendChild(createSVGElement('line', { x1: x, y1: height, x2: x, y2: height + 6, class: 'axis' }));
+            
+            let dateLabelText;
+            if (this._isMobile) {
+                const currentMonthName = new Date(dateVal).toLocaleDateString(undefined, { month: 'short' });
+                if (currentMonthName !== lastDisplayedMonth) {
+                    dateLabelText = currentMonthName;
+                    lastDisplayedMonth = currentMonthName;
+                } else {
+                    dateLabelText = '';
+                }
+            } else {
+                dateLabelText = new Date(dateVal).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            }
+
+            const xTickText = createSVGElement('text', { x: x, y: height + 20, 'text-anchor': 'middle', class: 'axis-text' });
+            xTickText.textContent = dateLabelText;
+            mainGroup.appendChild(xTickText);
+        }
+    }
+    const xAxisLabel = createSVGElement('text', {x: width / 2, y: height + 40, 'text-anchor': 'middle', class: 'axis-label'});
+    xAxisLabel.textContent = 'Date';
+    mainGroup.appendChild(xAxisLabel);
+
+    // Draw Y-axis
+    mainGroup.appendChild(createSVGElement('line', { x1: 0, y1: 0, x2: 0, y2: height, class: 'axis' }));
+    const numYTicks = 5; // 0, 0.2, 0.4, 0.6, 0.8, 1.0
+    for (let i = 0; i <= numYTicks; i++) {
+      const formScoreVal = (maxFormScore / numYTicks) * i;
+      const y = yScale(formScoreVal);
+      mainGroup.appendChild(createSVGElement('line', { x1: -6, y1: y, x2: 0, y2: y, class: 'axis' }));
+      // Grid line
+      mainGroup.appendChild(createSVGElement('line', { x1: 0, y1: y, x2: width, y2: y, class: 'grid-line' }));
+      const yTickText = createSVGElement('text', { x: -10, y: y, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: 'axis-text' });
+      yTickText.textContent = formScoreVal.toFixed(1);
+      mainGroup.appendChild(yTickText);
+    }
+    const yAxisLabel = createSVGElement('text', {
+        transform: `translate(-35, ${height/2}) rotate(-90)`,
+        'text-anchor': 'middle', class: 'axis-label'
+    });
+    yAxisLabel.textContent = 'Form Score';
+    mainGroup.appendChild(yAxisLabel);
+
+    // Draw lines for selected teams
+    selectedTeams.forEach(teamId => {
+      const teamFormData = teamSeries[teamId];
+      const color = this.teamColors[teamId] || '#ccc';
+
+      if (teamFormData && teamFormData.length === dates.length && dates.length > 1) {
+        // Apply smoothing to the form data
+        const smoothedFormData = this._smoothDataSeries(teamFormData);
+        
+        let pathData = 'M';
+        for (let i = 0; i < dates.length; i++) {
+          pathData += `${xScale(dates[i])},${yScale(smoothedFormData[i])} `;
+          if (i < dates.length - 1) pathData += 'L';
+        }
+        mainGroup.appendChild(createSVGElement('path', { d: pathData.trim(), stroke: color, fill: 'none', 'stroke-width': 2, class: 'line' }));
+      }
+    });
+  }
+
   // END - Placeholder for Trends View Methods
 
   // START - New methods for table filtering and data processing
@@ -1720,14 +1975,15 @@ class LeagueElement extends HTMLElement {
   renderRankMovementIndicator(movement) {
     let content = ''; // Default is empty for no change
     
-    // Only show indicators for actual movement and only in overall view
-    // Form view shows current form ranking, not historical movement
-    if (typeof movement === 'number' && movement !== 0 && this.tableFilter === 'overall') {
+    // Show indicators for actual movement in all filter views
+    // Each view shows how positions changed within that specific context
+    if (typeof movement === 'number' && movement !== 0) {
+      const filterContext = this.tableFilter === 'overall' ? '' : ` (${this.tableFilter})`;
       if (movement > 0) { // Moved up
-        content = `<span class="rank-up" title="Moved up ${movement} position${movement !== 1 ? 's' : ''}">▲</span>`;
+        content = `<span class="rank-up" title="Moved up ${movement} position${movement !== 1 ? 's' : ''}${filterContext}">▲</span>`;
       } else { // Moved down
         const absMovement = Math.abs(movement);
-        content = `<span class="rank-down" title="Moved down ${absMovement} position${absMovement !== 1 ? 's' : ''}">▼</span>`;
+        content = `<span class="rank-down" title="Moved down ${absMovement} position${absMovement !== 1 ? 's' : ''}${filterContext}">▼</span>`;
       }
     }
     return content;
@@ -1866,13 +2122,239 @@ class LeagueElement extends HTMLElement {
       return a.teamDisplayName.localeCompare(b.teamDisplayName);
     });
 
-    // Assign currentRank and rankMovement if needed
+    // Assign currentRank and calculate rankMovement
     stats.forEach((team, index) => {
       team.currentRank = index + 1; // 1-indexed rank
-      // rankMovement can be calculated here if you have previous data
+    });
+
+    // Calculate rank movement by comparing current positions with positions after excluding the most recent match day
+    // This works for all filter types (overall, home, away, form) as each shows how positions changed
+    // within that specific context
+    const rankMovements = this._calculateRankMovements(matchesSubset, allTeamIdsInLeague, stats);
+    stats.forEach(team => {
+      team.rankMovement = rankMovements[team.teamId] || 0;
     });
 
     return stats;
+  }
+
+  /**
+   * Calculate rank movements by comparing current table with table excluding most recent match day
+   * @param {Array<Object>} matchesSubset - All matches used for current table calculation
+   * @param {Array<string>} allTeamIdsInLeague - Array of all team IDs in the league
+   * @param {Array<Object>} currentStats - Current team statistics with ranks
+   * @returns {Object} Map of teamId to rank movement (positive = moved up, negative = moved down)
+   */
+     _calculateRankMovements(matchesSubset, allTeamIdsInLeague, currentStats) {
+    if (!matchesSubset || matchesSubset.length === 0) {
+      return {};
+    }
+
+    // For form view, we need a different approach since form is based on last 5 matches
+    // We'll compare current form ranking with form ranking excluding the most recent match
+    if (this.tableFilter === 'form') {
+      return this._calculateFormRankMovements(matchesSubset, allTeamIdsInLeague, currentStats);
+    }
+
+    // For other views (overall, home, away), use the standard approach
+    // Find the most recent match date
+    const sortedMatches = matchesSubset
+      .filter(match => match.date && match.result)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (sortedMatches.length === 0) {
+      return {};
+    }
+
+    const mostRecentDate = new Date(sortedMatches[0].date);
+    mostRecentDate.setHours(0, 0, 0, 0);
+    const mostRecentTimestamp = mostRecentDate.getTime();
+
+    // Get matches excluding the most recent match day
+    const matchesExcludingMostRecent = matchesSubset.filter(match => {
+      if (!match.date || !match.result) return false;
+      const matchDate = new Date(match.date);
+      matchDate.setHours(0, 0, 0, 0);
+      return matchDate.getTime() !== mostRecentTimestamp;
+    });
+
+    // If no previous matches, no movement to calculate
+    if (matchesExcludingMostRecent.length === 0) {
+      return {};
+    }
+
+    // Calculate previous table (without most recent match day)
+    let previousStats = this._calculateStatsFromMatches(matchesExcludingMostRecent, allTeamIdsInLeague);
+    
+    // Sort previous stats to get previous rankings (for overall, home, away)
+    previousStats.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.shotDifference !== a.shotDifference) return b.shotDifference - a.shotDifference;
+      if (b.shotsFor !== a.shotsFor) return b.shotsFor - a.shotsFor;
+      return a.teamDisplayName.localeCompare(b.teamDisplayName);
+    });
+
+    // Create map of previous ranks
+    const previousRanks = {};
+    previousStats.forEach((team, index) => {
+      previousRanks[team.teamId] = index + 1;
+    });
+
+    // Calculate movements
+    const movements = {};
+    currentStats.forEach(team => {
+      const currentRank = team.currentRank;
+      const previousRank = previousRanks[team.teamId];
+      
+      if (previousRank !== undefined) {
+        // Movement is previous rank - current rank (positive = moved up, negative = moved down)
+        movements[team.teamId] = previousRank - currentRank;
+      } else {
+        movements[team.teamId] = 0;
+      }
+    });
+
+    return movements;
+  }
+
+  /**
+   * Calculate rank movements specifically for form view
+   * @param {Array<Object>} matchesSubset - All matches used for current table calculation
+   * @param {Array<string>} allTeamIdsInLeague - Array of all team IDs in the league
+   * @param {Array<Object>} currentStats - Current team statistics with ranks
+   * @returns {Object} Map of teamId to rank movement
+   */
+  _calculateFormRankMovements(matchesSubset, allTeamIdsInLeague, currentStats) {
+    // Use the centralized FormUtils for form rank movement calculation
+    return FormUtils.calculateFormRankMovements(allTeamIdsInLeague, matchesSubset, this.tableFilter);
+  }
+
+  /**
+   * Get all matches for a team up to a specific date, sorted by date (most recent first)
+   * @deprecated Use FormUtils.getTeamMatchesUpToDate instead
+   */
+  _getTeamMatchesUpToDate(teamId, targetDate, allMatches) {
+    return FormUtils.getTeamMatchesUpToDate(teamId, targetDate, allMatches, this.tableFilter);
+  }
+
+  /**
+   * Calculate form score at a specific date for a team
+   * @deprecated Use FormUtils.calculateFormScoreAtDate instead
+   */
+  _calculateFormScoreAtDate(teamId, targetDate, allMatches) {
+    return FormUtils.calculateFormScoreAtDate(teamId, targetDate, allMatches, this.tableFilter);
+  }
+
+  /**
+   * Calculate form score from a specific set of matches for a team
+   * @deprecated Use FormUtils.calculateFormScoreFromMatches instead
+   */
+  _calculateFormScoreFromMatches(matches, teamId) {
+    return FormUtils.calculateFormScoreFromMatches(matches, teamId);
+  }
+
+  /**
+   * Calculate basic statistics from matches (helper method for rank movement calculation)
+   * @param {Array<Object>} matches - Array of match objects
+   * @param {Array<string>} allTeamIdsInLeague - Array of all team IDs in the league
+   * @returns {Array<Object>} Array of team statistics
+   */
+     _calculateStatsFromMatches(matches, allTeamIdsInLeague) {
+    return allTeamIdsInLeague.map(teamId => {
+      let played = 0;
+      let won = 0;
+      let drawn = 0;
+      let lost = 0;
+      let shotsFor = 0;
+      let shotsAgainst = 0;
+      let points = 0;
+      let formMatches = [];
+      let allMatchesForTooltip = [];
+
+      matches.forEach(match => {
+        if (!match.result || typeof match.result.homeScore !== 'number' || typeof match.result.awayScore !== 'number') {
+          return;
+        }
+
+        const homeTeamId = match.homeTeam._id;
+        const awayTeamId = match.awayTeam._id;
+        if (!homeTeamId || !awayTeamId) {
+          return;
+        }
+
+        const homeScore = match.result.homeScore;
+        const awayScore = match.result.awayScore;
+        
+        if (homeTeamId === teamId) {
+          // Skip if we're filtering for away matches only
+          if (this.tableFilter === 'away') return;
+          
+          played++;
+          shotsFor += homeScore;
+          shotsAgainst += awayScore;
+          if (homeScore > awayScore) { won++; points += 3; }
+          else if (homeScore === awayScore) { drawn++; points += 1; }
+          else { lost++; }
+          formMatches.push(match);
+          allMatchesForTooltip.push(match);
+        } else if (awayTeamId === teamId) {
+          // Skip if we're filtering for home matches only
+          if (this.tableFilter === 'home') return;
+          
+          played++;
+          shotsFor += awayScore;
+          shotsAgainst += homeScore;
+          if (awayScore > homeScore) { won++; points += 3; }
+          else if (awayScore === homeScore) { drawn++; points += 1; }
+          else { lost++; }
+          formMatches.push(match);
+          allMatchesForTooltip.push(match);
+        }
+      });
+
+      // Sort matches by date to get the most recent for the form guide
+      formMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      const recentFormMatches = formMatches.slice(0, 5).map(match => {
+        const homeTeamId = match.homeTeam._id;
+        const awayTeamId = match.awayTeam._id;
+        const homeScore = match.result.homeScore;
+        const awayScore = match.result.awayScore;
+
+        let resultForTeam = '';
+        if (homeTeamId === teamId) {
+          if (homeScore > awayScore) { resultForTeam = 'W'; }
+          else if (homeScore < awayScore) { resultForTeam = 'L'; }
+          else { resultForTeam = 'D'; }
+        } else { // awayTeamId === teamId
+          if (awayScore > homeScore) { resultForTeam = 'W'; }
+          else if (awayScore < homeScore) { resultForTeam = 'L'; }
+          else { resultForTeam = 'D'; }
+        }
+
+        const homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
+        const awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
+        const dateStr = new Date(match.date).toLocaleDateString();
+        const description = `${homeTeamDisplay} ${homeScore}-${awayScore} ${awayTeamDisplay} on ${dateStr}`;
+
+        return { result: resultForTeam, description };
+      });
+
+      return {
+        teamId,
+        teamDisplayName: this.getTeamDisplayName(teamId),
+        played,
+        won,
+        drawn,
+        lost,
+        shotsFor,
+        shotsAgainst,
+        shotDifference: shotsFor - shotsAgainst,
+        points,
+        matches: recentFormMatches,
+        allMatchesForTooltip
+      };
+    });
   }
 
   /**
