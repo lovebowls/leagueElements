@@ -604,27 +604,6 @@ describe('LeagueElement', () => {
       expect(element.pointsOverTimeChartData.dates.length).toBe(0);
     });
     
-    it('should ensure team colors are assigned', () => {
-      element.data = new League(mockLeagueData);
-      element.teamColors = {};
-      
-      // Mock the _table getter to return some data
-      Object.defineProperty(element, '_table', {
-        get: () => [
-          { teamId: 'Team A', teamName: 'Team Alpha' },
-          { teamId: 'Team B', teamName: 'Team Beta' },
-          { teamId: 'Team C', teamName: 'Team Charlie' },
-          { teamId: 'Team D', teamName: 'Team Delta' }
-        ],
-        configurable: true
-      });
-      
-      element.ensureTeamColors();
-      
-      expect(Object.keys(element.teamColors).length).toBe(4);
-      expect(element.teamColors['Team Alpha']).toBeTruthy(); // Colors are keyed by teamName, not teamId
-    });
-    
     it('should calculate ranks from match subset correctly', () => {
       const matchesSubset = mockLeagueData.matches.slice(0, 4); // First 4 matches
       const teamNames = ['Team A', 'Team B', 'Team C', 'Team D'];

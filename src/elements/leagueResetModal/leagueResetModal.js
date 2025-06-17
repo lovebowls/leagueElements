@@ -315,6 +315,9 @@ class LeagueResetModal extends HTMLElement {
   render() {
     const mobileClass = this._isMobile ? 'mobile-view' : '';
     
+    // Check if the league has any matches
+    const hasExistingMatches = this._league && this._league.matches && this._league.matches.length > 0;
+    
     this.shadow.innerHTML = `
       <style>
         ${BASE_STYLES}
@@ -331,7 +334,7 @@ class LeagueResetModal extends HTMLElement {
             <div class="league-info">
               <p><strong>League:</strong> ${this._escapeHtml(this.leagueName)}</p>
               <p><strong>Teams:</strong> ${this.teamCount}</p>
-              <p class="warning-text">This will clear all existing matches and generate new ones with the scheduling parameters below.</p>
+              ${hasExistingMatches ? '<p class="warning-text">This will clear all existing matches and generate new ones with the scheduling parameters below.</p>' : ''}
             </div>
 
             <div class="form-group-shared">

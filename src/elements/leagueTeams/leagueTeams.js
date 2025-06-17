@@ -276,17 +276,17 @@ class LeagueTeams extends HTMLElement {
           </div>
           
           <div class="teams-manager-footer">
-            ${this._isNewLeagueWorkflow ? `
+            ${this._isNewLeagueWorkflow && teams.length >= 2 ? `
               <div class="footer-options">
                 <label class="checkbox-label">
                   <input type="checkbox" id="show-fixture-scheduler" ${this._showFixtureScheduler ? 'checked' : ''}>
-                  Show Fixture Scheduler
+                  Next: Fixture Scheduler
                 </label>
               </div>
             ` : ''}
             <div class="footer-buttons">
-              <button type="button" class="button-shared" id="cancel-teams-manager">Cancel</button>
-              <button type="button" class="button-shared button-primary" id="save-teams-manager">OK</button>
+              <button type="button" class="button-shared" id="cancel-teams-manager" ${this._showEditor ? 'disabled' : ''}>Cancel</button>
+              <button type="button" class="button-shared button-primary" id="save-teams-manager" ${this._showEditor ? 'disabled' : ''}>OK</button>
             </div>
           </div>
         </div>
@@ -404,13 +404,13 @@ class LeagueTeams extends HTMLElement {
     const saveBtn = this.shadow.querySelector('#save-teams-manager');
 
     if (closeBtn) closeBtn.addEventListener('click', () => this._onCancel());
-    if (cancelBtn) cancelBtn.addEventListener('click', () => this._onCancel());
-    if (saveBtn) saveBtn.addEventListener('click', () => this._onSave());
+    if (cancelBtn && !cancelBtn.disabled) cancelBtn.addEventListener('click', () => this._onCancel());
+    if (saveBtn && !saveBtn.disabled) saveBtn.addEventListener('click', () => this._onSave());
 
     // Fixture scheduler checkbox (only in new league workflow)
     if (this._isNewLeagueWorkflow) {
       const fixtureSchedulerCheckbox = this.shadow.querySelector('#show-fixture-scheduler');
-      if (fixtureSchedulerCheckbox) {
+      if (fixtureSchedulerCheckbox && !fixtureSchedulerCheckbox.disabled) {
         fixtureSchedulerCheckbox.addEventListener('change', (e) => {
           this._showFixtureScheduler = e.target.checked;
         });
@@ -548,8 +548,6 @@ class LeagueTeams extends HTMLElement {
   _handleEditTeam(teamId) {
     this._showEditTeam(teamId);
   }
-
-
 
   _handleRemoveTeam(teamId) {
     if (!teamId || !this._workingLeague?.teams) return;

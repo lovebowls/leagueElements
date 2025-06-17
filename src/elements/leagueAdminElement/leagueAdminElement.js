@@ -1457,6 +1457,14 @@ class LeagueAdminElement extends HTMLElement {
     this._populateModalForm(modalBody, currentLeagueData);
     modal.style.display = 'block';
     this._isModalVisible = true;
+    
+    // Focus the League Name input after the modal is rendered
+    setTimeout(() => {
+      const leagueNameInput = modalBody.querySelector('#leagueName');
+      if (leagueNameInput) {
+        leagueNameInput.focus();
+      }
+    }, 0);
   }
 
   _hideModal() {
