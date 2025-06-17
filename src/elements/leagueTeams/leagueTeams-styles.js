@@ -74,11 +74,37 @@ export const BASE_STYLES = `
 
   .teams-manager-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     gap: var(--le-padding-m, 1rem);
     padding: var(--le-padding-l, 1.5rem);
     border-top: 1px solid var(--le-border-color-light, #eee);
     background: var(--le-background-color-footer, #f8f9fa);
+  }
+
+  .footer-options {
+    display: flex;
+    align-items: center;
+  }
+
+  .footer-buttons {
+    display: flex;
+    gap: var(--le-padding-m, 1rem);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
+    cursor: pointer;
+    color: var(--le-text-color-primary, #333);
+    font-size: var(--le-font-size-base, 1rem);
+    user-select: none;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
   }
 
   /* Action Buttons */
@@ -347,10 +373,22 @@ export const BASE_STYLES = `
     
     .teams-manager-footer {
       padding: 15px;
-      flex-direction: column-reverse;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    .teams-manager-footer .button-shared {
+    .footer-options {
+      order: 1;
+      justify-content: center;
+    }
+
+    .footer-buttons {
+      order: 2;
+      flex-direction: column-reverse;
+      gap: 10px;
+    }
+
+    .footer-buttons .button-shared {
       width: 100%;
       margin: 0;
     }

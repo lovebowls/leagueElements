@@ -8,7 +8,7 @@ import '../leagueResetModal/leagueResetModal.js';
 import '../leagueTeams/leagueTeams.js';
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
-import { generateResetMatches } from '../../utils/data.js';
+
 
 // Define custom event types for the new element
 class LeagueAdminElementEvent extends CustomEvent {
@@ -45,6 +45,7 @@ class LeagueAdminElement extends HTMLElement {
     this.teamModalOpen = false;
     this.teamModalData = null;
     this.teamModalMode = 'new';
+    this.teamModalOptions = {};
     
     // New properties for match management
     this.matchModalOpen = false;
@@ -198,7 +199,13 @@ class LeagueAdminElement extends HTMLElement {
             league.teams = [];
           }
           
-          league.table = league.getLeagueTable()
+          // Generate league table if the method exists
+          if (typeof league.getLeagueTable === 'function') {
+            league.table = league.getLeagueTable();
+          } else {
+            // Fallback for leagues without getLeagueTable method
+            league.table = { leagueData: [], metaData: { name: league.name } };
+          }
           return league;
         });
         
@@ -436,14 +443,14 @@ class LeagueAdminElement extends HTMLElement {
       resetModal.leagueSettings = this._leagueToReset.settings || {};
       
       resetModal.addEventListener('reset-save', (e) => {
-        const { schedulingParams, estimatedMatches, dateRange } = e.detail;
+        const { matches, estimatedMatches, dateRange } = e.detail;
         const leagueToReset = this._leagueToReset; // Store reference before closing modal
         
         // Close modal first
         this._closeResetModal();
         
-        // Perform the reset with scheduling parameters
-        this._resetLeagueMatches(leagueToReset, schedulingParams);
+        // Apply the generated matches to the league
+        this._applyGeneratedMatches(leagueToReset, matches, estimatedMatches, dateRange);
       });
       
       resetModal.addEventListener('reset-cancel', () => {
@@ -472,13 +479,17 @@ class LeagueAdminElement extends HTMLElement {
       if (this.teamModalMode === 'edit' && this.teamModalData) {
         action.editTeam = this.teamModalData._id;
       }
+      // Add options from teamModalOptions (e.g., fromNewLeagueWorkflow)
+      if (this.teamModalOptions && Object.keys(this.teamModalOptions).length > 0) {
+        Object.assign(action, this.teamModalOptions);
+      }
       // For 'manage' mode, don't set any action to show the teams manager without auto-opening editor
       if (Object.keys(action).length > 0) {
         teamModal.action = action;
       }
       
       teamModal.addEventListener('teams-save', (e) => {
-        const { league } = e.detail;
+        const { league, showFixtureScheduler } = e.detail;
         
         // Update the internal _leagues array
         const leagueIndex = this._leagues.findIndex(l => l._id === league._id);
@@ -490,6 +501,14 @@ class LeagueAdminElement extends HTMLElement {
 
         this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: league }));
         this.closeTeamModal();
+        
+        // If showFixtureScheduler is true and we have at least 2 teams, open the reset modal
+        if (showFixtureScheduler && league.teams && league.teams.length >= 2) {
+          // Small delay to allow the team modal to close and DOM to update
+          setTimeout(() => {
+            this._openResetModal(league);
+          }, 100);
+        }
       });
       
       teamModal.addEventListener('teams-cancel', () => {
@@ -900,32 +919,18 @@ class LeagueAdminElement extends HTMLElement {
    * @param {Object} leagueToReset - The league object to reset matches for
    * @param {Object} schedulingParams - The scheduling parameters from the modal
    */
-  _resetLeagueMatches(leagueToReset, schedulingParams = null) {
+  _applyGeneratedMatches(leagueToReset, generatedMatches, matchCount, dateRange) {
     try {
       const leagueName = leagueToReset.name || leagueToReset._id || 'Unknown League';
       
-      // Check if league has teams
-      if (!leagueToReset.teams || !Array.isArray(leagueToReset.teams) || leagueToReset.teams.length < 2) {
-        Swal.default.fire({
-          customClass: this._getSwalCustomClasses(),
-          title: 'Cannot Reset Matches',
-          text: `"${leagueName}" needs at least 2 teams to generate matches.`,
-          icon: 'warning',
-          timer: 3000,
-          showConfirmButton: false
-        });
-        return;
-      }
-
       // Create a deep copy of the league to avoid modifying the original during processing
       const updatedLeague = JSON.parse(JSON.stringify(leagueToReset));
       
-      // Clear existing matches
-      updatedLeague.matches = [];
+      // Map the generated matches to use the actual team objects from the league
+      const mappedMatches = this._mapGeneratedMatchesToActualTeams(generatedMatches, updatedLeague.teams);
       
-      // Generate new matches using existing teams with scheduling parameters
-      const newMatches = generateResetMatches(updatedLeague.teams, updatedLeague.settings, schedulingParams);
-      updatedLeague.matches = newMatches;
+      // Apply the generated matches
+      updatedLeague.matches = mappedMatches;
       
       // Update the league in the internal _leagues array
       const leagueIndex = this._leagues.findIndex(l => (l._id || l.name) === (leagueToReset._id || leagueToReset.name));
@@ -941,21 +946,10 @@ class LeagueAdminElement extends HTMLElement {
         this.render();
         
         // Show success message with scheduling info
-        let successMessage = `"${leagueName}" matches have been reset. ${newMatches.length} new matches generated.`;
+        let successMessage = `"${leagueName}" matches have been reset. ${matchCount} new matches generated.`;
         
-        if (schedulingParams) {
-          const scheduledMatches = newMatches.filter(m => m.date !== null);
-          const unscheduledMatches = newMatches.length - scheduledMatches.length;
-          
-          if (scheduledMatches.length > 0) {
-            const firstDate = scheduledMatches[0]?.date;
-            const lastDate = scheduledMatches[scheduledMatches.length - 1]?.date;
-            successMessage += ` Matches scheduled from ${firstDate} to ${lastDate}.`;
-          }
-          
-          if (unscheduledMatches > 0) {
-            successMessage += ` ${unscheduledMatches} matches remain unscheduled.`;
-          }
+        if (dateRange) {
+          successMessage += ` Matches scheduled from ${dateRange.start} to ${dateRange.end}.`;
         }
         
         Swal.default.fire({
@@ -967,24 +961,40 @@ class LeagueAdminElement extends HTMLElement {
           showConfirmButton: false
         });
         
-        console.log(`[Reset League] Successfully reset matches for "${leagueName}". Generated ${newMatches.length} matches.`);
+        console.log(`[Reset League] Successfully reset matches for "${leagueName}". Generated ${matchCount} matches.`);
       } else {
         throw new Error('League not found in internal array after reset');
       }
       
     } catch (error) {
-      console.error('[Reset League] Error during match reset:', error);
-      this.showError(`Failed to reset league matches: ${error.message}`);
+      console.error('[Reset League] Error applying generated matches:', error);
+      this.showError(`Failed to apply generated matches: ${error.message}`);
       
       Swal.default.fire({
         customClass: this._getSwalCustomClasses(),
         title: 'Reset Failed',
-        text: `Failed to reset matches: ${error.message}`,
+        text: `Failed to apply generated matches: ${error.message}`,
         icon: 'error',
         timer: 4000,
         showConfirmButton: false
       });
     }
+  }
+
+  _mapGeneratedMatchesToActualTeams(generatedMatches, actualTeams) {
+    // Map the temporary team IDs to actual team objects
+    return generatedMatches.map((match, index) => {
+      // Use index-based mapping since temp teams are generated sequentially
+      const homeTeamIndex = parseInt(match.homeTeam._id.replace('temp_team_', '')) - 1;
+      const awayTeamIndex = parseInt(match.awayTeam._id.replace('temp_team_', '')) - 1;
+      
+      return {
+        ...match,
+        _id: `match_${Date.now()}_${index}`,
+        homeTeam: actualTeams[homeTeamIndex] || match.homeTeam,
+        awayTeam: actualTeams[awayTeamIndex] || match.awayTeam
+      };
+    });
   }
   
   _handleViewLeagueTable() {
@@ -1649,8 +1659,8 @@ class LeagueAdminElement extends HTMLElement {
         <p>"${leagueName}" has been created successfully.</p>
         <div style="margin-top: 1rem;">
           <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer;">
-            <input type="checkbox" id="goToScheduler" checked style="margin: 0;">
-            <span>Go to match scheduler</span>
+            <input type="checkbox" id="setupTeams" checked style="margin: 0;">
+            <span>Setup Teams</span>
           </label>
         </div>
       `,
@@ -1659,20 +1669,20 @@ class LeagueAdminElement extends HTMLElement {
       confirmButtonText: 'OK',
       cancelButtonText: 'Close',
       preConfirm: () => {
-        return document.getElementById('goToScheduler').checked;
+        return document.getElementById('setupTeams').checked;
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        const shouldGoToScheduler = result.value;
+        const shouldSetupTeams = result.value;
         
-        if (shouldGoToScheduler) {
+        if (shouldSetupTeams) {
           // Select the newly created league first
           this._selectedLeagueId = newLeague._id || newLeague.name;
           this._updateButtonStates();
           this.render(); // Re-render to show the selected league
           
-          // Open the reset modal to schedule matches
-          this._openResetModal(newLeague);
+          // Open the teams modal instead of the reset modal with new league workflow flag
+          this.openTeamModal(null, 'manage', { fromNewLeagueWorkflow: true });
         }
       }
     });
@@ -1849,13 +1859,14 @@ class LeagueAdminElement extends HTMLElement {
     this.render();
   }
 
-  openTeamModal(teamData, mode = 'new') {
+  openTeamModal(teamData, mode = 'new', options = {}) {
     console.group('[LeagueAdmin] openTeamModal');
     try {
       // Update component state
       this.teamModalOpen = true;
       this.teamModalData = teamData;
       this.teamModalMode = mode;
+      this.teamModalOptions = options; // Store additional options
       
       this.render();
       
@@ -1877,6 +1888,7 @@ class LeagueAdminElement extends HTMLElement {
     this.teamModalOpen = false;
     this.teamModalData = null;
     this.teamModalMode = 'new';
+    this.teamModalOptions = {};
     this.render();
   }
 

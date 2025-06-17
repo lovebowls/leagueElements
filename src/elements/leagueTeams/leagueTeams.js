@@ -36,10 +36,13 @@ class LeagueTeams extends HTMLElement {
     this._editingTeam = null;
     
     // Action configuration
-    this._action = null; // {createTeam: boolean, editTeam: guid}
+    this._action = null; // {createTeam: boolean, editTeam: guid, fromNewLeagueWorkflow: boolean}
     
     // Error handling
     this._error = '';
+    
+    // Workflow state
+    this._showFixtureScheduler = true; // Default to checked
     
     // Event bindings
     this._boundOnKeydown = this._onKeydown.bind(this);
@@ -93,6 +96,13 @@ class LeagueTeams extends HTMLElement {
     this.render();
   }
   get existingTeams() { return this._existingTeams; }
+
+  /**
+   * @returns {boolean} Whether we're in the new league workflow
+   */
+  get _isNewLeagueWorkflow() {
+    return this._action && this._action.fromNewLeagueWorkflow === true;
+  }
 
   /**
    * @param {boolean} value
@@ -266,8 +276,18 @@ class LeagueTeams extends HTMLElement {
           </div>
           
           <div class="teams-manager-footer">
-            <button type="button" class="button-shared" id="cancel-teams-manager">Cancel</button>
-            <button type="button" class="button-shared button-primary" id="save-teams-manager">OK</button>
+            ${this._isNewLeagueWorkflow ? `
+              <div class="footer-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="show-fixture-scheduler" ${this._showFixtureScheduler ? 'checked' : ''}>
+                  Show Fixture Scheduler
+                </label>
+              </div>
+            ` : ''}
+            <div class="footer-buttons">
+              <button type="button" class="button-shared" id="cancel-teams-manager">Cancel</button>
+              <button type="button" class="button-shared button-primary" id="save-teams-manager">OK</button>
+            </div>
           </div>
         </div>
       </div>
@@ -386,6 +406,16 @@ class LeagueTeams extends HTMLElement {
     if (closeBtn) closeBtn.addEventListener('click', () => this._onCancel());
     if (cancelBtn) cancelBtn.addEventListener('click', () => this._onCancel());
     if (saveBtn) saveBtn.addEventListener('click', () => this._onSave());
+
+    // Fixture scheduler checkbox (only in new league workflow)
+    if (this._isNewLeagueWorkflow) {
+      const fixtureSchedulerCheckbox = this.shadow.querySelector('#show-fixture-scheduler');
+      if (fixtureSchedulerCheckbox) {
+        fixtureSchedulerCheckbox.addEventListener('change', (e) => {
+          this._showFixtureScheduler = e.target.checked;
+        });
+      }
+    }
 
     // Action buttons
     const addTeamBtn = this.shadow.querySelector('#add-team-btn');
@@ -699,9 +729,16 @@ class LeagueTeams extends HTMLElement {
   }
 
   _onSave() {
-    this.dispatchEvent(new LeagueTeamsEvent('teams-save', {
+    const eventDetail = {
       league: this._workingLeague
-    }));
+    };
+
+    // Include fixture scheduler flag if we're in the new league workflow
+    if (this._isNewLeagueWorkflow) {
+      eventDetail.showFixtureScheduler = this._showFixtureScheduler;
+    }
+
+    this.dispatchEvent(new LeagueTeamsEvent('teams-save', eventDetail));
   }
 
   _onKeydown(e) {

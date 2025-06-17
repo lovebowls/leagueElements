@@ -2,6 +2,7 @@
 // Modal dialog for resetting league matches with scheduling parameters
 
 import { BASE_STYLES } from './leagueResetModal-styles.js';
+import { League } from '@lovebowls/leaguejs';
 
 class LeagueResetModalEvent extends CustomEvent {
   constructor(type, detail) {
@@ -153,23 +154,71 @@ class LeagueResetModal extends HTMLElement {
       return;
     }
 
-    // Calculate estimated match count and date range
-    const estimatedMatches = this._calculateEstimatedMatches();
-    const dateRange = this._calculateDateRange();
+    try {
+      // Create a League instance to generate fixtures
+      const leagueData = {
+        _id: 'temp_league_for_fixtures',
+        name: this._leagueName,
+        settings: this._leagueSettings,
+        teams: this._generateTempTeams(), // Create temp teams for fixture generation
+        matches: []
+      };
+      
+      const tempLeague = new League(leagueData);
+      
+      // Generate fixtures using the enhanced initialiseFixtures method
+      const schedulingParams = this._getSchedulingParams();
+      const startDate = this._formData.startDate ? new Date(this._formData.startDate) : null;
+      
+      const success = tempLeague.initialiseFixtures(startDate, schedulingParams);
+      
+      if (!success) {
+        throw new Error('Failed to generate fixtures. Please check your team count and scheduling parameters.');
+      }
+      
+      // Get the generated matches
+      const generatedMatches = tempLeague.matches || [];
+      
+      // Calculate actual match count and date range from generated matches
+      const actualMatches = generatedMatches.length;
+      const actualDateRange = this._calculateActualDateRange(generatedMatches);
 
-    // Dispatch save event with scheduling parameters
-    this.dispatchEvent(new LeagueResetModalEvent('reset-save', {
-      schedulingParams: {
-        startDate: this._formData.startDate,
-        maxMatchesPerDay: this._formData.maxMatchesPerDay ? parseInt(this._formData.maxMatchesPerDay, 10) : null,
-        schedulingPattern: this._formData.schedulingPattern,
-        intervalNumber: this._formData.intervalNumber,
-        intervalUnit: this._formData.intervalUnit,
-        selectedDays: this._formData.selectedDays
-      },
-      estimatedMatches,
-      dateRange
-    }));
+      // Dispatch save event with the generated matches
+      this.dispatchEvent(new LeagueResetModalEvent('reset-save', {
+        matches: generatedMatches,
+        estimatedMatches: actualMatches,
+        dateRange: actualDateRange
+      }));
+      
+    } catch (error) {
+      console.error('Error generating fixtures in modal:', error);
+      this.showError(`Failed to generate fixtures: ${error.message}`);
+    }
+  }
+
+  _generateTempTeams() {
+    // Generate temporary team objects for fixture generation
+    const teams = [];
+    for (let i = 1; i <= this._teamCount; i++) {
+      teams.push({
+        _id: `temp_team_${i}`,
+        name: `Team ${i}`
+      });
+    }
+    return teams;
+  }
+
+  _calculateActualDateRange(matches) {
+    if (!matches || matches.length === 0) return null;
+    
+    const datedMatches = matches.filter(m => m.date);
+    if (datedMatches.length === 0) return null;
+    
+    const dates = datedMatches.map(m => new Date(m.date)).sort((a, b) => a - b);
+    return {
+      start: dates[0].toLocaleDateString(),
+      end: dates[dates.length - 1].toLocaleDateString()
+    };
   }
 
   _onCancel() {
@@ -211,9 +260,19 @@ class LeagueResetModal extends HTMLElement {
 
   _calculateEstimatedMatches() {
     if (this._teamCount < 2) return 0;
-    // Each team plays each other team (home and away) * timesTeamsPlayOther
+    // Calculate total unique pairings: n * (n-1) / 2, then multiply by timesTeamsPlayOther
     const timesTeamsPlayOther = this._leagueSettings.timesTeamsPlayOther || 2;
-    return this._teamCount * (this._teamCount - 1) * timesTeamsPlayOther;
+    return (this._teamCount * (this._teamCount - 1) / 2) * timesTeamsPlayOther;
+  }
+
+  _getSchedulingParams() {
+    return {
+      schedulingPattern: this._formData.schedulingPattern,
+      intervalNumber: this._formData.intervalNumber,
+      intervalUnit: this._formData.intervalUnit,
+      selectedDays: this._formData.selectedDays,
+      maxMatchesPerDay: this._formData.maxMatchesPerDay ? parseInt(this._formData.maxMatchesPerDay, 10) : null
+    };
   }
 
   _calculateDateRange() {
