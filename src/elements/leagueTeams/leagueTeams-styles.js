@@ -28,6 +28,219 @@ export const BASE_STYLES = `
     display: flex; 
   }
 
+  /* Teams Manager Layout */
+  .teams-manager-content {
+    background: var(--le-background-color-panel, #fff);
+    border-radius: var(--le-border-radius-large, 8px);
+    max-width: 900px;
+    width: 90%;
+    max-height: 80vh;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: auto; /* Center the modal */
+  }
+
+  .teams-manager-content.mobile-view {
+    width: 95%;
+    max-width: 95%;
+    max-height: 90vh;
+  }
+
+  .teams-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--le-padding-l, 1.5rem);
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+    background: var(--le-background-color-header, #f8f9fa);
+  }
+
+  .teams-manager-header h3 {
+    margin: 0;
+    color: var(--le-text-color-primary, #333);
+    font-size: var(--le-font-size-large, 1.25rem);
+  }
+
+  .teams-manager-body {
+    padding: var(--le-padding-l, 1.5rem);
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--le-padding-l, 1.5rem);
+  }
+
+  .teams-manager-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--le-padding-m, 1rem);
+    padding: var(--le-padding-l, 1.5rem);
+    border-top: 1px solid var(--le-border-color-light, #eee);
+    background: var(--le-background-color-footer, #f8f9fa);
+  }
+
+  /* Action Buttons */
+  .teams-action-buttons {
+    display: flex;
+    gap: var(--le-padding-m, 1rem);
+    flex-wrap: wrap;
+  }
+
+  .teams-action-buttons .button-shared {
+    min-width: 100px;
+  }
+
+  .teams-action-buttons.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* Teams List Panel */
+  .teams-list-panel {
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    background: var(--le-background-color-panel, #fff);
+  }
+
+  .teams-list-panel h4 {
+    margin: 0;
+    padding: var(--le-padding-m, 1rem);
+    background: var(--le-background-color-header, #f8f9fa);
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+    font-size: var(--le-font-size-base, 1rem);
+    color: var(--le-text-color-primary, #333);
+  }
+
+  .teams-list-panel.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .teams-list-panel.disabled .team-list-item {
+    cursor: not-allowed;
+  }
+
+  .teams-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .teams-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .team-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--le-padding-m, 1rem);
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .team-list-item:hover {
+    background-color: var(--le-background-color-hover, #f5f5f5);
+  }
+
+  .team-list-item.selected {
+    background-color: var(--le-background-color-selected, #e3f2fd);
+    border-left: 3px solid var(--le-border-color-primary, #2196f3);
+  }
+
+  .team-list-item:last-child {
+    border-bottom: none;
+  }
+
+  .team-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .team-name {
+    font-weight: 500;
+    color: var(--le-text-color-primary, #333);
+  }
+
+  .team-source {
+    color: var(--le-text-color-secondary, #666);
+    font-style: italic;
+    margin-left: var(--le-padding-s, 0.5rem);
+  }
+
+  .team-actions {
+    display: flex;
+    gap: var(--le-padding-s, 0.5rem);
+  }
+
+  .team-actions .button-shared {
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+  }
+
+  .team-actions .button-shared:hover {
+    opacity: 1;
+  }
+
+  .no-teams-message {
+    padding: var(--le-padding-l, 1.5rem);
+    text-align: center;
+    color: var(--le-text-color-secondary, #666);
+    font-style: italic;
+  }
+
+  /* Team Editor Panel */
+  .team-editor-panel {
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    background: var(--le-background-color-panel, #fff);
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .team-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--le-padding-m, 1rem);
+    background: var(--le-background-color-header, #f8f9fa);
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+  }
+
+  .team-editor-header h4 {
+    margin: 0;
+    font-size: var(--le-font-size-base, 1rem);
+    color: var(--le-text-color-primary, #333);
+  }
+
+  .team-editor-body {
+    padding: var(--le-padding-l, 1.5rem);
+  }
+
+  .team-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--le-padding-m, 1rem);
+    padding: var(--le-padding-m, 1rem);
+    border-top: 1px solid var(--le-border-color-light, #eee);
+    background: var(--le-background-color-footer, #f8f9fa);
+  }
+
   .modal-close-button {
     background: none;
     border: none;
@@ -49,7 +262,7 @@ export const BASE_STYLES = `
     color: var(--le-text-color-primary, #333);
   }
 
-  /* Team-specific form styles */
+  /* Form styles */
   .form-group-shared {
     margin-bottom: var(--le-padding-m, 1rem);
   }
@@ -97,26 +310,108 @@ export const BASE_STYLES = `
     margin-bottom: var(--le-padding-s, 0.5rem);
   }
 
+  /* Update button styling */
+  .button-update {
+    background-color: var(--le-background-color-accent, #4caf50) !important;
+    color: white !important;
+    border-color: var(--le-border-color-accent, #45a049) !important;
+  }
+
+  .button-update:hover {
+    background-color: var(--le-background-color-accent-hover, #45a049) !important;
+    border-color: var(--le-border-color-accent-hover, #3d8b40) !important;
+  }
+
   /* Mobile-specific adjustments */
   @media (max-width: 480px) {
-    .modal-shared-content {
+    .teams-manager-content {
       width: 95% !important;
       max-width: 95% !important;
       margin: 5% auto;
       font-size: 16px !important;
+      max-height: 95vh;
     }
     
-    .modal-shared-header {
+    .teams-manager-header {
       padding: 15px;
+    }
+    
+    .teams-manager-header h3 {
       font-size: 18px !important;
     }
     
-    .modal-shared-body {
+    .teams-manager-body {
       padding: 15px;
+      gap: 15px;
     }
     
-    .modal-shared-footer {
+    .teams-manager-footer {
       padding: 15px;
+      flex-direction: column-reverse;
+    }
+
+    .teams-manager-footer .button-shared {
+      width: 100%;
+      margin: 0;
+    }
+    
+    .teams-action-buttons {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .teams-action-buttons .button-shared {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .teams-list-container {
+      max-height: 150px;
+    }
+
+    .team-list-item {
+      padding: 15px 10px;
+    }
+
+    .team-list-item.selected {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .team-info {
+      order: 1;
+    }
+
+    .team-actions {
+      order: 2;
+      justify-content: flex-end;
+    }
+
+    .team-actions .button-shared {
+      width: auto;
+      min-width: 80px;
+    }
+
+    .team-editor-header {
+      padding: 15px 10px;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .team-editor-body {
+      padding: 15px 10px;
+    }
+
+    .team-editor-footer {
+      padding: 15px 10px;
+      flex-direction: column-reverse;
+      gap: 10px;
+    }
+
+    .team-editor-footer .button-shared {
+      width: 100%;
     }
     
     .form-label-shared {
@@ -134,6 +429,12 @@ export const BASE_STYLES = `
       font-size: 16px !important;
       padding: 10px 15px !important;
       min-height: 44px;
+    }
+
+    .button-sm {
+      font-size: 14px !important;
+      padding: 8px 12px !important;
+      min-height: 36px;
     }
   }
 `; 

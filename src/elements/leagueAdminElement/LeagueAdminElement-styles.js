@@ -729,7 +729,7 @@ export const BASE_STYLES = `
           <div id="teams-panel" class="panel" style="display:none;">
             <div class="panel-header panel-header-shared"> 
               <span>Teams</span>
-              <button id="add-team-button" class="button-shared">Add Team</button>
+                              <button id="add-team-button" class="button-shared">Manage Teams</button>
           </div>
             <div id="teams-list" class="panel-content panel-content-shared"></div> 
               </div>

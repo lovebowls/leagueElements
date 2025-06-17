@@ -464,73 +464,35 @@ class LeagueAdminElement extends HTMLElement {
       teamModal = document.createElement('league-teams');
       teamModal.open = true;
       teamModal.isMobile = this._isMobile;
-      teamModal.mode = this.teamModalMode;
-      teamModal.team = this.teamModalData;
+      teamModal.data = this._getSelectedLeague();
       teamModal.existingTeams = this._lovebowlsTeams;
       
-      const selectedLeague = this._getSelectedLeague();
-      teamModal.leagueTeams = selectedLeague?.teams || [];
+      // Set action based on mode
+      const action = {};
+      if (this.teamModalMode === 'edit' && this.teamModalData) {
+        action.editTeam = this.teamModalData._id;
+      }
+      // For 'manage' mode, don't set any action to show the teams manager without auto-opening editor
+      if (Object.keys(action).length > 0) {
+        teamModal.action = action;
+      }
       
-      teamModal.addEventListener('team-save', (e) => {
-        const { team, mode, originalTeamId } = e.detail;
+      teamModal.addEventListener('teams-save', (e) => {
+        const { league } = e.detail;
         
-        const selectedLeague = this._getSelectedLeague();
-        if (!selectedLeague) {
-          console.error('[Admin Team Save] No selected league found.');
-          return;
-        }
-        
-        const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
-        
-        if (mode === 'edit' && originalTeamId) {
-          const teamIndex = updatedLeague.teams.findIndex(t => t._id === originalTeamId);
-          if (teamIndex !== -1) {
-            // Update existing team
-            updatedLeague.teams[teamIndex] = team;
-            
-            // If team ID is changing, update all match references
-            if (originalTeamId !== team._id && Array.isArray(updatedLeague.matches)) {
-              const updatedMatches = updatedLeague.matches.map(match => {
-                if (match.homeTeam?._id === originalTeamId) {
-                  return {
-                    ...match,
-                    homeTeam: { ...match.homeTeam, _id: team._id, name: team.name }
-                  };
-                }
-                if (match.awayTeam?._id === originalTeamId) {
-                  return {
-                    ...match,
-                    awayTeam: { ...match.awayTeam, _id: team._id, name: team.name }
-                  };
-                }
-                return match;
-              });
-              updatedLeague.matches = updatedMatches;
-            }
-          } else {
-            updatedLeague.teams.push(team);
-          }
-        } else {
-          // Add new team
-          updatedLeague.teams.push(team);
-        }
-
         // Update the internal _leagues array
-        const leagueIndex = this._leagues.findIndex(l => l._id === selectedLeague._id);
+        const leagueIndex = this._leagues.findIndex(l => l._id === league._id);
         if (leagueIndex > -1) {
-          this._leagues[leagueIndex] = updatedLeague;
+          this._leagues[leagueIndex] = league;
         } else {
-          console.error('[Admin Team Save] Selected league index not found in _leagues array.');
+          console.error('[Admin Teams Save] Selected league index not found in _leagues array.');
         }
 
-        // Set the newly created/edited team as the selected team
-        this._selectedTeamId = team._id;
-
-        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: updatedLeague }));
+        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: league }));
         this.closeTeamModal();
       });
       
-      teamModal.addEventListener('team-cancel', () => {
+      teamModal.addEventListener('teams-cancel', () => {
         this.closeTeamModal();
       });
       
@@ -1039,7 +1001,7 @@ class LeagueAdminElement extends HTMLElement {
   // Team Management Methods
   _handleAddTeam() {
     if (!this._selectedLeagueId) return;
-    this.openTeamModal(null, 'new');
+    this.openTeamModal(null, 'manage');
   }
   
   _handleEditTeam(team) {

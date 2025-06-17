@@ -1,7 +1,9 @@
 // leagueTeams.js
-// Modal dialog for creating/updating teams
+// Comprehensive League Teams Manager
 
 import { BASE_STYLES } from './leagueTeams-styles.js';
+import * as Swal from 'sweetalert2';
+import { sweetAlertGlobalStyles, sweetAlertMobileOverrides } from '../shared-styles.js';
 
 class LeagueTeamsEvent extends CustomEvent {
   constructor(type, detail) {
@@ -10,33 +12,73 @@ class LeagueTeamsEvent extends CustomEvent {
 }
 
 class LeagueTeams extends HTMLElement {
+  static _globalStylesInjected = false;
+  
   static get observedAttributes() {
-    return ['open', 'is-mobile', 'mode', 'existing-teams', 'league-teams'];
+    return ['open', 'is-mobile', 'data', 'action', 'existing-teams'];
   }
 
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
-    this._team = null;
+    
+    // League data
+    this._league = null; // Full league object
+    this._workingLeague = null; // Working copy for modifications
     this._existingTeams = []; // Available teams from lovebowls
-    this._leagueTeams = []; // Current teams in the league
+    
+    // UI state
     this._open = false;
     this._isMobile = false;
-    this._mode = 'new'; // 'new' or 'edit'
+    this._selectedTeamId = null;
+    this._showEditor = false;
+    this._editorMode = 'new'; // 'new' or 'edit'
+    this._editingTeam = null;
+    
+    // Action configuration
+    this._action = null; // {createTeam: boolean, editTeam: guid}
+    
+    // Error handling
     this._error = '';
+    
+    // Event bindings
     this._boundOnKeydown = this._onKeydown.bind(this);
-    this._firstFocusableElement = null;
-    this._lastFocusableElement = null;
   }
 
+  static get observedAttributes() {
+    return ['open', 'is-mobile', 'data', 'action', 'existing-teams'];
+  }
+
+  // Properties
   /**
-   * @param {Object} value
+   * @param {Object} value - Full league object
    */
-  set team(value) {
-    this._team = value;
+  set data(value) {
+    try {
+      this._league = typeof value === 'string' ? JSON.parse(value) : value;
+      this._workingLeague = this._league ? JSON.parse(JSON.stringify(this._league)) : null;
+    } catch (error) {
+      console.error('Failed to parse league data:', error);
+      this._league = null;
+      this._workingLeague = null;
+    }
     this.render();
   }
-  get team() { return this._team; }
+  get data() { return this._league; }
+
+  /**
+   * @param {Object} value - Action configuration {createTeam: boolean, editTeam: guid}
+   */
+  set action(value) {
+    try {
+      this._action = typeof value === 'string' ? JSON.parse(value) : value;
+      this._processAction();
+    } catch (error) {
+      console.error('Failed to parse action:', error);
+      this._action = null;
+    }
+  }
+  get action() { return this._action; }
 
   /**
    * @param {Array} value - Array of available teams from lovebowls
@@ -53,20 +95,6 @@ class LeagueTeams extends HTMLElement {
   get existingTeams() { return this._existingTeams; }
 
   /**
-   * @param {Array} value - Array of current teams in the league
-   */
-  set leagueTeams(value) {
-    try {
-      this._leagueTeams = typeof value === 'string' ? JSON.parse(value) : (Array.isArray(value) ? value : []);
-    } catch (error) {
-      console.error('Failed to parse league teams:', error);
-      this._leagueTeams = [];
-    }
-    this.render();
-  }
-  get leagueTeams() { return this._leagueTeams; }
-
-  /**
    * @param {boolean} value
    */
   set open(value) {
@@ -79,7 +107,6 @@ class LeagueTeams extends HTMLElement {
 
     if (this._open) {
       this.shadowRoot.addEventListener('keydown', this._boundOnKeydown);
-      setTimeout(() => this._focusFirstElement(), 0);
     } else {
       this.shadowRoot.removeEventListener('keydown', this._boundOnKeydown);
     }
@@ -98,15 +125,6 @@ class LeagueTeams extends HTMLElement {
   }
   get isMobile() { return this._isMobile; }
 
-  /**
-   * @param {string} value
-   */
-  set mode(value) {
-    this._mode = value || 'new';
-    this.render();
-  }
-  get mode() { return this._mode; }
-
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) return;
 
@@ -117,25 +135,89 @@ class LeagueTeams extends HTMLElement {
       case 'is-mobile':
         this.isMobile = newValue === 'true';
         break;
-      case 'mode':
-        this.mode = newValue;
+      case 'data':
+        this.data = newValue;
+        break;
+      case 'action':
+        this.action = newValue;
         break;
       case 'existing-teams':
         this.existingTeams = newValue;
-        break;
-      case 'league-teams':
-        this.leagueTeams = newValue;
         break;
     }
   }
 
   connectedCallback() {
+    this._injectGlobalSwalStyles();
+    this.render();
+  }
+
+  _injectGlobalSwalStyles() {
+    if (LeagueTeams._globalStylesInjected) return;
+
+    const styleId = 'global-swal-mobile-styles-teams';
+    let existingStyleTag = document.getElementById(styleId);
+
+    if (existingStyleTag) {
+      LeagueTeams._globalStylesInjected = true;
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `${sweetAlertGlobalStyles}\n\n${sweetAlertMobileOverrides}`;
+
+    try {
+      document.head.appendChild(style);
+    } catch (err) {
+      console.error('[LeagueTeams] Failed to append style tag to head:', err);
+    }
+    
+    LeagueTeams._globalStylesInjected = true;
+  }
+
+  _processAction() {
+    if (!this._action) return;
+
+    if (this._action.createTeam) {
+      this._showCreateTeam();
+    } else if (this._action.editTeam) {
+      this._showEditTeam(this._action.editTeam);
+    }
+  }
+
+  _showCreateTeam() {
+    this._selectedTeamId = null;
+    this._showEditor = true;
+    this._editorMode = 'new';
+    this._editingTeam = null;
+    this.render();
+  }
+
+  _showEditTeam(teamId) {
+    if (!this._workingLeague?.teams) return;
+    
+    const team = this._workingLeague.teams.find(t => t._id === teamId);
+    if (!team) return;
+    
+    this._selectedTeamId = teamId;
+    this._showEditor = true;
+    this._editorMode = 'edit';
+    this._editingTeam = { ...team };
+    this.render();
+  }
+
+  _hideEditor() {
+    this._showEditor = false;
+    this._editorMode = 'new';
+    this._editingTeam = null;
+    this.clearError();
     this.render();
   }
 
   showError(msg) {
     this._error = msg || '';
-    const errorElement = this.shadow.querySelector('#team-modal-error');
+    const errorElement = this.shadow.querySelector('#teams-error');
     if (errorElement) {
       errorElement.textContent = this._error;
       errorElement.style.display = this._error ? 'block' : 'none';
@@ -146,97 +228,93 @@ class LeagueTeams extends HTMLElement {
     this.showError('');
   }
 
-  _onOk() {
-    this.clearError();
-
-    const modalBody = this.shadow.querySelector('#team-modal-body');
-    const useExistingTeamCheckbox = modalBody.querySelector('#useExistingTeamCheckbox');
-    const existingTeamSelect = modalBody.querySelector('#existingTeamSelect');
-    const teamNameInput = modalBody.querySelector('#teamName');
-
-    let teamId = '';
-    let teamName = '';
-
-    if (useExistingTeamCheckbox && useExistingTeamCheckbox.checked && existingTeamSelect) {
-      if (existingTeamSelect.value) {
-        // For lovebowls teams, get both _id and name
-        teamId = existingTeamSelect.value;
-        // Find the name from the selected lovebowls team
-        const selectedTeam = this._existingTeams.find(t => t._id === teamId);
-        teamName = selectedTeam ? selectedTeam.name : teamId;
-      } else {
-        this.showError('Please select a team from the dropdown.');
-        return;
-      }
-    } else if (teamNameInput && teamNameInput.value.trim()) {
-      // For simple teams, use the input as name and _id
-      teamName = teamNameInput.value.trim();
-      teamId = teamName;
-    } else {
-      this.showError('Team Name is required, either by typing a new name or selecting an existing team.');
-      return;
-    }
-
-    if (!teamId || !teamName) {
-      this.showError('Team name is required.');
-      return;
-    }
-
-    // Check for duplicate team IDs in the current league
-    const isDuplicate = this._leagueTeams.some(team => team._id === teamId && teamId !== (this._team?._id));
-    if (isDuplicate) {
-      this.showError(`A team with identifier "${teamId}" already exists in this league.`);
-      return;
-    }
-
-    const teamData = {
-      _id: teamId,
-      name: teamName
-    };
-
-    // Dispatch save event
-    this.dispatchEvent(new LeagueTeamsEvent('team-save', {
-      team: teamData,
-      mode: this._mode,
-      originalTeamId: this._team?._id
-    }));
-  }
-
-  _onCancel() {
-    this.dispatchEvent(new LeagueTeamsEvent('team-cancel', {}));
-  }
-
   render() {
     const mobileClass = this._isMobile ? 'mobile-view' : '';
-    const title = this._mode === 'edit' ? 'Edit Team' : 'Add Team';
+    const leagueName = this._workingLeague?.name || 'League';
+    const teams = this._workingLeague?.teams || [];
+    
+    this.shadow.innerHTML = `
+      <style>
+        ${BASE_STYLES}
+      </style>
+      <div class="modal-shared-overlay" style="display: ${this._open ? 'flex' : 'none'};">
+        <div class="teams-manager-content ${mobileClass}">
+          <div class="teams-manager-header">
+            <h3>Manage Teams - ${leagueName}</h3>
+            <button type="button" class="modal-close-button" id="close-teams-manager" aria-label="Close">&times;</button>
+          </div>
+          
+          <div class="teams-manager-body">
+            <!-- Error Display -->
+            <div id="teams-error" class="form-error-shared" style="display: none;"></div>
+            
+                                      <!-- Action Buttons -->
+             <div class="teams-action-buttons ${this._showEditor ? 'disabled' : ''}">
+               <button type="button" class="button-shared button-primary" id="add-team-btn" ${this._showEditor ? 'disabled' : ''}>Add Team</button>
+             </div>
+             
+             <!-- Teams List Panel -->
+             <div class="teams-list-panel ${this._showEditor ? 'disabled' : ''}">
+               <h4>Teams in League (${teams.length})</h4>
+               <div class="teams-list-container">
+                 ${this._renderTeamsList(teams)}
+               </div>
+             </div>
+            
+            <!-- Team Editor Panel -->
+            ${this._showEditor ? this._renderTeamEditor() : ''}
+          </div>
+          
+          <div class="teams-manager-footer">
+            <button type="button" class="button-shared" id="cancel-teams-manager">Cancel</button>
+            <button type="button" class="button-shared button-primary" id="save-teams-manager">OK</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this._attachEventListeners();
+  }
+
+  _renderTeamsList(teams) {
+    if (teams.length === 0) {
+      return '<div class="no-teams-message">No teams in this league yet.</div>';
+    }
+
+    return `
+      <ul class="teams-list">
+        ${teams.map(team => `
+          <li class="team-list-item ${this._selectedTeamId === team._id ? 'selected' : ''}" data-team-id="${team._id}">
+            <div class="team-info">
+              <span class="team-name">${team.name}</span>
+              ${this._isLovebowlsTeam(team._id) ? '<small class="team-source">(LB)</small>' : ''}
+            </div>
+            ${this._selectedTeamId === team._id && !this._showEditor ? `
+              <div class="team-actions">
+                <button type="button" class="button-shared button-sm" data-action="edit" data-team-id="${team._id}">Edit</button>
+                <button type="button" class="button-shared button-sm button-danger" data-action="remove" data-team-id="${team._id}">Remove</button>
+              </div>
+            ` : ''}
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+
+  _renderTeamEditor() {
+    const title = this._editorMode === 'edit' ? 'Edit Team' : 'Add Team';
+    const currentTeamData = this._editingTeam || { _id: '', name: '' };
     
     // Determine if it's a Lovebowls team
-    let isLovebowlsTeam = false;
-    let currentTeamData = { _id: '', name: '' };
-    
-    if (this._team) {
-      currentTeamData = {
-        _id: this._team._id || '',
-        name: this._team.name || ''
-      };
-      isLovebowlsTeam = this._existingTeams.some(lbTeam => lbTeam._id === currentTeamData._id);
-    }
+    const isLovebowlsTeam = this._isLovebowlsTeam(currentTeamData._id);
     
     // Set the checkbox label based on mode
-    const checkboxLabel = (this._mode === 'edit' && !isLovebowlsTeam) 
+    const checkboxLabel = (this._editorMode === 'edit' && !isLovebowlsTeam) 
       ? "Replace with team from lovebowls.co.uk" 
       : "Team from lovebowls";
 
     // Filter out lovebowls teams that are already part of the league
-    let filteredTeams = this._existingTeams;
-    if (this._leagueTeams && Array.isArray(this._leagueTeams)) {
-      // If in edit mode, don't filter out the team we're currently editing
-      const teamIdsToExclude = this._mode === 'edit' 
-        ? this._leagueTeams.filter(t => t._id !== currentTeamData._id).map(t => t._id)
-        : this._leagueTeams.map(t => t._id);
-      
-      filteredTeams = this._existingTeams.filter(team => !teamIdsToExclude.includes(team._id));
-    }
+    const filteredTeams = this._getFilteredLovebowlsTeams();
 
     let optionsHtml = '';
     if (filteredTeams && filteredTeams.length > 0) {
@@ -244,95 +322,117 @@ class LeagueTeams extends HTMLElement {
         `<option value="${team._id}" ${currentTeamData._id === team._id ? 'selected' : ''}>${team.name}</option>`
       ).join('');
     }
-    
-    this.shadow.innerHTML = `
-      <style>
-        ${BASE_STYLES}
-      </style>
-      <div class="modal-shared-overlay" style="display: ${this._open ? 'flex' : 'none'};">
-        <div class="modal-shared-content ${mobileClass}">
-          <div class="modal-shared-header">
-            <h3>${title}</h3>
-            <button type="button" class="modal-close-button" id="close-team-modal" aria-label="Close">&times;</button>
-          </div>
-          <div class="modal-shared-body" id="team-modal-body">
-            <div id="team-modal-error" class="form-error-shared" style="display: none;"></div>
-            
-            <div class="form-group-shared">
-              <label for="useExistingTeamCheckbox" class="form-label-shared" id="useExistingTeamLabel">
-                <input type="checkbox" id="useExistingTeamCheckbox" ${isLovebowlsTeam ? 'checked' : ''}>
-                ${checkboxLabel}
-              </label>
-            </div>
 
-            <div id="existingTeamSelectGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'block' : 'none'};">
-              <label for="existingTeamSelect" class="form-label-shared">Select Team</label>
-              <select id="existingTeamSelect" class="form-input-shared">
-                <option value="">-- Select a Team --</option>
-                ${optionsHtml}
-              </select>
-              ${filteredTeams.length === 0 ? '<div style="color: var(--le-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
-            </div>
+    return `
+      <div class="team-editor-panel">
+        <div class="team-editor-header">
+          <h4>${title}</h4>
+        </div>
+        
+        <div class="team-editor-body">
+          <div id="team-editor-error" class="form-error-shared" style="display: none;"></div>
+          
+          <div class="form-group-shared">
+            <label for="useExistingTeamCheckbox" class="form-label-shared" id="useExistingTeamLabel">
+              <input type="checkbox" id="useExistingTeamCheckbox" ${isLovebowlsTeam ? 'checked' : ''}>
+              ${checkboxLabel}
+            </label>
+          </div>
 
-            <div id="newTeamNameGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'none' : 'block'};">
-              <label for="teamName" class="form-label-shared">Team Name</label>
-              <input type="text" id="teamName" class="form-input-shared" value="${isLovebowlsTeam ? '' : currentTeamData.name}" ${isLovebowlsTeam ? 'disabled' : ''}>
-            </div>
+          <div id="existingTeamSelectGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'block' : 'none'};">
+            <label for="existingTeamSelect" class="form-label-shared">Select Team</label>
+            <select id="existingTeamSelect" class="form-input-shared">
+              <option value="">-- Select a Team --</option>
+              ${optionsHtml}
+            </select>
+            ${filteredTeams.length === 0 ? '<div style="color: var(--le-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
           </div>
-          <div class="modal-shared-footer">
-            <button type="button" class="button-shared" id="cancel-team-button">Cancel</button>
-            <button type="button" class="button-shared button-primary" id="save-team-button">Save</button>
+
+          <div id="newTeamNameGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'none' : 'block'};">
+            <label for="teamName" class="form-label-shared">Team Name</label>
+            <input type="text" id="teamName" class="form-input-shared" value="${isLovebowlsTeam ? '' : currentTeamData.name}" ${isLovebowlsTeam ? 'disabled' : ''}>
           </div>
+        </div>
+        
+        <div class="team-editor-footer">
+          <button type="button" class="button-shared" id="cancel-team-editor">Cancel</button>
+          <button type="button" class="button-shared button-update" id="update-team">Update</button>
         </div>
       </div>
     `;
+  }
 
-    this._attachEventListeners();
-    this._updateFormState();
+  _isLovebowlsTeam(teamId) {
+    return this._existingTeams.some(lbTeam => lbTeam._id === teamId);
+  }
+
+  _getFilteredLovebowlsTeams() {
+    if (!this._workingLeague?.teams) return this._existingTeams;
+    
+    // If in edit mode, don't filter out the team we're currently editing
+    const teamIdsToExclude = this._editorMode === 'edit' 
+      ? this._workingLeague.teams.filter(t => t._id !== this._editingTeam?._id).map(t => t._id)
+      : this._workingLeague.teams.map(t => t._id);
+    
+    return this._existingTeams.filter(team => !teamIdsToExclude.includes(team._id));
   }
 
   _attachEventListeners() {
-    const closeBtn = this.shadow.querySelector('#close-team-modal');
-    const cancelBtn = this.shadow.querySelector('#cancel-team-button');
-    const saveBtn = this.shadow.querySelector('#save-team-button');
+    // Main buttons
+    const closeBtn = this.shadow.querySelector('#close-teams-manager');
+    const cancelBtn = this.shadow.querySelector('#cancel-teams-manager');
+    const saveBtn = this.shadow.querySelector('#save-teams-manager');
 
     if (closeBtn) closeBtn.addEventListener('click', () => this._onCancel());
     if (cancelBtn) cancelBtn.addEventListener('click', () => this._onCancel());
-    if (saveBtn) saveBtn.addEventListener('click', () => this._onOk());
+    if (saveBtn) saveBtn.addEventListener('click', () => this._onSave());
 
-    // Form field event listeners
-    const useExistingTeamCheckbox = this.shadow.querySelector('#useExistingTeamCheckbox');
-    const existingTeamSelectGroup = this.shadow.querySelector('#existingTeamSelectGroup');
-    const newTeamNameGroup = this.shadow.querySelector('#newTeamNameGroup');
-    const teamNameInput = this.shadow.querySelector('#teamName');
-    const existingTeamSelect = this.shadow.querySelector('#existingTeamSelect');
+    // Action buttons
+    const addTeamBtn = this.shadow.querySelector('#add-team-btn');
+    if (addTeamBtn && !this._showEditor) {
+      addTeamBtn.addEventListener('click', () => this._handleAddTeam());
+    }
 
-    if (useExistingTeamCheckbox && existingTeamSelectGroup && newTeamNameGroup && teamNameInput && existingTeamSelect) {
-      useExistingTeamCheckbox.addEventListener('change', (e) => {
-        const isChecked = e.target.checked;
-        const filteredTeams = this._getFilteredTeams();
-        
-        if (filteredTeams && filteredTeams.length > 0) {
-          existingTeamSelectGroup.style.display = isChecked ? 'block' : 'none';
-          newTeamNameGroup.style.display = isChecked ? 'none' : 'block';
-          teamNameInput.disabled = isChecked;
-          existingTeamSelect.disabled = !isChecked;
-          if (isChecked) {
-            teamNameInput.value = ''; // Clear manual input when switching
-          } else {
-            existingTeamSelect.value = ''; // Clear selection when switching
-          }
-        } else {
-          // If no available filtered teams, checkbox effectively does nothing to visibility of select
-          existingTeamSelectGroup.style.display = 'none';
-          newTeamNameGroup.style.display = 'block';
-          teamNameInput.disabled = false;
-          // Uncheck the box since there are no available teams
-          if (isChecked && filteredTeams.length === 0) {
-            useExistingTeamCheckbox.checked = false;
-          }
-        }
-      });
+    // Team list clicks
+    const teamItems = this.shadow.querySelectorAll('.team-list-item');
+    teamItems.forEach(item => {
+      if (!this._showEditor) {
+        item.addEventListener('click', (e) => {
+          // Don't handle clicks on action buttons
+          if (e.target.closest('.team-actions')) return;
+          
+          const teamId = e.currentTarget.dataset.teamId;
+          this._handleTeamSelect(teamId);
+        });
+      }
+    });
+
+    // Team action button clicks
+    const editButtons = this.shadow.querySelectorAll('.team-actions button[data-action="edit"]');
+    editButtons.forEach(button => {
+      if (!this._showEditor) {
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const teamId = e.target.dataset.teamId;
+          this._handleEditTeam(teamId);
+        });
+      }
+    });
+
+    const removeButtons = this.shadow.querySelectorAll('.team-actions button[data-action="remove"]');
+    removeButtons.forEach(button => {
+      if (!this._showEditor) {
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const teamId = e.target.dataset.teamId;
+          this._handleRemoveTeam(teamId);
+        });
+      }
+    });
+
+    // Editor panel event listeners
+    if (this._showEditor) {
+      this._attachEditorEventListeners();
     }
 
     // Click outside to close
@@ -346,36 +446,59 @@ class LeagueTeams extends HTMLElement {
     }
   }
 
-  _getFilteredTeams() {
-    // Filter out lovebowls teams that are already part of the league
-    let filteredTeams = this._existingTeams;
-    if (this._leagueTeams && Array.isArray(this._leagueTeams)) {
-      // If in edit mode, don't filter out the team we're currently editing
-      const teamIdsToExclude = this._mode === 'edit' 
-        ? this._leagueTeams.filter(t => t._id !== (this._team?._id)).map(t => t._id)
-        : this._leagueTeams.map(t => t._id);
-      
-      filteredTeams = this._existingTeams.filter(team => !teamIdsToExclude.includes(team._id));
-    }
-    return filteredTeams;
-  }
+  _attachEditorEventListeners() {
+    const cancelEditorBtn = this.shadow.querySelector('#cancel-team-editor');
+    const updateTeamBtn = this.shadow.querySelector('#update-team');
 
-  _updateFormState() {
+    if (cancelEditorBtn) cancelEditorBtn.addEventListener('click', () => this._hideEditor());
+    if (updateTeamBtn) updateTeamBtn.addEventListener('click', () => this._handleUpdateTeam());
+
+    // Form field event listeners
     const useExistingTeamCheckbox = this.shadow.querySelector('#useExistingTeamCheckbox');
-    const useExistingTeamLabel = this.shadow.querySelector('#useExistingTeamLabel');
     const existingTeamSelectGroup = this.shadow.querySelector('#existingTeamSelectGroup');
     const newTeamNameGroup = this.shadow.querySelector('#newTeamNameGroup');
     const teamNameInput = this.shadow.querySelector('#teamName');
+    const existingTeamSelect = this.shadow.querySelector('#existingTeamSelect');
 
-    if (!useExistingTeamCheckbox || !existingTeamSelectGroup || !newTeamNameGroup || !teamNameInput) {
-      return;
+    if (useExistingTeamCheckbox && existingTeamSelectGroup && newTeamNameGroup && teamNameInput && existingTeamSelect) {
+      useExistingTeamCheckbox.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        const filteredTeams = this._getFilteredLovebowlsTeams();
+        
+        if (filteredTeams && filteredTeams.length > 0) {
+          existingTeamSelectGroup.style.display = isChecked ? 'block' : 'none';
+          newTeamNameGroup.style.display = isChecked ? 'none' : 'block';
+          teamNameInput.disabled = isChecked;
+          existingTeamSelect.disabled = !isChecked;
+          if (isChecked) {
+            teamNameInput.value = '';
+          } else {
+            existingTeamSelect.value = '';
+          }
+        } else {
+          existingTeamSelectGroup.style.display = 'none';
+          newTeamNameGroup.style.display = 'block';
+          teamNameInput.disabled = false;
+          if (isChecked && filteredTeams.length === 0) {
+            useExistingTeamCheckbox.checked = false;
+          }
+        }
+      });
+
+      // Initial state setup
+      this._updateEditorFormState();
     }
+  }
 
-    const filteredTeams = this._getFilteredTeams();
+  _updateEditorFormState() {
+    const useExistingTeamCheckbox = this.shadow.querySelector('#useExistingTeamCheckbox');
+    const useExistingTeamLabel = this.shadow.querySelector('#useExistingTeamLabel');
 
-    // Initial state based on mode and available teams
+    if (!useExistingTeamCheckbox) return;
+
+    const filteredTeams = this._getFilteredLovebowlsTeams();
+
     if (!filteredTeams || filteredTeams.length === 0) {
-      // Disable checkbox if no Lovebowls teams are available
       useExistingTeamCheckbox.disabled = true;
       const tooltip = this._existingTeams.length === 0 ? "No lovebowls teams available" : "All lovebowls teams are already in this league";
       useExistingTeamCheckbox.title = tooltip;
@@ -385,12 +508,200 @@ class LeagueTeams extends HTMLElement {
         useExistingTeamLabel.style.cursor = 'not-allowed';
         useExistingTeamLabel.style.opacity = '0.6';
       }
-
-      useExistingTeamCheckbox.checked = false;
-      existingTeamSelectGroup.style.display = 'none';
-      newTeamNameGroup.style.display = 'block';
-      teamNameInput.disabled = false;
     }
+  }
+
+  _handleAddTeam() {
+    this._showCreateTeam();
+  }
+
+  _handleEditTeam(teamId) {
+    this._showEditTeam(teamId);
+  }
+
+
+
+  _handleRemoveTeam(teamId) {
+    if (!teamId || !this._workingLeague?.teams) return;
+    
+    const team = this._workingLeague.teams.find(t => t._id === teamId);
+    if (!team) return;
+
+    Swal.default.fire({
+      customClass: this._getSwalCustomClasses(),
+      title: 'Remove Team?',
+      text: `Are you sure you want to remove "${team.name}" from the league? This will also remove all matches involving this team.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, remove team',
+      confirmButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Remove team from working league
+        this._workingLeague.teams = this._workingLeague.teams.filter(t => t._id !== teamId);
+        
+        // Remove matches involving this team
+        if (this._workingLeague.matches) {
+          this._workingLeague.matches = this._workingLeague.matches.filter(match => 
+            match.homeTeam?._id !== teamId && match.awayTeam?._id !== teamId
+          );
+        }
+        
+        // Clear selection if this was the selected team
+        if (this._selectedTeamId === teamId) {
+          this._selectedTeamId = null;
+          this._hideEditor();
+        }
+        
+        this.render(); // Re-render to update the list
+        
+        Swal.default.fire({
+          customClass: this._getSwalCustomClasses(),
+          title: 'Team Removed',
+          text: `${team.name} has been removed from the league`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+    });
+  }
+
+  _handleTeamSelect(teamId) {
+    if (this._showEditor) {
+      // Don't allow selection when editor is open
+      return;
+    }
+    
+    if (this._selectedTeamId === teamId) {
+      // If already selected, deselect it
+      this._selectedTeamId = null;
+    } else {
+      // Single-click behavior: select the team
+      this._selectedTeamId = teamId;
+    }
+    this.render();
+  }
+
+  _handleUpdateTeam() {
+    this.clearError();
+
+    const useExistingTeamCheckbox = this.shadow.querySelector('#useExistingTeamCheckbox');
+    const existingTeamSelect = this.shadow.querySelector('#existingTeamSelect');
+    const teamNameInput = this.shadow.querySelector('#teamName');
+
+    let teamId = '';
+    let teamName = '';
+
+    if (useExistingTeamCheckbox && useExistingTeamCheckbox.checked && existingTeamSelect) {
+      if (existingTeamSelect.value) {
+        teamId = existingTeamSelect.value;
+        const selectedTeam = this._existingTeams.find(t => t._id === teamId);
+        teamName = selectedTeam ? selectedTeam.name : teamId;
+      } else {
+        this._showEditorError('Please select a team from the dropdown.');
+        return;
+      }
+    } else if (teamNameInput && teamNameInput.value.trim()) {
+      teamName = teamNameInput.value.trim();
+      teamId = teamName;
+    } else {
+      this._showEditorError('Team Name is required, either by typing a new name or selecting an existing team.');
+      return;
+    }
+
+    if (!teamId || !teamName) {
+      this._showEditorError('Team name is required.');
+      return;
+    }
+
+    // Check for duplicate team IDs in the working league
+    const isDuplicate = this._workingLeague.teams.some(team => 
+      team._id === teamId && teamId !== this._editingTeam?._id
+    );
+    if (isDuplicate) {
+      this._showEditorError(`A team with identifier "${teamId}" already exists in this league.`);
+      return;
+    }
+
+    const teamData = {
+      _id: teamId,
+      name: teamName
+    };
+
+    // Update working league
+    if (!this._workingLeague.teams) {
+      this._workingLeague.teams = [];
+    }
+
+    if (this._editorMode === 'edit' && this._editingTeam) {
+      const teamIndex = this._workingLeague.teams.findIndex(t => t._id === this._editingTeam._id);
+      if (teamIndex !== -1) {
+        // Update existing team
+        const oldTeamId = this._editingTeam._id;
+        this._workingLeague.teams[teamIndex] = teamData;
+        
+        // If team ID is changing, update match references
+        if (oldTeamId !== teamId && this._workingLeague.matches) {
+          this._workingLeague.matches = this._workingLeague.matches.map(match => {
+            if (match.homeTeam?._id === oldTeamId) {
+              return {
+                ...match,
+                homeTeam: { ...match.homeTeam, _id: teamId, name: teamName }
+              };
+            }
+            if (match.awayTeam?._id === oldTeamId) {
+              return {
+                ...match,
+                awayTeam: { ...match.awayTeam, _id: teamId, name: teamName }
+              };
+            }
+            return match;
+          });
+        }
+      }
+    } else {
+      // Add new team
+      this._workingLeague.teams.push(teamData);
+    }
+
+    this._selectedTeamId = teamId;
+    this._hideEditor();
+  }
+
+  _showEditorError(message) {
+    const errorElement = this.shadow.querySelector('#team-editor-error');
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+  }
+
+  _getSwalCustomClasses() {
+    const mobilePopup = this._isMobile ? 'lae-swal-popup-mobile' : '';
+    const mobileTitle = this._isMobile ? 'lae-swal-title-mobile' : '';
+    const mobileHtmlContainer = this._isMobile ? 'lae-swal-html-container-mobile' : '';
+    const mobileActions = this._isMobile ? 'lae-swal-actions-mobile' : '';
+    const mobileStyled = this._isMobile ? 'lae-swal-styled-mobile' : '';
+
+    return {
+      popup: mobilePopup,
+      title: mobileTitle,
+      htmlContainer: mobileHtmlContainer,
+      actions: mobileActions,
+      confirmButton: mobileStyled,
+      cancelButton: mobileStyled,
+    };
+  }
+
+  _onCancel() {
+    this.dispatchEvent(new LeagueTeamsEvent('teams-cancel', {}));
+  }
+
+  _onSave() {
+    this.dispatchEvent(new LeagueTeamsEvent('teams-save', {
+      league: this._workingLeague
+    }));
   }
 
   _onKeydown(e) {
@@ -398,42 +709,10 @@ class LeagueTeams extends HTMLElement {
       this._onCancel();
       return;
     }
-
-    if (e.key === 'Tab') {
-      this._handleTabKey(e);
-    }
-  }
-
-  _handleTabKey(e) {
-    const focusableElements = this.shadow.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const focusableArray = Array.from(focusableElements);
-    const firstElement = focusableArray[0];
-    const lastElement = focusableArray[focusableArray.length - 1];
-
-    if (e.shiftKey) {
-      if (document.activeElement === firstElement) {
-        lastElement.focus();
-        e.preventDefault();
-      }
-    } else {
-      if (document.activeElement === lastElement) {
-        firstElement.focus();
-        e.preventDefault();
-      }
-    }
-  }
-
-  _focusFirstElement() {
-    const firstFocusable = this.shadow.querySelector('input, select, button');
-    if (firstFocusable) {
-      firstFocusable.focus();
-    }
   }
 }
 
 // Register the custom element
 customElements.define('league-teams', LeagueTeams);
 
-export default LeagueTeams; 
+export default LeagueTeams;
