@@ -781,22 +781,7 @@ export const BASE_STYLES = `
         </div>
       </div>
       
-    <!-- Modal for New/Edit Team -->
-    <div id="team-modal" class="modal-shared-overlay">
-        <div class="modal-shared-content">
-            <div class="modal-shared-header">
-                <span id="team-modal-title">Add Team</span>
-                <span class="close-button close-button-shared" id="close-team-modal">&times;</span>
-          </div>
-            <div class="modal-shared-body" id="team-modal-body">
-                <!-- Form content will be injected by JS -->
-          </div>
-          <div class="modal-shared-footer">
-                <button id="save-team-button" class="button-shared">Save</button>
-                <button id="cancel-team-button" class="button-shared">Cancel</button>
-          </div>
-        </div>
-      </div>
+    <!-- Team modal is now handled by the league-teams component -->
 
     <!-- Modal for Add/Edit Match -->
     <league-match id="match-modal-instance" is-admin-context="true"></league-match>

@@ -5,6 +5,7 @@ import { sweetAlertGlobalStyles, sweetAlertMobileOverrides } from '../shared-sty
 import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
 import '../leagueResetModal/leagueResetModal.js';
+import '../leagueTeams/leagueTeams.js';
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 import { generateResetMatches } from '../../utils/data.js';
@@ -39,6 +40,11 @@ class LeagueAdminElement extends HTMLElement {
     this._teamModalMode = null; // 'new' or 'edit'
     this._teamBeingEdited = null; // Store the team being edited as {_id, name}
     this._lovebowlsTeams = []; // CHANGED: Store lovebowls teams data as [{_id, name}] objects
+    
+    // Properties for new leagueTeams modal
+    this.teamModalOpen = false;
+    this.teamModalData = null;
+    this.teamModalMode = 'new';
     
     // New properties for match management
     this.matchModalOpen = false;
@@ -449,6 +455,90 @@ class LeagueAdminElement extends HTMLElement {
       let resetModal = this.shadow.querySelector('league-reset-modal');
       if (resetModal) resetModal.remove();
     }
+
+    // Handle team modal
+    if (this.teamModalOpen) {
+      let teamModal = this.shadow.querySelector('league-teams');
+      if (teamModal) teamModal.remove();
+      
+      teamModal = document.createElement('league-teams');
+      teamModal.open = true;
+      teamModal.isMobile = this._isMobile;
+      teamModal.mode = this.teamModalMode;
+      teamModal.team = this.teamModalData;
+      teamModal.existingTeams = this._lovebowlsTeams;
+      
+      const selectedLeague = this._getSelectedLeague();
+      teamModal.leagueTeams = selectedLeague?.teams || [];
+      
+      teamModal.addEventListener('team-save', (e) => {
+        const { team, mode, originalTeamId } = e.detail;
+        
+        const selectedLeague = this._getSelectedLeague();
+        if (!selectedLeague) {
+          console.error('[Admin Team Save] No selected league found.');
+          return;
+        }
+        
+        const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
+        
+        if (mode === 'edit' && originalTeamId) {
+          const teamIndex = updatedLeague.teams.findIndex(t => t._id === originalTeamId);
+          if (teamIndex !== -1) {
+            // Update existing team
+            updatedLeague.teams[teamIndex] = team;
+            
+            // If team ID is changing, update all match references
+            if (originalTeamId !== team._id && Array.isArray(updatedLeague.matches)) {
+              const updatedMatches = updatedLeague.matches.map(match => {
+                if (match.homeTeam?._id === originalTeamId) {
+                  return {
+                    ...match,
+                    homeTeam: { ...match.homeTeam, _id: team._id, name: team.name }
+                  };
+                }
+                if (match.awayTeam?._id === originalTeamId) {
+                  return {
+                    ...match,
+                    awayTeam: { ...match.awayTeam, _id: team._id, name: team.name }
+                  };
+                }
+                return match;
+              });
+              updatedLeague.matches = updatedMatches;
+            }
+          } else {
+            updatedLeague.teams.push(team);
+          }
+        } else {
+          // Add new team
+          updatedLeague.teams.push(team);
+        }
+
+        // Update the internal _leagues array
+        const leagueIndex = this._leagues.findIndex(l => l._id === selectedLeague._id);
+        if (leagueIndex > -1) {
+          this._leagues[leagueIndex] = updatedLeague;
+        } else {
+          console.error('[Admin Team Save] Selected league index not found in _leagues array.');
+        }
+
+        // Set the newly created/edited team as the selected team
+        this._selectedTeamId = team._id;
+
+        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: updatedLeague }));
+        this.closeTeamModal();
+      });
+      
+      teamModal.addEventListener('team-cancel', () => {
+        this.closeTeamModal();
+      });
+      
+      this.shadow.appendChild(teamModal);
+    } else {
+      let teamModal = this.shadow.querySelector('league-teams');
+      if (teamModal) teamModal.remove();
+    }
   }
   
   _renderLeagueList() {
@@ -790,14 +880,7 @@ class LeagueAdminElement extends HTMLElement {
       btnAddTeam.addEventListener('click', () => this._handleAddTeam());
     }
     
-    // Team modal event listeners
-    const btnCloseTeamModal = this.shadow.querySelector('#close-team-modal');
-    const btnCancelTeamModal = this.shadow.querySelector('#cancel-team-button');
-    const btnSaveTeamModal = this.shadow.querySelector('#save-team-button');
-    
-    if (btnCloseTeamModal) btnCloseTeamModal.addEventListener('click', () => this._hideTeamModal());
-    if (btnCancelTeamModal) btnCancelTeamModal.addEventListener('click', () => this._hideTeamModal());
-    if (btnSaveTeamModal) btnSaveTeamModal.addEventListener('click', () => this._handleSaveTeamModal());
+    // Team modal event listeners are now handled by the league-teams component
     
   }
 
@@ -956,14 +1039,12 @@ class LeagueAdminElement extends HTMLElement {
   // Team Management Methods
   _handleAddTeam() {
     if (!this._selectedLeagueId) return;
-    // Use the lovebowls teams data passed in via attribute
-    this._showTeamModal('new', null, this._lovebowlsTeams);
+    this.openTeamModal(null, 'new');
   }
   
   _handleEditTeam(team) {
     if (!team) return;
-    // Pass the team object to edit and the lovebowls teams for reference
-    this._showTeamModal('edit', team, this._lovebowlsTeams);
+    this.openTeamModal(team, 'edit');
   }
   
   _handleRemoveTeam(team) {
@@ -1803,6 +1884,37 @@ class LeagueAdminElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
+    this.render();
+  }
+
+  openTeamModal(teamData, mode = 'new') {
+    console.group('[LeagueAdmin] openTeamModal');
+    try {
+      // Update component state
+      this.teamModalOpen = true;
+      this.teamModalData = teamData;
+      this.teamModalMode = mode;
+      
+      this.render();
+      
+      // Verify the modal was rendered
+      const modalElement = this.shadowRoot.querySelector('league-teams');
+      if (!modalElement) {
+        console.error('League teams modal element not found after render');
+      }
+      
+    } catch (error) {
+      console.error('Error in openTeamModal:', error);
+      this.showError('Failed to open team editor. Please try again.');
+    } finally {
+      console.groupEnd();
+    }
+  }
+  
+  closeTeamModal() {
+    this.teamModalOpen = false;
+    this.teamModalData = null;
+    this.teamModalMode = 'new';
     this.render();
   }
 

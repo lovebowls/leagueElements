@@ -17,6 +17,7 @@ const elements = [
   'LeagueMatchesAttention',
   'LeagueMatchesUpcoming',
   'leagueMatch',
+  'leagueTeams',
   'LeagueCalendar'
 ];
 
