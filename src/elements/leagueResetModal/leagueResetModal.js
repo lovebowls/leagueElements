@@ -12,7 +12,7 @@ class LeagueResetModalEvent extends CustomEvent {
 
 class LeagueResetModal extends HTMLElement {
   static get observedAttributes() {
-    return ['open', 'is-mobile', 'league-name', 'team-count', 'league-settings'];
+    return ['open', 'is-mobile', 'data'];
   }
 
   constructor() {
@@ -20,9 +20,7 @@ class LeagueResetModal extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' });
     this._open = false;
     this._isMobile = false;
-    this._leagueName = '';
-    this._teamCount = 0;
-    this._leagueSettings = {};
+    this._league = null; // Store the League object
     this._error = '';
     this._boundOnKeydown = this._onKeydown.bind(this);
     this._firstFocusableElement = null;
@@ -74,36 +72,35 @@ class LeagueResetModal extends HTMLElement {
   get isMobile() { return this._isMobile; }
 
   /**
-   * @param {string} value
+   * @param {Object|string} value - League object or JSON string
    */
-  set leagueName(value) {
-    this._leagueName = value || '';
-    this.render();
-  }
-  get leagueName() { return this._leagueName; }
-
-  /**
-   * @param {number} value
-   */
-  set teamCount(value) {
-    this._teamCount = parseInt(value, 10) || 0;
-    this.render();
-  }
-  get teamCount() { return this._teamCount; }
-
-  /**
-   * @param {Object} value
-   */
-  set leagueSettings(value) {
+  set data(value) {
     try {
-      this._leagueSettings = typeof value === 'string' ? JSON.parse(value) : (value || {});
+      if (typeof value === 'string') {
+        this._league = value ? JSON.parse(value) : null;
+      } else {
+        this._league = value || null;
+      }
     } catch (error) {
-      console.error('Failed to parse league settings:', error);
-      this._leagueSettings = {};
+      console.error('Failed to parse league data:', error);
+      this._league = null;
     }
     this.render();
   }
-  get leagueSettings() { return this._leagueSettings; }
+  get data() { return this._league; }
+
+  // Convenience getters for backward compatibility and ease of use
+  get leagueName() { 
+    return this._league?.name || 'Unknown League'; 
+  }
+  
+  get teamCount() { 
+    return this._league?.teams?.length || 0; 
+  }
+  
+  get leagueSettings() { 
+    return this._league?.settings || {}; 
+  }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) return;
@@ -115,14 +112,8 @@ class LeagueResetModal extends HTMLElement {
       case 'is-mobile':
         this.isMobile = newValue === 'true';
         break;
-      case 'league-name':
-        this.leagueName = newValue;
-        break;
-      case 'team-count':
-        this.teamCount = newValue;
-        break;
-      case 'league-settings':
-        this.leagueSettings = newValue;
+      case 'data':
+        this.data = newValue;
         break;
     }
   }
@@ -154,17 +145,15 @@ class LeagueResetModal extends HTMLElement {
       return;
     }
 
+    if (!this._league) {
+      this.showError('No league data available');
+      return;
+    }
+
     try {
-      // Create a League instance to generate fixtures
-      const leagueData = {
-        _id: 'temp_league_for_fixtures',
-        name: this._leagueName,
-        settings: this._leagueSettings,
-        teams: this._generateTempTeams(), // Create temp teams for fixture generation
-        matches: []
-      };
+
       
-      const tempLeague = new League(leagueData);
+      const tempLeague = new League(this._league);
       
       // Generate fixtures using the enhanced initialiseFixtures method
       const schedulingParams = this._getSchedulingParams();
@@ -196,17 +185,6 @@ class LeagueResetModal extends HTMLElement {
     }
   }
 
-  _generateTempTeams() {
-    // Generate temporary team objects for fixture generation
-    const teams = [];
-    for (let i = 1; i <= this._teamCount; i++) {
-      teams.push({
-        _id: `temp_team_${i}`,
-        name: `Team ${i}`
-      });
-    }
-    return teams;
-  }
 
   _calculateActualDateRange(matches) {
     if (!matches || matches.length === 0) return null;
@@ -259,10 +237,11 @@ class LeagueResetModal extends HTMLElement {
   }
 
   _calculateEstimatedMatches() {
-    if (this._teamCount < 2) return 0;
+    const teamCount = this.teamCount;
+    if (teamCount < 2) return 0;
     // Calculate total unique pairings: n * (n-1) / 2, then multiply by timesTeamsPlayOther
-    const timesTeamsPlayOther = this._leagueSettings.timesTeamsPlayOther || 2;
-    return (this._teamCount * (this._teamCount - 1) / 2) * timesTeamsPlayOther;
+    const timesTeamsPlayOther = this.leagueSettings.timesTeamsPlayOther || 2;
+    return (teamCount * (teamCount - 1) / 2) * timesTeamsPlayOther;
   }
 
   _getSchedulingParams() {
@@ -294,7 +273,7 @@ class LeagueResetModal extends HTMLElement {
       } else {
         // No limit - estimate reasonable distribution over available match days
         // Assume teams can handle multiple matches with scheduling constraints
-        daysNeeded = Math.ceil(estimatedMatches / Math.max(1, Math.floor(this._teamCount / 2)));
+        daysNeeded = Math.ceil(estimatedMatches / Math.max(1, Math.floor(this.teamCount / 2)));
       }
       
       const intervalDays = this._formData.intervalUnit === 'weeks' ? this._formData.intervalNumber * 7 : this._formData.intervalNumber;
@@ -308,7 +287,7 @@ class LeagueResetModal extends HTMLElement {
         daysNeeded = Math.ceil(estimatedMatches / maxMatchesPerDay);
       } else {
         // No limit - estimate reasonable distribution over available match days
-        daysNeeded = Math.ceil(estimatedMatches / Math.max(1, Math.floor(this._teamCount / 2)));
+        daysNeeded = Math.ceil(estimatedMatches / Math.max(1, Math.floor(this.teamCount / 2)));
       }
       
       const availableDaysPerWeek = this._formData.selectedDays.length;
@@ -350,8 +329,8 @@ class LeagueResetModal extends HTMLElement {
             <div id="reset-modal-error" class="form-error-shared" style="display: none;"></div>
             
             <div class="league-info">
-              <p><strong>League:</strong> ${this._escapeHtml(this._leagueName)}</p>
-              <p><strong>Teams:</strong> ${this._teamCount}</p>
+              <p><strong>League:</strong> ${this._escapeHtml(this.leagueName)}</p>
+              <p><strong>Teams:</strong> ${this.teamCount}</p>
               <p class="warning-text">This will clear all existing matches and generate new ones with the scheduling parameters below.</p>
             </div>
 

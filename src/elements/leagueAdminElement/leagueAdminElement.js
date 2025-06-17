@@ -438,9 +438,7 @@ class LeagueAdminElement extends HTMLElement {
       resetModal = document.createElement('league-reset-modal');
       resetModal.open = true;
       resetModal.isMobile = this._isMobile;
-      resetModal.leagueName = this._leagueToReset.name || 'Unknown League';
-      resetModal.teamCount = (this._leagueToReset.teams || []).length;
-      resetModal.leagueSettings = this._leagueToReset.settings || {};
+      resetModal.data = this._leagueToReset;
       
       resetModal.addEventListener('reset-save', (e) => {
         const { matches, estimatedMatches, dateRange } = e.detail;

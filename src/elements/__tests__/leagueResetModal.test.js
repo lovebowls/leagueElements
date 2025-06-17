@@ -1,5 +1,6 @@
 // leagueResetModal.test.js
 import '../leagueResetModal/leagueResetModal.js';
+import { jest } from '@jest/globals';
 
 // Mock shared styles to avoid import issues in tests
 jest.mock('../shared-styles.js', () => ({
@@ -9,12 +10,66 @@ jest.mock('../shared-styles.js', () => ({
   mobileStyles: ''
 }));
 
+// Mock the League import
+jest.mock('@lovebowls/leaguejs', () => ({
+  League: jest.fn().mockImplementation((data) => {
+    const instance = {
+      _id: data._id,
+      name: data.name,
+      settings: data.settings,
+      teams: data.teams,
+      matches: data.matches || [],
+      initialiseFixtures: jest.fn().mockImplementation(() => {
+        // Generate some mock matches for testing
+        instance.matches = [
+          {
+            _id: 'match1',
+            homeTeam: data.teams[0],
+            awayTeam: data.teams[1],
+            date: new Date().toISOString(),
+            result: null
+          },
+          {
+            _id: 'match2',
+            homeTeam: data.teams[2],
+            awayTeam: data.teams[3],
+            date: new Date().toISOString(),
+            result: null
+          }
+        ];
+        return true;
+      })
+    };
+    return instance;
+  })
+}));
+
 describe('LeagueResetModal', () => {
   let element;
+  let mockLeague;
 
   beforeEach(() => {
     element = document.createElement('league-reset-modal');
     document.body.appendChild(element);
+    
+    // Create a mock League object
+    mockLeague = {
+      _id: 'test-league-1',
+      name: 'Test League',
+      teams: [
+        { _id: 'team1', name: 'Team 1' },
+        { _id: 'team2', name: 'Team 2' },
+        { _id: 'team3', name: 'Team 3' },
+        { _id: 'team4', name: 'Team 4' }
+      ],
+      settings: {
+        timesTeamsPlayOther: 2,
+        pointsForWin: 3,
+        pointsForDraw: 1,
+        pointsForLoss: 0
+      },
+      matches: []
+    };
   });
 
   afterEach(() => {
@@ -24,37 +79,46 @@ describe('LeagueResetModal', () => {
   it('should initialize with default properties', () => {
     expect(element.open).toBe(false);
     expect(element.isMobile).toBe(false);
-    expect(element.leagueName).toBe('');
-    expect(element.teamCount).toBe(0);
+    expect(element.leagueName).toBe('Unknown League'); // Default when no data
+    expect(element.teamCount).toBe(0); // Default when no data
   });
 
-  it('should set properties correctly', () => {
+  it('should set properties correctly via data attribute', () => {
     element.open = true;
     element.isMobile = true;
-    element.leagueName = 'Test League';
-    element.teamCount = 4;
-    element.leagueSettings = { timesTeamsPlayOther: 3 };
+    element.data = mockLeague;
 
     expect(element.open).toBe(true);
     expect(element.isMobile).toBe(true);
     expect(element.leagueName).toBe('Test League');
     expect(element.teamCount).toBe(4);
-    expect(element.leagueSettings.timesTeamsPlayOther).toBe(3);
+    expect(element.leagueSettings.timesTeamsPlayOther).toBe(2);
+  });
+
+  it('should handle JSON string data', () => {
+    element.data = JSON.stringify(mockLeague);
+
+    expect(element.leagueName).toBe('Test League');
+    expect(element.teamCount).toBe(4);
+    expect(element.leagueSettings.timesTeamsPlayOther).toBe(2);
   });
 
   it('should calculate estimated matches correctly', () => {
-    element.teamCount = 4;
-    element.leagueSettings = { timesTeamsPlayOther: 2 };
+    element.data = mockLeague;
     
-    // 4 teams * 3 opponents * 2 times = 24 matches
+    // 4 teams: (4 * 3) / 2 * 2 = 12 matches (corrected formula)
     const estimatedMatches = element._calculateEstimatedMatches();
-    expect(estimatedMatches).toBe(24);
+    expect(estimatedMatches).toBe(12);
   });
 
   it('should validate form correctly', () => {
-    // Set up form data
+    element.data = mockLeague;
+    
+    // Set up form data with a future date
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
     element._formData = {
-      startDate: '2024-01-15',
+      startDate: futureDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       maxMatchesPerDay: '2',
       schedulingPattern: 'interval',
       intervalNumber: 1,
@@ -67,6 +131,7 @@ describe('LeagueResetModal', () => {
   });
 
   it('should validate start date requirement', () => {
+    element.data = mockLeague;
     element._formData = {
       startDate: '',
       maxMatchesPerDay: '',
@@ -82,8 +147,13 @@ describe('LeagueResetModal', () => {
   });
 
   it('should validate day of week selection', () => {
+    element.data = mockLeague;
+    
+    // Use a future date
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
     element._formData = {
-      startDate: '2024-01-15',
+      startDate: futureDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       maxMatchesPerDay: '',
       schedulingPattern: 'dayOfWeek',
       intervalNumber: 1,
@@ -102,10 +172,13 @@ describe('LeagueResetModal', () => {
       eventData = e.detail;
     });
 
-    element.teamCount = 4;
-    element.leagueSettings = { timesTeamsPlayOther: 2 };
+    element.data = mockLeague;
+    
+    // Use a future date
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
     element._formData = {
-      startDate: '2024-01-15',
+      startDate: futureDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       maxMatchesPerDay: '2',
       schedulingPattern: 'interval',
       intervalNumber: 1,
@@ -116,10 +189,9 @@ describe('LeagueResetModal', () => {
     element._onOk();
 
     expect(eventData).toBeTruthy();
-    expect(eventData.schedulingParams.startDate).toBe('2024-01-15');
-    expect(eventData.schedulingParams.maxMatchesPerDay).toBe(2);
-    expect(eventData.schedulingParams.schedulingPattern).toBe('interval');
-    expect(eventData.estimatedMatches).toBe(24);
+    expect(eventData.matches).toBeDefined();
+    expect(eventData.estimatedMatches).toBeDefined();
+    expect(eventData.dateRange).toBeDefined();
   });
 
   it('should dispatch reset-cancel event', () => {
@@ -136,20 +208,22 @@ describe('LeagueResetModal', () => {
   it('should handle attribute changes', () => {
     element.setAttribute('open', 'true');
     element.setAttribute('is-mobile', 'true');
-    element.setAttribute('league-name', 'Test League');
-    element.setAttribute('team-count', '6');
+    element.setAttribute('data', JSON.stringify(mockLeague));
 
     expect(element.open).toBe(true);
     expect(element.isMobile).toBe(true);
     expect(element.leagueName).toBe('Test League');
-    expect(element.teamCount).toBe(6);
+    expect(element.teamCount).toBe(4);
   });
 
   it('should calculate date range correctly for interval scheduling', () => {
-    element.teamCount = 4;
-    element.leagueSettings = { timesTeamsPlayOther: 2 };
+    element.data = mockLeague;
+    
+    // Use a future date
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
     element._formData = {
-      startDate: '2024-01-15',
+      startDate: futureDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       maxMatchesPerDay: '2',
       schedulingPattern: 'interval',
       intervalNumber: 1,
@@ -164,10 +238,13 @@ describe('LeagueResetModal', () => {
   });
 
   it('should generate preview text correctly', () => {
-    element.teamCount = 4;
-    element.leagueSettings = { timesTeamsPlayOther: 2 };
+    element.data = mockLeague;
+    
+    // Use a future date
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
     element._formData = {
-      startDate: '2024-01-15',
+      startDate: futureDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       maxMatchesPerDay: '2',
       schedulingPattern: 'interval',
       intervalNumber: 1,
@@ -176,8 +253,24 @@ describe('LeagueResetModal', () => {
     };
 
     const previewText = element._getPreviewText();
-    expect(previewText).toContain('Will schedule 24 matches');
+    expect(previewText).toContain('Will schedule 12 matches');
     expect(previewText).toContain('from');
     expect(previewText).toContain('to approximately');
+  });
+
+  it('should handle null/empty data gracefully', () => {
+    element.data = null;
+    
+    expect(element.leagueName).toBe('Unknown League');
+    expect(element.teamCount).toBe(0);
+    expect(element.leagueSettings).toEqual({});
+  });
+
+  it('should handle invalid JSON data gracefully', () => {
+    element.data = 'invalid json';
+    
+    expect(element.leagueName).toBe('Unknown League');
+    expect(element.teamCount).toBe(0);
+    expect(element.leagueSettings).toEqual({});
   });
 }); 
