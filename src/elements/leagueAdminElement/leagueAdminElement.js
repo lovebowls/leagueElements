@@ -6,6 +6,7 @@ import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
 import '../leagueResetModal/leagueResetModal.js';
 import '../leagueTeams/leagueTeams.js';
+import '../LeagueSchedule/LeagueSchedule.js';
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
@@ -365,6 +366,11 @@ class LeagueAdminElement extends HTMLElement {
     }
     // Update attention panel with selected league's matches
     this._updateAttentionPanel(leagueForRender);
+    
+    // Update schedule panel with selected league's data
+    if (leagueForRender) {
+      this._updateSchedulePanel(leagueForRender);
+    }
 
     if (this.matchModalOpen) {
       let modal = this.shadow.querySelector('league-match');
@@ -698,6 +704,15 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       console.warn(this.LOG_PREFIX + 'Attention container element not found');
     }
+
+    // Show the schedule panel and update it
+    const schedulePanel = this.shadow.querySelector('#league-schedule-panel');
+    if (schedulePanel) {
+      schedulePanel.style.display = '';
+      this._updateSchedulePanel(selectedLeague);
+    } else {
+      console.warn(this.LOG_PREFIX + 'Schedule panel element not found');
+    }
   
     // Ensure the details column is visible (in case it was hidden)
     const detailsColumn = this.shadow.querySelector('.column-details');
@@ -714,6 +729,14 @@ class LeagueAdminElement extends HTMLElement {
       attentionContainer.style.display = 'none';
     } else {
       console.warn(this.LOG_PREFIX + 'Attention container element not found when trying to hide');
+    }
+
+    // Hide the schedule panel
+    const schedulePanel = this.shadow.querySelector('#league-schedule-panel');
+    if (schedulePanel) {
+      schedulePanel.style.display = 'none';
+    } else {
+      console.warn(this.LOG_PREFIX + 'Schedule panel element not found when trying to hide');
     }
     
     // Reset selected team
@@ -1993,6 +2016,53 @@ class LeagueAdminElement extends HTMLElement {
     }
   }
 
+  _updateSchedulePanel(leagueToUse) {
+    const selectedLeague = leagueToUse || this._getSelectedLeague();
+    const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
+    const scheduleContainer = this.shadow.querySelector('#league-schedule-panel');
+    
+    if (!selectedLeague || !scheduleElement || !scheduleContainer) {
+      if (scheduleContainer) scheduleContainer.style.display = 'none';
+      return;
+    }
+    
+    const isMobile = String(this._isMobile);
+    scheduleElement.setAttribute('is-mobile', isMobile);
+    
+    // Set the can-edit attribute to allow editing matches
+    scheduleElement.setAttribute('can-edit', 'true');
+    
+    // Set the selected team filter if a team is selected
+    if (this._selectedTeamId) {
+      scheduleElement.setAttribute('selected-team', this._selectedTeamId);
+    } else {
+      scheduleElement.removeAttribute('selected-team');
+    }
+    
+    try {
+      // Set the league data for the schedule component
+      const leagueData = JSON.stringify(selectedLeague);
+      scheduleElement.setAttribute('data', leagueData);
+      
+      scheduleContainer.style.display = '';
+
+      // Ensure event listener is attached (and only once)
+      if (!this._handleAdminScheduleEventBound) {
+        this._handleAdminScheduleEventBound = this._handleAdminScheduleEvent.bind(this);
+      }
+      
+      // Remove existing listener
+      scheduleElement.removeEventListener('league-schedule-event', this._handleAdminScheduleEventBound);
+      
+      // Add the new listener
+      scheduleElement.addEventListener('league-schedule-event', this._handleAdminScheduleEventBound);
+            
+    } catch (error) {
+      console.error('[LeagueAdmin] Error updating schedule panel:', error);
+      scheduleContainer.style.display = 'none';
+    }
+  }
+
   _handleAdminAttentionMatchClick(e) {
     
     // Validate the event detail
@@ -2054,6 +2124,73 @@ class LeagueAdminElement extends HTMLElement {
     }
   }
 
+  _handleAdminScheduleEvent(e) {
+    console.group('[LeagueAdmin] _handleAdminScheduleEvent');
+    
+    // Validate the event detail
+    if (!e.detail) {
+      console.error('[LeagueAdmin] Event detail is missing');
+      console.groupEnd();
+      return;
+    }
+    
+    const eventType = e.detail.type;
+    console.log('Schedule event type:', eventType);
+    
+    try {
+      switch (eventType) {
+        case 'matchClick':
+          if (e.detail.match) {
+            const selectedLeague = this._getSelectedLeague();
+            if (selectedLeague) {
+              const teams = selectedLeague.teams || [];
+              const matchData = { ...e.detail.match };
+              this.openMatchModal(matchData, teams, 'edit');
+            }
+          }
+          break;
+          
+        case 'matchEdit':
+          if (e.detail.match) {
+            const selectedLeague = this._getSelectedLeague();
+            if (selectedLeague) {
+              const teams = selectedLeague.teams || [];
+              const matchData = { ...e.detail.match };
+              this.openMatchModal(matchData, teams, 'edit');
+            }
+          }
+          break;
+          
+        case 'filterClear':
+          // Handle filter clear if needed
+          console.log('Schedule filters cleared');
+          break;
+          
+        case 'export':
+          // Handle export completion if needed
+          console.log('Schedule data exported:', e.detail.format);
+          break;
+          
+        default:
+          console.log('Unhandled schedule event type:', eventType);
+      }
+      
+      // Stop propagation to prevent multiple handlers from firing
+      e.stopPropagation();
+      
+      // Prevent default to avoid any default behavior
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      
+    } catch (error) {
+      console.error('[LeagueAdmin] Error handling schedule event:', error);
+      this.showError('An error occurred while handling the schedule event.');
+    } finally {
+      console.groupEnd();
+    }
+  }
+
 
   _handleTeamSelect(team) {
     const teamId = team._id; // CHANGED: Use _id as identifier
@@ -2090,6 +2227,12 @@ class LeagueAdminElement extends HTMLElement {
       if (actionsDiv) {
         this._createAndAppendTeamActions(actionsDiv, team);
       }
+    }
+
+    // Update the schedule panel to reflect the new team selection
+    const selectedLeague = this._getSelectedLeague();
+    if (selectedLeague) {
+      this._updateSchedulePanel(selectedLeague);
     }
   }
 

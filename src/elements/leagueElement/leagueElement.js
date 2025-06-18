@@ -43,6 +43,7 @@ class LeagueElement extends HTMLElement {
     this.matchModalMode = 'new';
     this.lovebowlsTeams = []; // Store lovebowls teams data
     this._handleScheduleMatchEditBound = null; // Bound function for schedule match edit events
+    this.selectedTeamForSchedule = null; // Track selected team for schedule filtering
     this.shadow.host.addEventListener('league-calendar-event', this._handleCalendarDateChange.bind(this)); // ADDED event listener
   }
 
@@ -175,7 +176,7 @@ class LeagueElement extends HTMLElement {
 
           // Row class for promotion/relegation is removed here
           return `
-          <tr> 
+          <tr class="team-row" data-team-id="${team.teamId}" data-team-name="${this.escapeHtml(team.teamDisplayName)}"> 
             <td class="position-cell ${positionCellClass}">${team.currentRank !== undefined ? team.currentRank : '-'} ${movementIndicator}</td>
             <td>${team.teamDisplayName}</td>
             <td>${team.points}</td>
@@ -258,6 +259,7 @@ class LeagueElement extends HTMLElement {
       this.setupPaging(); // Paging for sub-components is handled by them dispatching events
       this.setupTabs();
       this.setupTableFilterDropdown();
+      this.setupTableRowEvents(); // Set up double-click events for team rows
       if (this.activeView === 'trends') { // If trends tab is active by default (e.g. on reload/state persistence)
         this.setupTrendsViewInteractivity(); // Ensure interactivity is set up
       }
@@ -306,6 +308,13 @@ class LeagueElement extends HTMLElement {
           scheduleElement.setAttribute('filter-date', this.activeCalendarFilterDate);
         } else {
           scheduleElement.removeAttribute('filter-date');
+        }
+        
+        // Pass the selected team for schedule filtering
+        if (this.selectedTeamForSchedule) {
+          scheduleElement.setAttribute('selected-team', this.selectedTeamForSchedule);
+        } else {
+          scheduleElement.removeAttribute('selected-team');
         }
         
         // If the schedule view is active, set up its event listeners
@@ -1997,6 +2006,49 @@ class LeagueElement extends HTMLElement {
     }
   }
 
+  setupTableRowEvents() {
+    // Set up double-click events for team rows to switch to schedule view with team filter
+    const teamRows = this.shadow.querySelectorAll('.team-row');
+    teamRows.forEach(row => {
+      row.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const teamId = row.getAttribute('data-team-id');
+        const teamName = row.getAttribute('data-team-name');
+        
+        if (teamId) {
+          console.log(`[LeagueElement] Double-clicked team: ${teamName} (${teamId})`);
+          
+          // Set the selected team for schedule filtering
+          this.selectedTeamForSchedule = teamId;
+          
+          // Switch to schedule view
+          this.activeView = 'schedule';
+          
+          // Re-render to apply the changes
+          this.render();
+          
+          // Set up schedule event listeners after DOM is ready
+          Promise.resolve().then(() => {
+            this._setupScheduleEventListeners();
+          });
+          
+          // Dispatch event to notify parent components about the team selection
+          this.dispatchEvent(new LeagueEvent({
+            type: 'teamSelectedForSchedule',
+            teamId: teamId,
+            teamName: teamName
+          }));
+        }
+      });
+      
+      // Add visual feedback for double-click capability
+      row.style.cursor = 'pointer';
+      row.title = `Double-click to view schedule for ${row.getAttribute('data-team-name')}`;
+    });
+  }
+
   // END - New methods for table filtering
 
   /**
@@ -2968,8 +3020,9 @@ class LeagueElement extends HTMLElement {
         match
       }));
     } else if (type === 'filterClear') {
-      // Clear the date filter when schedule component requests it
+      // Clear both date and team filters when schedule component requests it
       this.activeCalendarFilterDate = null;
+      this.selectedTeamForSchedule = null;
       this.render(); // Re-render to update all components
     }
   }

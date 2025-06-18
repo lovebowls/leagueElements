@@ -744,6 +744,16 @@ export const BASE_STYLES = `
               </div>
           </div>
 
+          <!-- League Schedule panel -->
+          <div id="league-schedule-panel" class="panel" style="display:none;">
+              <div class="panel-header panel-header-shared">
+                <span>Schedule</span>
+              </div>
+              <div class="panel-content panel-content-shared">
+                <league-schedule id="admin-league-schedule"></league-schedule>
+              </div>
+          </div>
+
           <!-- REMOVED The entire matches-panel div -->
           <!-- 
           <div id="matches-panel" class="panel" style="display:none;">

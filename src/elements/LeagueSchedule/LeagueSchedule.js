@@ -35,6 +35,7 @@ import {
  * @attr {boolean} [is-mobile] - Whether to use mobile styles
  * @attr {boolean} [can-edit] - Whether to show edit buttons for matches
  * @attr {string} [filter-date] - Date filter in YYYY-MM-DD format
+ * @attr {string} [selected-team] - Team ID to filter matches by
  *
  * Emits 'league-schedule-event' with detail { type: 'matchClick', match }
  * Emits 'league-schedule-event' with detail { type: 'matchEdit', match }
@@ -57,7 +58,7 @@ class LeagueSchedule extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['data', 'is-mobile', 'can-edit', 'filter-date'];
+    return ['data', 'is-mobile', 'can-edit', 'filter-date', 'selected-team'];
   }
 
   connectedCallback() {
@@ -79,6 +80,10 @@ class LeagueSchedule extends HTMLElement {
       this.render();
     } else if (name === 'filter-date') {
       this.filterDate = newValue || null;
+      this.currentPage = 1; // Reset to first page when filter changes
+      this.render();
+    } else if (name === 'selected-team') {
+      this.selectedTeamId = newValue || null;
       this.currentPage = 1; // Reset to first page when filter changes
       this.render();
     }
