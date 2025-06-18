@@ -321,9 +321,6 @@ export const BASE_STYLES = `
         gap: var(--le-padding-s, 0.5rem);
         margin-bottom: var(--le-padding-s, 0.5rem);
       }
-      #graph-type-select {
-        /* Remove old styling in favor of dropdown-select-shared */
-      }
       .trends-content-area {
         flex: 1; 
         display: flex;
@@ -414,10 +411,6 @@ export const BASE_STYLES = `
         align-items: center;
         gap: var(--le-padding-s, 0.5rem);
         margin-bottom: var(--le-padding-s, 0.5rem);
-      }
-      
-      #graph-type-select {
-        /* Remove old styling in favor of dropdown-select-shared */
       }
 
       td.position-cell {
@@ -694,11 +687,7 @@ export const BASE_STYLES = `
         height: 16px; /* Increased size */
         margin: 0 2px 0 2px; /* Increased margin */
       }
-      /* Increased spacing for select dropdowns in mobile */
-      .table-view-filter {
-        padding: var(--le-padding-s) var(--le-padding-m);
-        font-size: var(--le-font-size-medium);
-      }
+
     `;
 
   // Desktop-specific styles

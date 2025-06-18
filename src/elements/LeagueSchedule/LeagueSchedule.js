@@ -54,7 +54,6 @@ class LeagueSchedule extends HTMLElement {
     this.selectedTeamId = null;
     this.filterDate = null; // YYYY-MM-DD format
     this.error = null;
-    this.showExportMenu = false;
   }
 
   static get observedAttributes() {
@@ -67,14 +66,6 @@ class LeagueSchedule extends HTMLElement {
     }
     
     this.render();
-    
-    // Close export menu when clicking outside
-    document.addEventListener('click', (e) => {
-      if (this.showExportMenu && !e.composedPath().includes(this.shadow.querySelector('.export-dropdown'))) {
-        this.showExportMenu = false;
-        this.render();
-      }
-    });
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -330,10 +321,7 @@ class LeagueSchedule extends HTMLElement {
   /**
    * Toggles the export menu
    */
-  toggleExportMenu = () => {
-    this.showExportMenu = !this.showExportMenu;
-    this.render();
-  }
+
 
   /**
    * Exports the data in the specified format
@@ -442,17 +430,15 @@ class LeagueSchedule extends HTMLElement {
             ` : ''}
           </div>
           
-          <div class="export-dropdown">
-            <button class="btn btn-secondary" id="export-button">
-              Export <span class="dropdown-arrow">▼</span>
-            </button>
-            <div class="export-menu ${this.showExportMenu ? 'show' : ''}" id="export-menu">
-              <button data-format="excel">Excel</button>
-              <button data-format="word">Word</button>
-              <button data-format="pdf">PDF</button>
-              <button data-format="json">JSON</button>
-              <button data-format="csv">CSV</button>
-            </div>
+          <div class="dropdown-shared">
+            <select id="export-select" class="dropdown-select-shared">
+              <option value="">Export...</option>
+              <option value="excel">Excel</option>
+              <option value="word">Word</option>
+              <option value="pdf">PDF</option>
+              <option value="json">JSON</option>
+              <option value="csv">CSV</option>
+            </select>
           </div>
         </div>
         
@@ -578,22 +564,16 @@ class LeagueSchedule extends HTMLElement {
       clearFiltersBtn.addEventListener('click', this.clearFilters);
     }
     
-    // Export button and dropdown
-    const exportBtn = this.shadow.querySelector('#export-button');
-    const exportMenu = this.shadow.querySelector('#export-menu');
-    if (exportBtn && exportMenu) {
-      exportBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.toggleExportMenu();
-      });
-      
-      // Export format buttons
-      const formatButtons = this.shadow.querySelectorAll('#export-menu button');
-      formatButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const format = button.getAttribute('data-format');
+    // Export dropdown
+    const exportSelect = this.shadow.querySelector('#export-select');
+    if (exportSelect) {
+      exportSelect.addEventListener('change', (e) => {
+        const format = e.target.value;
+        if (format) {
           this.exportData(format);
-        });
+          // Reset the select to show "Export..." again
+          e.target.value = '';
+        }
       });
     }
     

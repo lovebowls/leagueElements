@@ -49,51 +49,7 @@ export const BASE_STYLES = `
     min-width: 200px;
   }
   
-  .export-dropdown {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .export-dropdown button {
-    width: auto;
-    min-width: auto;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.85em;
-  }
-  
-  .export-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background-color: var(--le-background-color-panel, #fff);
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 10;
-    border-radius: var(--le-border-radius-small, 3px);
-    border: 1px solid var(--le-border-color-medium, #ddd);
-  }
-  
-  .export-menu.show {
-    display: block;
-  }
-  
-  .export-menu button {
-    color: var(--le-text-color-primary, #333);
-    padding: var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
-    text-decoration: none;
-    display: block;
-    text-align: left;
-    width: 100%;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: var(--le-font-size-base, 1em);
-  }
-  
-  .export-menu button:hover {
-    background-color: var(--le-background-color-hover, #f1f1f1);
-  }
+
   
   .schedule-table {
     width: 100%;
@@ -312,11 +268,11 @@ export const MOBILE_STYLES = `
     min-width: unset;
   }
   
-  .filter-panel .export-dropdown {
+  .filter-panel .dropdown-shared {
     width: 100%;
   }
   
-  .filter-panel .export-dropdown button {
+  .filter-panel .dropdown-shared .dropdown-select-shared {
     width: 100%;
   }
   
@@ -435,13 +391,12 @@ export const DESKTOP_STYLES = `
   }
   
   /* Desktop export dropdown */
-  .export-dropdown {
+  .dropdown-shared {
     width: auto;
   }
   
-  .export-dropdown button {
+  .dropdown-shared .dropdown-select-shared {
     width: auto;
-    font-size: 0.85em;
   }
 `;
 
