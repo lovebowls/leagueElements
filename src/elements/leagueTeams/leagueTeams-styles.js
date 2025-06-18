@@ -90,6 +90,7 @@ export const BASE_STYLES = `
   .footer-buttons {
     display: flex;
     gap: var(--le-padding-m, 1rem);
+    justify-content: flex-end;
   }
 
   .checkbox-label {

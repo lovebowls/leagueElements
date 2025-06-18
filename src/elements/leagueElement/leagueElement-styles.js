@@ -185,6 +185,14 @@ export const BASE_STYLES = `
         font-weight: bold;
       }
 
+      /* Schedule Styles */
+      .schedule-container {
+        overflow: auto; /* For scrolling */
+        flex: 1; /* Take available space if parent is flex column */
+        padding: var(--le-padding-m);
+        height: 100%;
+      }
+      
       /* Matrix Styles */
       .matrix-container {
         overflow: auto; /* For scrolling */
@@ -843,6 +851,7 @@ export const BASE_STYLES = `
         <div class="left-panel">
           <div class="tab-bar">
             <button class="tab-button active" data-view="table">Table</button>
+            <button class="tab-button" data-view="schedule">Schedule</button>
             <button class="tab-button" data-view="matrix">Matrix</button>
             <button class="tab-button" data-view="trends">Trends</button>
             <span class="settings-icon" title="Edit League Settings">⚙️</span>
@@ -866,6 +875,12 @@ export const BASE_STYLES = `
                   {{tableRows}}
                 </tbody>
               </table>
+            </div>
+          </div>
+          <div class="view-container" id="mobile-schedule-view" style="display: none;">
+            <div class="title">{{title}} - Schedule</div>
+            <div class="schedule-container">
+              <league-schedule id="mobile-schedule" is-mobile="true" can-edit="true"></league-schedule>
             </div>
           </div>
           <div class="view-container" id="mobile-matrix-view" style="display: none;">
@@ -902,6 +917,7 @@ export const BASE_STYLES = `
         <div class="left-panel">
           <div class="tab-bar">
             <button class="tab-button active" data-view="table">Table</button>
+            <button class="tab-button" data-view="schedule">Schedule</button>
             <button class="tab-button" data-view="matrix">Matrix</button>
             <button class="tab-button" data-view="trends">Trends</button>
             <span class="settings-icon" title="Edit League Settings">⚙️</span>
@@ -925,6 +941,12 @@ export const BASE_STYLES = `
                   {{tableRows}}
                 </tbody>
               </table>
+            </div>
+          </div>
+          <div class="view-container" id="desktop-schedule-view" style="display: none;">
+            <div class="title">{{title}} - Schedule</div>
+            <div class="schedule-container">
+              <league-schedule id="desktop-schedule" can-edit="true"></league-schedule>
             </div>
           </div>
           <div class="view-container" id="desktop-matrix-view" style="display: none;">

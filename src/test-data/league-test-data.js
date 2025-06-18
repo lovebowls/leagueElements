@@ -229,26 +229,74 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
     [allMatchPairs[i], allMatchPairs[j]] = [allMatchPairs[j], allMatchPairs[i]];
   }
   
-  // Generate matches with dates
-  allMatchPairs.forEach((matchPair, index) => {
-    const isPastMatch = index < pastMatchCount;
-    
-    let matchDate;
-    if (isPastMatch) {
-      // Past matches: spread over the last 12 weeks
-      const weeksAgo = Math.floor((index / pastMatchCount) * 12);
-      const daysAgo = (weeksAgo * 7) + Math.floor(Math.random() * 7);
-      matchDate = new Date(today);
-      matchDate.setDate(today.getDate() - daysAgo);
-    } else {
-      // Future matches: spread over the next 8 weeks
-      const futureIndex = index - pastMatchCount;
-      const totalFutureMatches = allMatchPairs.length - pastMatchCount;
-      const weeksAhead = Math.floor((futureIndex / totalFutureMatches) * 8) + 1;
-      const daysAhead = (weeksAhead * 7) + Math.floor(Math.random() * 7);
-      matchDate = new Date(today);
-      matchDate.setDate(today.getDate() + daysAhead);
+  // Generate matches with dates, ensuring no team plays twice on the same date
+  const teamSchedules = new Map(); // Track when each team is playing
+  const scheduledMatches = [];
+  
+  // Initialize team schedules
+  teams.forEach(team => {
+    teamSchedules.set(team._id, new Set());
+  });
+  
+  // Helper function to find a valid date for a match
+  function findValidMatchDate(homeTeamId, awayTeamId, isPastMatch, baseDate, maxAttempts = 50) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      let candidateDate;
+      
+      if (isPastMatch) {
+        // Past matches: spread over the last 12 weeks with some randomness
+        const daysRange = 12 * 7; // 12 weeks
+        const daysAgo = Math.floor(Math.random() * daysRange);
+        candidateDate = new Date(baseDate);
+        candidateDate.setDate(baseDate.getDate() - daysAgo);
+      } else {
+        // Future matches: spread over the next 8 weeks with some randomness
+        const daysRange = 8 * 7; // 8 weeks
+        const daysAhead = Math.floor(Math.random() * daysRange) + 1;
+        candidateDate = new Date(baseDate);
+        candidateDate.setDate(baseDate.getDate() + daysAhead);
+      }
+      
+      const dateKey = candidateDate.toISOString().split('T')[0];
+      const homeTeamSchedule = teamSchedules.get(homeTeamId);
+      const awayTeamSchedule = teamSchedules.get(awayTeamId);
+      
+      // Check if either team already has a match on this date
+      if (!homeTeamSchedule.has(dateKey) && !awayTeamSchedule.has(dateKey)) {
+        // Mark both teams as busy on this date
+        homeTeamSchedule.add(dateKey);
+        awayTeamSchedule.add(dateKey);
+        return candidateDate;
+      }
     }
+    
+    // If we can't find a conflict-free date, fall back to a sequential approach
+    // This ensures we always find a date even if the random approach fails
+    let fallbackDate = new Date(baseDate);
+    if (isPastMatch) {
+      fallbackDate.setDate(baseDate.getDate() - (scheduledMatches.length * 2)); // Space out by 2 days
+    } else {
+      fallbackDate.setDate(baseDate.getDate() + (scheduledMatches.length * 2)); // Space out by 2 days
+    }
+    
+    const dateKey = fallbackDate.toISOString().split('T')[0];
+    teamSchedules.get(homeTeamId).add(dateKey);
+    teamSchedules.get(awayTeamId).add(dateKey);
+    return fallbackDate;
+  }
+  
+  // Schedule past matches first (they have priority for realistic dates)
+  const pastMatches = allMatchPairs.slice(0, pastMatchCount);
+  const futureMatches = allMatchPairs.slice(pastMatchCount);
+  
+  // Schedule past matches
+  pastMatches.forEach((matchPair, index) => {
+    const matchDate = findValidMatchDate(
+      matchPair.homeTeam._id,
+      matchPair.awayTeam._id,
+      true,
+      today
+    );
     
     const homeSkill = teamSkills.get(matchPair.homeTeam._id);
     const awaySkill = teamSkills.get(matchPair.awayTeam._id);
@@ -259,10 +307,41 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
       matchDate,
       homeSkill,
       awaySkill,
-      isPastMatch
+      true // isPastMatch
     );
     
-    // Add the match data directly to the league's matches array
+    scheduledMatches.push(matchData);
+  });
+  
+  // Schedule future matches
+  futureMatches.forEach((matchPair, index) => {
+    const matchDate = findValidMatchDate(
+      matchPair.homeTeam._id,
+      matchPair.awayTeam._id,
+      false,
+      today
+    );
+    
+    const homeSkill = teamSkills.get(matchPair.homeTeam._id);
+    const awaySkill = teamSkills.get(matchPair.awayTeam._id);
+    
+    const matchData = generateTestMatch(
+      matchPair.homeTeam,
+      matchPair.awayTeam,
+      matchDate,
+      homeSkill,
+      awaySkill,
+      false // isPastMatch
+    );
+    
+    scheduledMatches.push(matchData);
+  });
+  
+  // Sort matches by date for a more realistic schedule
+  scheduledMatches.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Add all scheduled matches to the league
+  scheduledMatches.forEach(matchData => {
     league.matches.push(matchData);
   });
   

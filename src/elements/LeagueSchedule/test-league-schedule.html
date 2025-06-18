@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeagueSchedule Component Test</title>
+  <style>
+    body {
+      font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    
+    .controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      border: 1px solid #eee;
+    }
+    
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #1976d2;
+    }
+    
+    .responsive-toggle {
+      margin-top: 10px;
+    }
+    
+    .responsive-toggle label {
+      margin-right: 10px;
+    }
+    
+    .event-log {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      border: 1px solid #eee;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .event-log h3 {
+      margin-top: 0;
+    }
+    
+    .event-log pre {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>LeagueSchedule Component Test</h1>
+    
+    <div class="controls">
+      <button id="load-data">Load Sample Data</button>
+      <button id="clear-data">Clear Data</button>
+      
+      <div class="responsive-toggle">
+        <label>
+          <input type="checkbox" id="mobile-toggle"> Mobile View
+        </label>
+        <label>
+          <input type="checkbox" id="edit-toggle" checked> Enable Editing
+        </label>
+      </div>
+      
+      <div style="margin-top: 10px;">
+        <strong>Export Test Buttons:</strong><br>
+        <button id="test-csv">Test CSV Export</button>
+        <button id="test-excel">Test Excel Export</button>
+        <button id="test-word">Test Word Export</button>
+        <button id="test-pdf">Test PDF Export</button>
+        <button id="test-json">Test JSON Export</button>
+      </div>
+    </div>
+    
+    <league-schedule id="schedule-component" can-edit="true"></league-schedule>
+    
+    <div class="event-log">
+      <h3>Event Log</h3>
+      <pre id="event-log"></pre>
+    </div>
+  </div>
+  
+  <script type="module">
+    import LeagueSchedule from './LeagueSchedule.js';
+    
+    // Sample data
+    const sampleData = {
+      teams: [
+        { _id: 'team1', name: 'Team Alpha' },
+        { _id: 'team2', name: 'Team Beta' },
+        { _id: 'team3', name: 'Team Gamma' },
+        { _id: 'team4', name: 'Team Delta' },
+        { _id: 'team5', name: 'Team Epsilon' },
+        { _id: 'team6', name: 'Team Zeta' }
+      ],
+      matches: [
+        {
+          _id: 'match1',
+          date: '2023-06-01T18:00:00',
+          homeTeam: { _id: 'team1', name: 'Team Alpha' },
+          awayTeam: { _id: 'team2', name: 'Team Beta' },
+          result: {
+            played: true,
+            homeScore: 3,
+            awayScore: 1,
+            homePoints: 2,
+            awayPoints: 0,
+            rinkPointsUsed: false
+          }
+        },
+        {
+          _id: 'match2',
+          date: '2023-06-05T19:30:00',
+          homeTeam: { _id: 'team3', name: 'Team Gamma' },
+          awayTeam: { _id: 'team4', name: 'Team Delta' },
+          result: {
+            played: true,
+            homeScore: 2,
+            awayScore: 2,
+            homePoints: 1,
+            awayPoints: 1,
+            rinkPointsUsed: false
+          }
+        },
+        {
+          _id: 'match3',
+          date: '2023-06-10T15:00:00',
+          homeTeam: { _id: 'team5', name: 'Team Epsilon' },
+          awayTeam: { _id: 'team6', name: 'Team Zeta' },
+          result: {
+            played: true,
+            homeScore: 0,
+            awayScore: 3,
+            homePoints: 0,
+            awayPoints: 2,
+            rinkPointsUsed: false
+          }
+        },
+        {
+          _id: 'match4',
+          date: '2023-06-15T18:00:00',
+          homeTeam: { _id: 'team2', name: 'Team Beta' },
+          awayTeam: { _id: 'team3', name: 'Team Gamma' },
+          result: {
+            played: true,
+            homeScore: 1,
+            awayScore: 0,
+            homePoints: 2,
+            awayPoints: 0,
+            rinkPointsUsed: false
+          }
+        },
+        {
+          _id: 'match5',
+          date: '2023-06-20T20:00:00',
+          homeTeam: { _id: 'team4', name: 'Team Delta' },
+          awayTeam: { _id: 'team1', name: 'Team Alpha' },
+          result: {
+            played: true,
+            homeScore: 2,
+            awayScore: 4,
+            homePoints: 0,
+            awayPoints: 2,
+            rinkPointsUsed: false
+          }
+        },
+        {
+          _id: 'match6',
+          date: '2023-06-25T16:30:00',
+          homeTeam: { _id: 'team6', name: 'Team Zeta' },
+          awayTeam: { _id: 'team5', name: 'Team Epsilon' },
+          result: null
+        }
+      ]
+    };
+    
+    // Generate more matches for testing pagination
+    for (let i = 0; i < 30; i++) {
+      const teamIndices = [
+        Math.floor(Math.random() * 6),
+        Math.floor(Math.random() * 6)
+      ];
+      
+      // Ensure home and away teams are different
+      if (teamIndices[0] === teamIndices[1]) {
+        teamIndices[1] = (teamIndices[1] + 1) % 6;
+      }
+      
+      const homeTeamId = 'team' + (teamIndices[0] + 1);
+      const awayTeamId = 'team' + (teamIndices[1] + 1);
+      const homeTeam = sampleData.teams.find(t => t._id === homeTeamId);
+      const awayTeam = sampleData.teams.find(t => t._id === awayTeamId);
+      
+      // Random date in 2023
+      const month = Math.floor(Math.random() * 12) + 1;
+      const day = Math.floor(Math.random() * 28) + 1;
+      const date = '2023-' + month.toString().padStart(2, '0') + '-' + day.toString().padStart(2, '0') + 'T18:00:00';
+      
+      // 50% chance of having a result
+      const hasResult = Math.random() > 0.5;
+      let result = null;
+      
+      if (hasResult) {
+        const homeScore = Math.floor(Math.random() * 5);
+        const awayScore = Math.floor(Math.random() * 5);
+        const homePoints = homeScore > awayScore ? 2 : (homeScore === awayScore ? 1 : 0);
+        const awayPoints = awayScore > homeScore ? 2 : (homeScore === awayScore ? 1 : 0);
+        
+        result = {
+          played: true,
+          homeScore,
+          awayScore,
+          homePoints,
+          awayPoints,
+          rinkPointsUsed: false
+        };
+      }
+      
+      sampleData.matches.push({
+        _id: 'match' + (13 + i),
+        date,
+        homeTeam,
+        awayTeam,
+        result
+      });
+    }
+    
+    // DOM elements
+    const scheduleComponent = document.getElementById('schedule-component');
+    const loadDataButton = document.getElementById('load-data');
+    const clearDataButton = document.getElementById('clear-data');
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const editToggle = document.getElementById('edit-toggle');
+    const eventLog = document.getElementById('event-log');
+    
+    // Export test buttons
+    const testCsvButton = document.getElementById('test-csv');
+    const testExcelButton = document.getElementById('test-excel');
+    const testWordButton = document.getElementById('test-word');
+    const testPdfButton = document.getElementById('test-pdf');
+    const testJsonButton = document.getElementById('test-json');
+    
+    // Event handlers
+    loadDataButton.addEventListener('click', () => {
+      scheduleComponent.setAttribute('data', JSON.stringify(sampleData));
+      logEvent('Data loaded');
+    });
+    
+    clearDataButton.addEventListener('click', () => {
+      scheduleComponent.setAttribute('data', JSON.stringify({ teams: [], matches: [] }));
+      logEvent('Data cleared');
+    });
+    
+    mobileToggle.addEventListener('change', (e) => {
+      scheduleComponent.setAttribute('is-mobile', e.target.checked.toString());
+      logEvent('Mobile view: ' + e.target.checked);
+    });
+    
+    editToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        scheduleComponent.setAttribute('can-edit', 'true');
+      } else {
+        scheduleComponent.removeAttribute('can-edit');
+      }
+      logEvent('Edit mode: ' + e.target.checked);
+    });
+    
+    // Export test button handlers
+    testCsvButton.addEventListener('click', () => {
+      scheduleComponent.exportData('csv');
+      logEvent('Manual CSV export triggered');
+    });
+    
+    testExcelButton.addEventListener('click', () => {
+      scheduleComponent.exportData('excel');
+      logEvent('Manual Excel export triggered');
+    });
+    
+    testWordButton.addEventListener('click', () => {
+      scheduleComponent.exportData('word');
+      logEvent('Manual Word export triggered');
+    });
+    
+    testPdfButton.addEventListener('click', () => {
+      scheduleComponent.exportData('pdf');
+      logEvent('Manual PDF export triggered');
+    });
+    
+    testJsonButton.addEventListener('click', () => {
+      scheduleComponent.exportData('json');
+      logEvent('Manual JSON export triggered');
+    });
+    
+    // Listen for component events
+    scheduleComponent.addEventListener('league-schedule-event', (e) => {
+      logEvent('Event: ' + e.detail.type, e.detail);
+    });
+    
+    // Helper function to log events
+    function logEvent(message, data = null) {
+      const timestamp = new Date().toLocaleTimeString();
+      let logMessage = '[' + timestamp + '] ' + message;
+      
+      if (data) {
+        logMessage += '\n' + JSON.stringify(data, null, 2);
+      }
+      
+      eventLog.textContent = logMessage + '\n\n' + eventLog.textContent;
+    }
+    
+    // Initialize with sample data
+    loadDataButton.click();
+  </script>
+</body>
+</html> 

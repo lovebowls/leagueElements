@@ -1596,10 +1596,17 @@ class LeagueAdminElement extends HTMLElement {
                 leagueData.matches = originalLeague.matches;
             }
         }
+    } else if (this._modalMode === 'copy') {
+      const originalLeague = this._getSelectedLeague();
+      if (originalLeague) {
+        // For a copy, preserve the teams but reset the matches
+        leagueData.teams = originalLeague.teams || [];
+        leagueData.matches = [];
+      }
     }
     
-    // Store information if this is a new league creation
-    if (this._modalMode === 'new') {
+    // Store information if this is a new league creation or copy
+    if (this._modalMode === 'new' || this._modalMode === 'copy') {
       this._pendingNewLeagueData = leagueData;
       this._isWaitingForNewLeagueConfirmation = true;
     }
@@ -1644,10 +1651,11 @@ class LeagueAdminElement extends HTMLElement {
     if (newLeague) {
       // Reset the waiting state
       this._isWaitingForNewLeagueConfirmation = false;
+      const leagueDataBeforeConfirmation = this._pendingNewLeagueData;
       this._pendingNewLeagueData = null;
       
       // Show the confirmation dialog
-      this._showNewLeagueConfirmationDialog(newLeague);
+      this._showNewLeagueConfirmationDialog(newLeague, leagueDataBeforeConfirmation);
     }
   }
 
@@ -1655,14 +1663,17 @@ class LeagueAdminElement extends HTMLElement {
    * Show confirmation dialog after creating a new league
    * @param {Object} newLeague - The newly created league object
    */
-  _showNewLeagueConfirmationDialog(newLeague) {
+  _showNewLeagueConfirmationDialog(newLeague, originalData) {
     const leagueName = newLeague.name || 'your new league';
+    const isCopy = originalData.teams && originalData.teams.length > 0;
+    const title = isCopy ? 'League Copied Successfully!' : 'League Created Successfully!';
+    const mainText = isCopy ? `"${leagueName}" has been copied successfully.` : `"${leagueName}" has been created successfully.`;
     
     Swal.default.fire({
       customClass: this._getSwalCustomClasses(),
-      title: 'League Created Successfully!',
+      title: title,
       html: `
-        <p>"${leagueName}" has been created successfully.</p>
+        <p>${mainText}</p>
         <div style="margin-top: 1rem;">
           <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer;">
             <input type="checkbox" id="setupTeams" checked style="margin: 0;">

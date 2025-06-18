@@ -14,6 +14,7 @@ import '../LeagueMatchesUpcoming/LeagueMatchesUpcoming.js';
 import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
 import '../leagueCalendar/LeagueCalendar.js';
+import '../LeagueSchedule/LeagueSchedule.js';
 
 import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
@@ -41,6 +42,7 @@ class LeagueElement extends HTMLElement {
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
     this.lovebowlsTeams = []; // Store lovebowls teams data
+    this._handleScheduleMatchEditBound = null; // Bound function for schedule match edit events
     this.shadow.host.addEventListener('league-calendar-event', this._handleCalendarDateChange.bind(this)); // ADDED event listener
   }
 
@@ -285,6 +287,31 @@ class LeagueElement extends HTMLElement {
         this._handleUpcomingMatchClickBound = this._handleUpcomingMatchClick.bind(this);
         upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Remove previous if any
         upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Listen for general events
+      }
+      
+      // Configure the schedule component
+      const scheduleElement = this.shadow.querySelector(this._isMobile ? '#mobile-schedule' : '#desktop-schedule');
+      if (scheduleElement) {
+        scheduleElement.setAttribute('is-mobile', this._isMobile.toString());
+        
+        if (this.data) {
+          // Pass the entire league data to the schedule component
+          scheduleElement.setAttribute('data', JSON.stringify(this.data));
+        } else {
+          console.warn('[LeagueElement] render: this.data is NOT available for scheduleElement.');
+        }
+        
+        // Pass the current filter date to the schedule component
+        if (this.activeCalendarFilterDate) {
+          scheduleElement.setAttribute('filter-date', this.activeCalendarFilterDate);
+        } else {
+          scheduleElement.removeAttribute('filter-date');
+        }
+        
+        // If the schedule view is active, set up its event listeners
+        if (this.activeView === 'schedule') {
+          this._setupScheduleEventListeners();
+        }
       }
 
       // ADDED: Configure the league-calendar component
@@ -705,9 +732,11 @@ class LeagueElement extends HTMLElement {
   setupTabs() {
     const tabs = this.shadow.querySelectorAll('.tab-button');
     const tableViewDesktop = this.shadow.querySelector('#desktop-table-view');
+    const scheduleViewDesktop = this.shadow.querySelector('#desktop-schedule-view');
     const matrixViewDesktop = this.shadow.querySelector('#desktop-matrix-view');
     const trendsViewDesktop = this.shadow.querySelector('#desktop-trends-view');
     const tableViewMobile = this.shadow.querySelector('#mobile-table-view');
+    const scheduleViewMobile = this.shadow.querySelector('#mobile-schedule-view');
     const matrixViewMobile = this.shadow.querySelector('#mobile-matrix-view');
     const trendsViewMobile = this.shadow.querySelector('#mobile-trends-view');
 
@@ -721,13 +750,16 @@ class LeagueElement extends HTMLElement {
     });
 
     const isTableActive = this.activeView === 'table';
+    const isScheduleActive = this.activeView === 'schedule';
     const isMatrixActive = this.activeView === 'matrix';
     const isTrendsActive = this.activeView === 'trends';
 
     if (tableViewDesktop) tableViewDesktop.style.display = isTableActive ? '' : 'none';
+    if (scheduleViewDesktop) scheduleViewDesktop.style.display = isScheduleActive ? '' : 'none';
     if (matrixViewDesktop) matrixViewDesktop.style.display = isMatrixActive ? '' : 'none';
     if (trendsViewDesktop) trendsViewDesktop.style.display = isTrendsActive ? '' : 'none';
     if (tableViewMobile) tableViewMobile.style.display = isTableActive ? '' : 'none';
+    if (scheduleViewMobile) scheduleViewMobile.style.display = isScheduleActive ? '' : 'none';
     if (matrixViewMobile) matrixViewMobile.style.display = isMatrixActive ? '' : 'none';
     if (trendsViewMobile) trendsViewMobile.style.display = isTrendsActive ? '' : 'none';
     
@@ -748,6 +780,11 @@ class LeagueElement extends HTMLElement {
             // Set up matrix event listeners after DOM is ready
             Promise.resolve().then(() => {
                 this.setupMatrixEventListeners();
+            });
+          } else if (this.activeView === 'schedule') {
+            // Set up schedule event listeners after DOM is ready
+            Promise.resolve().then(() => {
+                this._setupScheduleEventListeners();
             });
           }
         }
@@ -2884,6 +2921,57 @@ class LeagueElement extends HTMLElement {
         console.log('Clicked empty matrix cell - could create new match');
       });
     });
+  }
+
+  /**
+   * Sets up event listeners for the schedule view and configures the component
+   * @private
+   */
+  _setupScheduleEventListeners() {
+    const scheduleElement = this.shadow.querySelector(this._isMobile ? '#mobile-schedule' : '#desktop-schedule');
+    
+    if (scheduleElement) {
+      // Data transformation is now handled in render() method
+      // Just set up event listeners here
+      
+      // Remove any existing listeners to prevent duplicates
+      if (this._handleScheduleMatchEditBound) {
+        scheduleElement.removeEventListener('league-schedule-event', this._handleScheduleMatchEditBound);
+      }
+      
+      // Create bound function if it doesn't exist
+      this._handleScheduleMatchEditBound = this._handleScheduleMatchEdit.bind(this);
+      
+      // Add event listener for schedule events
+      scheduleElement.addEventListener('league-schedule-event', this._handleScheduleMatchEditBound);
+    }
+  }
+  
+  /**
+   * Handles match edit events from the schedule component
+   * @param {CustomEvent} e - The event object
+   * @private
+   */
+  _handleScheduleMatchEdit(e) {
+    if (!e.detail) return;
+    
+    const { type, match } = e.detail;
+    
+    if (type === 'matchEdit' && match) {
+      // Open the match modal for editing
+      const teams = this.data && this.data.teams ? this.data.teams : [];
+      this.openMatchModal(match, teams, 'edit');
+    } else if (type === 'matchClick' && match) {
+      // Just dispatch the event for now
+      this.dispatchEvent(new LeagueEvent({
+        type: 'matchClick',
+        match
+      }));
+    } else if (type === 'filterClear') {
+      // Clear the date filter when schedule component requests it
+      this.activeCalendarFilterDate = null;
+      this.render(); // Re-render to update all components
+    }
   }
   // END - Matrix View Methods
 }

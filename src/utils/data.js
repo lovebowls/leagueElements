@@ -1,5 +1,6 @@
 // data.js - Data utilities for league management
 import { Match } from '@lovebowls/leaguejs';
+import writeXlsxFile from 'write-excel-file';
 
 /**
  * Generate a unique ID for data purposes
@@ -731,4 +732,394 @@ function generateScheduleDates(schedulingParams, totalMatches) {
   }
   
   return dates;
+}
+
+/**
+ * Export matches to CSV format and trigger download
+ * @param {Array} matches - Array of match objects
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export function exportMatchesToCSV(matches, filename = 'league-matches') {
+  if (!matches || !Array.isArray(matches)) {
+    console.warn('exportMatchesToCSV: Invalid matches data');
+    return;
+  }
+
+  // CSV headers
+  const headers = ['Date', 'Home Team', 'Away Team', 'Home Score', 'Away Score'];
+  
+  // Convert matches to CSV rows
+  const rows = matches.map(match => {
+    const date = match.date ? new Date(match.date).toLocaleDateString() : 'TBD';
+    const homeTeam = match.homeTeam?.name || 'Unknown';
+    const awayTeam = match.awayTeam?.name || 'Unknown';
+    const homeScore = match.result?.homeScore ?? '';
+    const awayScore = match.result?.awayScore ?? '';
+    
+    return [date, homeTeam, awayTeam, homeScore, awayScore];
+  });
+  
+  // Combine headers and rows
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  
+  // Create and download file
+  downloadFile(csvContent, `${filename}.csv`, 'text/csv');
+}
+
+/**
+ * Export matches to Excel format and trigger download
+ * @param {Array} matches - Array of match objects
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export async function exportMatchesToExcel(matches, filename = 'league-matches') {
+  if (!matches || !Array.isArray(matches)) {
+    console.warn('exportMatchesToExcel: Invalid matches data');
+    return;
+  }
+
+  try {
+    // Define the schema for the Excel file
+    const schema = [
+      {
+        column: 'Date',
+        type: String,
+        value: match => match.date ? new Date(match.date).toLocaleDateString() : 'TBD',
+        width: 12,
+        align: 'left'
+      },
+      {
+        column: 'Home Team',
+        type: String,
+        value: match => match.homeTeam?.name || 'Unknown',
+        width: 25,
+        align: 'left'
+      },
+      {
+        column: 'Away Team',
+        type: String,
+        value: match => match.awayTeam?.name || 'Unknown',
+        width: 25,
+        align: 'left'
+      },
+      {
+        column: 'Home Score',
+        type: String,
+        value: match => match.result?.homeScore?.toString() || '',
+        width: 12,
+        align: 'center'
+      },
+      {
+        column: 'Away Score',
+        type: String,
+        value: match => match.result?.awayScore?.toString() || '',
+        width: 12,
+        align: 'center'
+      }
+    ];
+
+    // Generate the Excel file
+    await writeXlsxFile(matches, {
+      schema,
+      fileName: `${filename}.xlsx`,
+      fontFamily: 'Calibri',
+      fontSize: 11,
+      getHeaderStyle: () => ({
+        fontWeight: 'bold',
+        backgroundColor: '#f2f2f2',
+        align: 'center'
+      })
+    });
+
+    console.log(`Excel file "${filename}.xlsx" has been downloaded successfully`);
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    alert('Error creating Excel file. Please try again.');
+  }
+}
+
+/**
+ * Export matches to Word format and trigger download
+ * @param {Array} matches - Array of match objects
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export function exportMatchesToWord(matches, filename = 'league-matches') {
+  if (!matches || !Array.isArray(matches)) {
+    console.warn('exportMatchesToWord: Invalid matches data');
+    return;
+  }
+
+  // Create HTML document that Word can open
+  let htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>League Matches</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>League Matches Export</h1>
+    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+    <p>Total matches: ${matches.length}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+  matches.forEach(match => {
+    const date = match.date ? new Date(match.date).toLocaleDateString() : 'TBD';
+    const homeTeam = escapeHtml(match.homeTeam?.name || 'Unknown');
+    const awayTeam = escapeHtml(match.awayTeam?.name || 'Unknown');
+    const result = match.result?.played 
+      ? `${match.result.homeScore}-${match.result.awayScore}`
+      : '-';
+    
+    htmlContent += `
+            <tr>
+                <td>${date}</td>
+                <td>${homeTeam}</td>
+                <td>${awayTeam}</td>
+                <td>${result}</td>
+            </tr>`;
+  });
+
+  htmlContent += `
+        </tbody>
+    </table>
+</body>
+</html>`;
+
+  // Create and download file
+  downloadFile(htmlContent, `${filename}.doc`, 'application/msword');
+}
+
+/**
+ * Export matches to PDF format and trigger download
+ * @param {Array} matches - Array of match objects
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export function exportMatchesToPDF(matches, filename = 'league-matches') {
+  if (!matches || !Array.isArray(matches)) {
+    console.warn('exportMatchesToPDF: Invalid matches data');
+    return;
+  }
+
+  // Create a simple HTML structure that can be printed to PDF
+  // Note: This creates an HTML file that users can print to PDF
+  // For true PDF generation, you'd need a library like jsPDF or PDFKit
+  let htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>League Matches</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            font-size: 12px;
+        }
+        h1 { 
+            color: #333; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 10px; 
+            font-size: 18px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px; 
+            page-break-inside: avoid;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 6px; 
+            text-align: left; 
+            font-size: 11px;
+        }
+        th { 
+            background-color: #f2f2f2; 
+            font-weight: bold; 
+        }
+        tr:nth-child(even) { 
+            background-color: #f9f9f9; 
+        }
+        .print-instruction {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-instruction no-print">
+        <strong>Instructions:</strong> Use your browser's print function (Ctrl+P) and select "Save as PDF" to create a PDF file.
+    </div>
+    
+    <h1>League Matches Export</h1>
+    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+    <p>Total matches: ${matches.length}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+  matches.forEach(match => {
+    const date = match.date ? new Date(match.date).toLocaleDateString() : 'TBD';
+    const homeTeam = escapeHtml(match.homeTeam?.name || 'Unknown');
+    const awayTeam = escapeHtml(match.awayTeam?.name || 'Unknown');
+    const result = match.result?.played 
+      ? `${match.result.homeScore}-${match.result.awayScore}`
+      : '-';
+    
+    htmlContent += `
+            <tr>
+                <td>${date}</td>
+                <td>${homeTeam}</td>
+                <td>${awayTeam}</td>
+                <td>${result}</td>
+            </tr>`;
+  });
+
+  htmlContent += `
+        </tbody>
+    </table>
+</body>
+</html>`;
+
+  // Open in new window for printing to PDF
+  const newWindow = window.open('', '_blank');
+  if (newWindow) {
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+    newWindow.focus();
+  } else {
+    // Fallback: download as HTML file
+    downloadFile(htmlContent, `${filename}.html`, 'text/html');
+  }
+}
+
+/**
+ * Export matches to JSON format and trigger download
+ * @param {Array} matches - Array of match objects
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export function exportMatchesToJSON(matches, filename = 'league-matches') {
+  if (!matches || !Array.isArray(matches)) {
+    console.warn('exportMatchesToJSON: Invalid matches data');
+    return;
+  }
+
+  // Create export object with metadata
+  const exportData = {
+    exportDate: new Date().toISOString(),
+    totalMatches: matches.length,
+    matches: matches.map(match => ({
+      id: match._id,
+      date: match.date,
+      homeTeam: {
+        id: match.homeTeam?._id,
+        name: match.homeTeam?.name
+      },
+      awayTeam: {
+        id: match.awayTeam?._id,
+        name: match.awayTeam?.name
+      },
+      result: match.result ? {
+        played: match.result.played,
+        homeScore: match.result.homeScore,
+        awayScore: match.result.awayScore,
+        homePoints: match.result.homePoints,
+        awayPoints: match.result.awayPoints,
+        rinkPointsUsed: match.result.rinkPointsUsed
+      } : null,
+      createdAt: match.createdAt,
+      updatedAt: match.updatedAt
+    }))
+  };
+
+  const jsonContent = JSON.stringify(exportData, null, 2);
+  downloadFile(jsonContent, `${filename}.json`, 'application/json');
+}
+
+/**
+ * Helper function to create and trigger file download
+ * @param {string} content - File content
+ * @param {string} filename - Filename with extension
+ * @param {string} mimeType - MIME type of the file
+ */
+function downloadFile(content, filename, mimeType) {
+  try {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the URL object
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    alert('Error downloading file. Please try again.');
+  }
+}
+
+/**
+ * Helper function to escape XML content
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeXml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * Helper function to escape HTML content
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 } 

@@ -82,7 +82,8 @@
     "@lovebowls/leaguejs": "^0.2.24",
     "jsbi": "^4.3.2",
     "sweetalert2": "^11.22.0",
-    "tslib": "^2.8.1"
+    "tslib": "^2.8.1",
+    "write-excel-file": "^2.3.2"
   },
   "publishConfig": {
     "access": "public"
