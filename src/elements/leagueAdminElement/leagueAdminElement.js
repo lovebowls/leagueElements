@@ -880,7 +880,9 @@ class LeagueAdminElement extends HTMLElement {
   /**
    * Reset matches for a league while preserving teams
    * @param {Object} leagueToReset - The league object to reset matches for
-   * @param {Object} schedulingParams - The scheduling parameters from the modal
+   * @param {Array} generatedMatches - The generated matches array
+   * @param {number} matchCount - The number of matches generated
+   * @param {Object} dateRange - The date range for scheduling matches
    */
   _applyGeneratedMatches(leagueToReset, generatedMatches, matchCount, dateRange) {
     try {

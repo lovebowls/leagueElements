@@ -10,5 +10,19 @@
   "includeVersion": true,
   "hideGenerator": true,
   "categorizeByGroup": true,
-  "categoryOrder": ["Elements", "Types", "*"]
+  "categoryOrder": ["Elements", "Types", "*"],
+  "blockTags": [
+    "@element",
+    "@attr",
+    "@param",
+    "@returns",
+    "@return",
+    "@deprecated",
+    "@private",
+    "@packageDocumentation"
+  ],
+  "modifierTags": [
+    "@deprecated",
+    "@private"
+  ]
 } 
