@@ -35,7 +35,7 @@
     "release": "node scripts/build.js",
     "commit": "node scripts/commit.js",
     "cli": "node scripts/cli.js",
-    "publish": "npm version patch && npm run build:all && npm publish"
+    "publish": "npm version patch && npm publish"
   },
   "keywords": [
     "league",
