@@ -338,7 +338,9 @@ class LeagueMatchesRecent extends HTMLElement {
   }
 }
 
+import { safeDefine } from '../../utils/elementRegistry.js';
+
 // Register the custom element
-customElements.define('league-matches-recent', LeagueMatchesRecent);
+safeDefine('league-matches-recent', LeagueMatchesRecent);
 
 export default LeagueMatchesRecent; 

@@ -349,7 +349,9 @@ class LeagueMatchesAttention extends HTMLElement {
   }
 }
 
+import { safeDefine } from '../../utils/elementRegistry.js';
+
 // Register the custom element
-customElements.define('league-matches-attention', LeagueMatchesAttention);
+safeDefine('league-matches-attention', LeagueMatchesAttention);
 
 export default LeagueMatchesAttention; 

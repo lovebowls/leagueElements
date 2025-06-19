@@ -685,5 +685,7 @@ class LeagueCalendar extends HTMLElement {
   }
 }
 
-customElements.define('league-calendar', LeagueCalendar);
+import { safeDefine } from '../../utils/elementRegistry.js';
+
+safeDefine('league-calendar', LeagueCalendar);
 export default LeagueCalendar; 

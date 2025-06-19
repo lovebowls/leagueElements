@@ -554,6 +554,8 @@ class LeagueResetModal extends HTMLElement {
 }
 
 // Register the custom element
-customElements.define('league-reset-modal', LeagueResetModal);
+import { safeDefine } from '../../utils/elementRegistry.js';
+
+safeDefine('league-reset-modal', LeagueResetModal);
 
 export default LeagueResetModal; 

@@ -934,5 +934,7 @@ class LeagueSchedule extends HTMLElement {
   }
 }
 
-customElements.define('league-schedule', LeagueSchedule);
+import { safeDefine } from '../../utils/elementRegistry.js';
+
+safeDefine('league-schedule', LeagueSchedule);
 export default LeagueSchedule; 

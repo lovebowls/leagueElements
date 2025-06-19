@@ -347,5 +347,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
   }
 }
 
-customElements.define('league-matches-upcoming', LeagueMatchesUpcoming);
+import { safeDefine } from '../../utils/elementRegistry.js';
+
+safeDefine('league-matches-upcoming', LeagueMatchesUpcoming);
 export default LeagueMatchesUpcoming; 

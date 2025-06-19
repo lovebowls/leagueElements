@@ -947,6 +947,8 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
   }
 }
 
-customElements.define('league-match', LeagueMatch);
+import { safeDefine } from '../../utils/elementRegistry.js';
+
+safeDefine('league-match', LeagueMatch);
 
 export default LeagueMatch; 

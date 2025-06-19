@@ -2388,7 +2388,9 @@ class LeagueAdminElement extends HTMLElement {
   }
 }
 
+import { safeDefine } from '../../utils/elementRegistry.js';
+
 // Register the custom element
-customElements.define('league-admin-element', LeagueAdminElement);
+safeDefine('league-admin-element', LeagueAdminElement);
 
 export default LeagueAdminElement;

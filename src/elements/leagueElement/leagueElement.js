@@ -3034,7 +3034,9 @@ class LeagueElement extends HTMLElement {
   // END - Matrix View Methods
 }
 
+import { safeDefine } from '../../utils/elementRegistry.js';
+
 // Register the custom element
-customElements.define('league-element', LeagueElement);
+safeDefine('league-element', LeagueElement);
 
 export default LeagueElement; 

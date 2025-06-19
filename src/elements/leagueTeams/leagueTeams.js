@@ -748,6 +748,8 @@ class LeagueTeams extends HTMLElement {
 }
 
 // Register the custom element
-customElements.define('league-teams', LeagueTeams);
+import { safeDefine } from '../../utils/elementRegistry.js';
+
+safeDefine('league-teams', LeagueTeams);
 
 export default LeagueTeams;

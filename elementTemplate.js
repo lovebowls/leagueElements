@@ -231,6 +231,8 @@ class ElementTemplate extends HTMLElement {
 }
 
 // Register the custom element
-customElements.define('element-template', ElementTemplate);
+import { safeDefine } from './src/utils/elementRegistry.js';
+
+safeDefine('element-template', ElementTemplate);
 
 export default ElementTemplate; 
