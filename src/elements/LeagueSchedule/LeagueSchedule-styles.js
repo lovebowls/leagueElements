@@ -141,6 +141,45 @@ export const BASE_STYLES = `
     background-color: var(--le-background-color-selected, #e6f7ff);
   }
   
+  /* Match state styles */
+  .match-row.past-with-result {
+    opacity: 0.6;
+    color: var(--le-text-color-secondary, #666);
+  }
+  
+  .match-row.past-with-result td {
+    color: var(--le-text-color-secondary, #666);
+  }
+  
+  .match-row.past-with-result:hover {
+    background-color: rgba(249, 249, 249, 0.8);
+  }
+  
+  .match-row.past-no-result {
+    background-color: #fff5f5;
+    border-left: 4px solid #ff6b6b;
+  }
+  
+  .match-row.past-no-result:hover {
+    background-color: #ffebeb;
+  }
+  
+  .match-row.past-no-result td {
+    color: #d63031;
+    font-weight: 500;
+  }
+  
+  .match-row.past-no-result .result-col {
+    font-style: normal;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1.2em;
+  }
+  
+  .match-row.future {
+    /* Keep normal styling for future matches */
+  }
+  
   .match-actions {
     display: flex;
     justify-content: center;
@@ -151,6 +190,11 @@ export const BASE_STYLES = `
   
   .match-row:hover .match-actions,
   .match-row.selected .match-actions {
+    opacity: 1;
+  }
+  
+  /* Show actions immediately for past matches without results */
+  .match-row.past-no-result .match-actions {
     opacity: 1;
   }
   
@@ -244,6 +288,34 @@ export const BASE_STYLES = `
     border-radius: var(--le-border-radius-standard, 4px);
     margin-bottom: var(--le-padding-s, 0.5rem);
   }
+  
+  /* Needs attention styles */
+  .match-row.needs-attention {
+    background-color: #fff8e1; /* Light yellow background for attention */
+    border-left: 4px solid #ff9800; /* Orange border for attention */
+  }
+
+  .match-row.needs-attention:hover {
+    background-color: #ffecb3; /* Slightly darker yellow on hover */
+  }
+
+  .match-row.needs-attention td {
+    color: #e65100; /* Dark orange text for attention */
+    font-weight: 500;
+  }
+
+  .match-row.needs-attention .result-col {
+    font-style: normal;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1.2em;
+  }
+
+  /* Mobile needs attention styles */
+  .schedule-table .match-row.needs-attention {
+    border-left: 4px solid #ff9800;
+    background-color: #fff8e1;
+  }
 `;
 
 export const MOBILE_STYLES = `
@@ -295,6 +367,12 @@ export const MOBILE_STYLES = `
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-standard, 4px);
     padding: var(--le-padding-xs, 0.25rem);
+  }
+  
+  /* Mobile match state styles */
+  .match-row.past-no-result {
+    border-left: 4px solid #ff6b6b;
+    background-color: #fff5f5;
   }
   
   .schedule-table td {
@@ -387,6 +465,11 @@ export const DESKTOP_STYLES = `
   
   .match-row:hover .match-actions,
   .match-row.selected .match-actions {
+    opacity: 1;
+  }
+  
+  /* Show actions immediately for past matches without results */
+  .match-row.past-no-result .match-actions {
     opacity: 1;
   }
   

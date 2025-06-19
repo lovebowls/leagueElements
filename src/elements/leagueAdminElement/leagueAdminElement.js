@@ -32,7 +32,7 @@ class LeagueAdminElement extends HTMLElement {
     this._leagues = [];
     this._selectedLeagueId = null; // Store ID of the selected league
     this._currentLeagueId = null; // Store ID of the league to be pre-selected
-    this._selectedTeamId = null; // CHANGED: Track selected team by _id instead of value
+    this._selectedTeamId = null; // Track selected team by _id for team management panel
     this._isModalVisible = false;
     this._modalMode = 'new'; // 'new', 'edit', 'copy'
     this._data = null; // To store the raw data from attribute
@@ -326,6 +326,7 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   render() {
+    console.log('[LeagueAdmin] render() called');
     let leagueForRender = null;
     const tempLeague = this._getSelectedLeague(); // This can return undefined
 
@@ -369,72 +370,13 @@ class LeagueAdminElement extends HTMLElement {
     
     // Update schedule panel with selected league's data
     if (leagueForRender) {
+      console.log('[LeagueAdmin] About to call _updateSchedulePanel from render()');
       this._updateSchedulePanel(leagueForRender);
+      console.log('[LeagueAdmin] Finished _updateSchedulePanel from render()');
     }
 
-    if (this.matchModalOpen) {
-      let modal = this.shadow.querySelector('league-match');
-      if (modal) modal.remove();
-      modal = document.createElement('league-match');
-      modal.match = this.matchModalData;
-      modal.teams = this.matchModalTeams;
-      modal.open = true;
-      modal.isMobile = this._isMobile;
-      modal.mode = this.matchModalMode;
-      
-      const selectedLeague = this._getSelectedLeague();
-      modal.leagueSettings = selectedLeague?.settings || {}; // Pass settings object or empty if none
-            
-      // Pass attention reason if available in matchModalData
-      if (this.matchModalData && this.matchModalData.attentionReason) {
-        modal.attentionReason = this.matchModalData.attentionReason;
-      }
-            
-      modal.addEventListener('match-save', (e) => {
-        // Save match to league
-        const match = e.detail.match;
-
-        const selectedLeague = this._getSelectedLeague();
-        if (!selectedLeague) {
-            console.error('[Admin Match Save] No selected league found.');
-            return;
-        }
-        const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
-        
-        if (this.matchModalMode === 'edit' && match._id) {
-          const idx = updatedLeague.matches.findIndex(m => m._id === match._id);
-          if (idx >= 0) {
-            // Ensure a proper merge, especially of the result object
-            updatedLeague.matches[idx] = {
-                ...updatedLeague.matches[idx], // Keep existing properties like key, date, teams
-                ...match // Overwrite with incoming changes, including result
-            };
-          } else {
-            updatedLeague.matches.push(match); 
-          }
-        } else {
-          updatedLeague.matches.push(match);
-        }
-
-        // Update the internal _leagues array
-        const leagueIndex = this._leagues.findIndex(l => l._id === selectedLeague._id);
-        if (leagueIndex > -1) {
-          this._leagues[leagueIndex] = updatedLeague;
-        } else {
-            console.error('[Admin Match Save] Selected league index not found in _leagues array.');
-        }
-
-        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: updatedLeague }));
-        this.closeMatchModal(); // This will call render() which now uses updated _leagues
-      });
-      modal.addEventListener('match-cancel', () => {
-        this.closeMatchModal();
-      });
-      this.shadow.appendChild(modal);
-    } else {
-      let modal = this.shadow.querySelector('league-match');
-      if (modal) modal.remove();
-    }
+    // Render match modal separately to avoid full component re-renders
+    this._renderMatchModal();
 
     // Handle reset modal
     if (this.resetModalOpen && this._leagueToReset) {
@@ -1870,18 +1812,9 @@ class LeagueAdminElement extends HTMLElement {
       this.matchModalTeams = teams;
       this.matchModalMode = mode;
       
-      this.render();
-      
-      // Verify the modal was rendered
-      const modalElement = this.shadowRoot.querySelector('league-match');
-      if (!modalElement) {
-        console.error('League match modal element not found after render');
-      } else {
-        // Try to force open the modal if it has an open method
-        if (typeof modalElement.open === 'function') {
-          modalElement.open();
-        }
-      }
+      console.log('[LeagueAdmin] About to render match modal without full re-render');
+      this._renderMatchModal();
+      console.log('[LeagueAdmin] Finished rendering match modal');
       
     } catch (error) {
       console.error('Error in openMatchModal:', error);
@@ -1896,7 +1829,84 @@ class LeagueAdminElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
-    this.render();
+    this._renderMatchModal();
+  }
+
+  /**
+   * Renders only the match modal without affecting the rest of the component
+   * @private
+   */
+  _renderMatchModal() {
+    // Remove existing match modal if present
+    let modal = this.shadow.querySelector('league-match');
+    if (modal) modal.remove();
+    
+    if (this.matchModalOpen) {
+      modal = document.createElement('league-match');
+      modal.match = this.matchModalData;
+      modal.teams = this.matchModalTeams;
+      modal.open = true;
+      modal.isMobile = this._isMobile;
+      modal.mode = this.matchModalMode;
+      
+      const selectedLeague = this._getSelectedLeague();
+      modal.leagueSettings = selectedLeague?.settings || {}; // Pass settings object or empty if none
+            
+      // Pass attention reason if available in matchModalData
+      if (this.matchModalData && this.matchModalData.attentionReason) {
+        modal.attentionReason = this.matchModalData.attentionReason;
+      }
+            
+      modal.addEventListener('match-save', (e) => {
+        // Save match to league
+        const match = e.detail.match;
+
+        const selectedLeague = this._getSelectedLeague();
+        if (!selectedLeague) {
+            console.error('[Admin Match Save] No selected league found.');
+            return;
+        }
+        const updatedLeague = JSON.parse(JSON.stringify(selectedLeague));
+        
+        if (this.matchModalMode === 'edit' && match._id) {
+          const idx = updatedLeague.matches.findIndex(m => m._id === match._id);
+          if (idx >= 0) {
+            // Ensure a proper merge, especially of the result object
+            updatedLeague.matches[idx] = {
+                ...updatedLeague.matches[idx], // Keep existing properties like key, date, teams
+                ...match // Overwrite with incoming changes, including result
+            };
+          } else {
+            updatedLeague.matches.push(match); 
+          }
+        } else {
+          updatedLeague.matches.push(match);
+        }
+
+        // Update the internal _leagues array
+        const leagueIndex = this._leagues.findIndex(l => l._id === selectedLeague._id);
+        if (leagueIndex > -1) {
+          this._leagues[leagueIndex] = updatedLeague;
+        } else {
+            console.error('[Admin Match Save] Selected league index not found in _leagues array.');
+        }
+
+        this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: updatedLeague }));
+        this.closeMatchModal(); // This will call _renderMatchModal() which removes the modal
+        
+        // Update the schedule panel to reflect the changes without full re-render
+        this._updateSchedulePanel(updatedLeague);
+        
+        // Update the attention panel to reflect the changes without full re-render
+        this._updateAttentionPanel(updatedLeague);
+      });
+      
+      modal.addEventListener('match-cancel', () => {
+        this.closeMatchModal();
+      });
+      
+      this.shadow.appendChild(modal);
+    }
   }
 
   openTeamModal(teamData, mode = 'new', options = {}) {
@@ -1986,8 +1996,9 @@ class LeagueAdminElement extends HTMLElement {
     attentionMatchesElement.setAttribute('is-mobile', isMobile);
     
     try {
-      const matchesData = JSON.stringify(selectedLeague.matches || []);
-      attentionMatchesElement.setAttribute('data', matchesData);
+      // Pass the whole league instance instead of just matches
+      const leagueData = JSON.stringify(selectedLeague);
+      attentionMatchesElement.setAttribute('data', leagueData);
       
       // Pass the team name mapping as an additional attribute if your LeagueMatchesAttention component supports it
       if (Object.keys(teamMap).length > 0) {
@@ -2017,14 +2028,18 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _updateSchedulePanel(leagueToUse) {
+    console.log('[LeagueAdmin] _updateSchedulePanel called');
     const selectedLeague = leagueToUse || this._getSelectedLeague();
     const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
     const scheduleContainer = this.shadow.querySelector('#league-schedule-panel');
     
     if (!selectedLeague || !scheduleElement || !scheduleContainer) {
       if (scheduleContainer) scheduleContainer.style.display = 'none';
+      console.log('[LeagueAdmin] _updateSchedulePanel early return - missing elements');
       return;
     }
+    
+    // LeagueSchedule handles its own filter state persistence via sessionStorage
     
     const isMobile = String(this._isMobile);
     scheduleElement.setAttribute('is-mobile', isMobile);
@@ -2032,12 +2047,7 @@ class LeagueAdminElement extends HTMLElement {
     // Set the can-edit attribute to allow editing matches
     scheduleElement.setAttribute('can-edit', 'true');
     
-    // Set the selected team filter if a team is selected
-    if (this._selectedTeamId) {
-      scheduleElement.setAttribute('selected-team', this._selectedTeamId);
-    } else {
-      scheduleElement.removeAttribute('selected-team');
-    }
+    // LeagueSchedule now handles its own filter persistence via sessionStorage
     
     try {
       // Set the league data for the schedule component
@@ -2140,14 +2150,6 @@ class LeagueAdminElement extends HTMLElement {
     try {
       switch (eventType) {
         case 'matchClick':
-          if (e.detail.match) {
-            const selectedLeague = this._getSelectedLeague();
-            if (selectedLeague) {
-              const teams = selectedLeague.teams || [];
-              const matchData = { ...e.detail.match };
-              this.openMatchModal(matchData, teams, 'edit');
-            }
-          }
           break;
           
         case 'matchEdit':
@@ -2232,7 +2234,18 @@ class LeagueAdminElement extends HTMLElement {
     // Update the schedule panel to reflect the new team selection
     const selectedLeague = this._getSelectedLeague();
     if (selectedLeague) {
-      this._updateSchedulePanel(selectedLeague);
+      // Set the team filter in the schedule component
+      const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
+      if (scheduleElement && this._selectedTeamId) {
+        scheduleElement.selectedTeamId = this._selectedTeamId;
+        scheduleElement.saveFilterState();
+        scheduleElement.renderWithoutReset();
+      } else if (scheduleElement && !this._selectedTeamId) {
+        // Clear the filter when no team is selected
+        scheduleElement.selectedTeamId = null;
+        scheduleElement.saveFilterState();
+        scheduleElement.renderWithoutReset();
+      }
     }
   }
 

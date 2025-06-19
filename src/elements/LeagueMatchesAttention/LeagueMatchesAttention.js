@@ -21,7 +21,7 @@ import {
  * Custom element to display matches requiring attention with paging.
  *
  * @element league-matches-attention
- * @attr {string} data - JSON stringified array of match objects
+ * @attr {string} data - JSON stringified League instance object
  * @attr {boolean} [is-mobile] - Whether to use mobile styles
  * @attr {string} [team-mapping] - JSON stringified array of {value, label} objects mapping team values to display names
  *
@@ -31,7 +31,7 @@ class LeagueMatchesAttention extends HTMLElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
-    this.matches = [];
+    this.league = null; // Store the league instance instead of just matches
     this.currentPage = 0;
     this.itemsPerPage = 5;
     this.teamMapping = {};
@@ -105,24 +105,44 @@ class LeagueMatchesAttention extends HTMLElement {
   }
 
   /**
-   * Loads and parses the matches data.
-   * @param {string|Array} data
+   * Loads and parses the league data.
+   * @param {string|Object} data - League instance or JSON string
    */
   async loadData(data) {
     try {
       if (typeof data === 'string') {
-        this.matches = JSON.parse(data);
+        const parsedData = JSON.parse(data);
+        // Import League class to create a proper instance
+        const { League } = await import('@lovebowls/leaguejs');
+        this.league = new League(parsedData);
+      } else if (data && typeof data === 'object') {
+        // If it's already a League instance, use it directly
+        if (data.getMatchesRequiringAttention && data.getConflictingMatchIds) {
+          this.league = data;
+        } else {
+          // It's plain data, create a League instance
+          const { League } = await import('@lovebowls/leaguejs');
+          this.league = new League(data);
+        }
       } else {
-        this.matches = data || [];
+        this.league = null;
       }
+      
       this.currentPage = 0;
       this.render();
-      this.dispatchEvent(new LeagueMatchesAttentionEvent({ type: 'dataLoaded', matches: this.matches }));
+      this.dispatchEvent(new LeagueMatchesAttentionEvent({ 
+        type: 'dataLoaded', 
+        league: this.league 
+      }));
     } catch (error) {
-      const errorMessage = 'Failed to load attention matches data';
+      const errorMessage = 'Failed to load league data for attention matches';
       this.showError(errorMessage);
-      console.error('Error loading attention matches:', error);
-      this.dispatchEvent(new LeagueMatchesAttentionEvent({ type: 'error', message: errorMessage, error }));
+      console.error('Error loading league data for attention matches:', error);
+      this.dispatchEvent(new LeagueMatchesAttentionEvent({ 
+        type: 'error', 
+        message: errorMessage, 
+        error 
+      }));
     }
   }
 
@@ -137,109 +157,11 @@ class LeagueMatchesAttention extends HTMLElement {
     }
   }
 
-  /**
-   * Returns the filtered list of matches requiring attention, sorted by priority.
-   * @returns {Array}
-   */
-  _getMatchesRequiringAttention() {
-    if (!this.matches || !Array.isArray(this.matches)) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTimestamp = today.getTime();
-    // Scheduling conflict detection
-    const conflictingIds = this._getConflictingMatchIds();
-    const getPriority = (match) => {
-      const matchDateObj = match.date ? new Date(match.date) : null;
-      let matchTimestamp = null;
-      if (matchDateObj) {
-        matchDateObj.setHours(0, 0, 0, 0);
-        matchTimestamp = matchDateObj.getTime();
-      }
-      if (conflictingIds.has(match._id)) return 1;
-      if (match.result && matchTimestamp && matchTimestamp > todayTimestamp) return 2;
-      if (!match.result && matchTimestamp && matchTimestamp < todayTimestamp) return 3;
-      if (!match.date && !match.result) return 4;
-      return 5;
-    };
-    return this.matches
-      .filter(match => {
-        const matchDateObj = match.date ? new Date(match.date) : null;
-        let matchTimestamp = null;
-        if (matchDateObj) {
-          matchDateObj.setHours(0, 0, 0, 0);
-          matchTimestamp = matchDateObj.getTime();
-        }
-        if (match.result && matchTimestamp && matchTimestamp > todayTimestamp) return true;
-        if (conflictingIds.has(match._id)) return true;
-        if (!match.result && matchTimestamp && matchTimestamp < todayTimestamp) return true;
-        if (!match.date && !match.result) return true;
-        return false;
-      })
-      .sort((a, b) => {
-        const priorityA = getPriority(a);
-        const priorityB = getPriority(b);
-        if (priorityA !== priorityB) return priorityA - priorityB;
-        const homeTeamA = a.homeTeam?.name || '';
-        const homeTeamB = b.homeTeam?.name || '';
-        const awayTeamA = a.awayTeam?.name || '';
-        const awayTeamB = b.awayTeam?.name || '';
-        const homeCompare = homeTeamA.localeCompare(homeTeamB);
-        if (homeCompare !== 0) return homeCompare;
-        return awayTeamA.localeCompare(awayTeamB);
-      });
-  }
-
-  /**
-   * Returns a set of match IDs that are in scheduling conflict.
-   * @returns {Set<string>}
-   */
-  _getConflictingMatchIds() {
-    if (!this.matches) return new Set();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTimestamp = today.getTime();
-    const futureFixtures = this.matches.filter(match => {
-      if (match.result || !match.date) return false;
-      const matchDate = new Date(match.date);
-      matchDate.setHours(0, 0, 0, 0);
-      return matchDate.getTime() >= todayTimestamp;
-    });
-    const matchesByDate = futureFixtures.reduce((acc, match) => {
-      const matchDate = new Date(match.date);
-      matchDate.setHours(0, 0, 0, 0);
-      const dateKey = matchDate.getTime();
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(match);
-      return acc;
-    }, {});
-    const conflictingIds = new Set();
-    for (const dateKey in matchesByDate) {
-      const matchesOnDay = matchesByDate[dateKey];
-      if (matchesOnDay.length < 2) continue;
-      const teamCounts = {};
-      matchesOnDay.forEach(match => {
-        const homeTeamId = match.homeTeam?._id;
-        const awayTeamId = match.awayTeam?._id;
-        if (homeTeamId) teamCounts[homeTeamId] = (teamCounts[homeTeamId] || 0) + 1;
-        if (awayTeamId) teamCounts[awayTeamId] = (teamCounts[awayTeamId] || 0) + 1;
-      });
-      const conflictingTeams = Object.keys(teamCounts).filter(teamId => teamCounts[teamId] > 1);
-      if (conflictingTeams.length > 0) {
-        matchesOnDay.forEach(match => {
-          const homeTeamId = match.homeTeam?._id;
-          const awayTeamId = match.awayTeam?._id;
-          if ((homeTeamId && conflictingTeams.includes(homeTeamId)) || 
-              (awayTeamId && conflictingTeams.includes(awayTeamId))) {
-            conflictingIds.add(match._id);
-          }
-        });
-      }
-    }
-    return conflictingIds;
-  }
-
   _hasNextPage() {
-    const list = this._getMatchesRequiringAttention();
+    if (!this.league || typeof this.league.getMatchesRequiringAttention !== 'function') {
+      return false;
+    }
+    const list = this.league.getMatchesRequiringAttention();
     return (this.currentPage + 1) * this.itemsPerPage < list.length;
   }
 
@@ -248,7 +170,11 @@ class LeagueMatchesAttention extends HTMLElement {
    * @returns {string}
    */
   renderAttentionMatches() {
-    const matches = this._getMatchesRequiringAttention();
+    if (!this.league || typeof this.league.getMatchesRequiringAttention !== 'function') {
+      return '<div class="no-matches">No league data available</div>';
+    }
+    
+    const matches = this.league.getMatchesRequiringAttention();
     const start = this.currentPage * this.itemsPerPage;
     const pageItems = matches.slice(start, start + this.itemsPerPage);
     if (pageItems.length === 0) {
@@ -259,7 +185,11 @@ class LeagueMatchesAttention extends HTMLElement {
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const conflictingIds = this._getConflictingMatchIds();
+    
+    let conflictingIds = new Set();
+    if (typeof this.league.getConflictingMatchIds === 'function') {
+      conflictingIds = this.league.getConflictingMatchIds();
+    }
     return pageItems.map(match => {
       // Get display names for teams
       const homeTeamId = match.homeTeam?._id;
@@ -363,7 +293,11 @@ class LeagueMatchesAttention extends HTMLElement {
         
         const matchId = link.dataset.matchId;
         const attentionReason = link.dataset.attentionReason;
-        const match = this._getMatchesRequiringAttention().find(m => m._id === matchId);
+        
+        let match = null;
+        if (this.league && typeof this.league.getMatchesRequiringAttention === 'function') {
+          match = this.league.getMatchesRequiringAttention().find(m => m._id === matchId);
+        }
         
         if (match) {
           

@@ -25,6 +25,7 @@ import {
   exportMatchesToPDF,
   exportMatchesToJSON
 } from '../../utils/data.js';
+import { League } from '@lovebowls/leaguejs';
 
 /**
  * Custom element to display a complete schedule of matches from a League
@@ -55,6 +56,9 @@ class LeagueSchedule extends HTMLElement {
     this.selectedTeamId = null;
     this.filterDate = null; // YYYY-MM-DD format
     this.error = null;
+    
+    // Generate a unique storage key for this component instance
+    this.storageKey = `league-schedule-filters-${this.getAttribute('data-league-id') || 'default'}`;
   }
 
   static get observedAttributes() {
@@ -66,7 +70,11 @@ class LeagueSchedule extends HTMLElement {
       this.loadData(this.getAttribute('data'));
     }
     
-    this.render();
+    // Restore filter state from storage after data is loaded (so storage key is correct)
+    this.restoreFilterState();
+    
+    // Always use renderWithoutReset to preserve restored filter state
+    this.renderWithoutReset();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -75,9 +83,9 @@ class LeagueSchedule extends HTMLElement {
     if (name === 'data') {
       this.loadData(newValue);
     } else if (name === 'is-mobile') {
-      this.render();
+      this.renderWithoutReset();
     } else if (name === 'can-edit') {
-      this.render();
+      this.renderWithoutReset();
     } else if (name === 'filter-date') {
       this.filterDate = newValue || null;
       this.currentPage = 1; // Reset to first page when filter changes
@@ -96,29 +104,48 @@ class LeagueSchedule extends HTMLElement {
   loadData(data) {
     try {
       // Parse data if it's a string
+      let parsedData;
       if (typeof data === 'string') {
-        this.league = JSON.parse(data);
+        parsedData = JSON.parse(data);
       } else {
-        this.league = data || null;
+        parsedData = data || null;
       }
 
-      // Extract matches and teams from league
-      if (this.league) {
+      // Convert to League instance if it isn't already
+      if (parsedData) {
+        if (parsedData.getMatchesRequiringAttention && parsedData.getConflictingMatchIds) {
+          // Already a League instance
+          this.league = parsedData;
+        } else {
+          // Create a League instance from the data
+          this.league = new League(parsedData);
+        }
+        
+        // Update storage key with actual league ID
+        if (this.league._id) {
+          this.storageKey = `league-schedule-filters-${this.league._id}`;
+        }
+        
+        // Extract matches and teams from league
         this.matches = Array.isArray(this.league.matches) ? this.league.matches : [];
         this.teams = Array.isArray(this.league.teams) ? this.league.teams : [];
         
         // Sort matches by date
         this.matches.sort((a, b) => new Date(a.date) - new Date(b.date));
       } else {
+        this.league = null;
         this.matches = [];
         this.teams = [];
       }
 
-      // Reset current page and selected match
+      // Reset current page and selected match, but preserve filter state if it exists
       this.currentPage = 1;
       this.selectedMatchId = null;
-      this.selectedTeamId = null;
+      // Preserve selectedTeamId to maintain filter state during reconnections
       this.error = null;
+
+      // Navigate to page with next future match
+      this.navigateToNextFutureMatch();
 
       this.render();
       this.dispatchEvent(new LeagueScheduleEvent({ 
@@ -177,6 +204,123 @@ class LeagueSchedule extends HTMLElement {
   }
 
   /**
+   * Gets comprehensive match information including attention status
+   * @param {Object} match - Match object
+   * @returns {Object} Match info with state, attention status, and reason
+   */
+  getMatchInfo(match) {
+    if (!match) {
+      return { state: 'unknown', needsAttention: false, attentionReason: '', conflicted: false };
+    }
+
+    // Get attention matches and conflicting IDs from the league
+    let matchesRequiringAttention = [];
+    let conflictingIds = new Set();
+    
+    if (this.league && typeof this.league.getMatchesRequiringAttention === 'function') {
+      try {
+        matchesRequiringAttention = this.league.getMatchesRequiringAttention();
+      } catch (error) {
+        console.warn('Error getting matches requiring attention:', error);
+      }
+    }
+    
+    if (this.league && typeof this.league.getConflictingMatchIds === 'function') {
+      try {
+        conflictingIds = this.league.getConflictingMatchIds();
+      } catch (error) {
+        console.warn('Error getting conflicting match IDs:', error);
+      }
+    }
+
+    // Check if this match requires attention
+    const needsAttention = matchesRequiringAttention.some(m => m._id === match._id);
+    const conflicted = conflictingIds.has(match._id);
+    
+    // Determine attention reason and basic state
+    let attentionReason = '';
+    let state = 'future'; // Default state
+    
+    if (!match.date) {
+      state = 'no-date';
+      if (needsAttention) attentionReason = 'No date set for match';
+    } else {
+      try {
+        const matchDate = new Date(match.date);
+        const now = new Date();
+        
+        // Consider matches in the past if they're before today (ignoring time)
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const matchDay = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+        
+        if (matchDay < today) {
+          // Past match
+          if (match.result && 
+              typeof match.result.homeScore === 'number' && 
+              typeof match.result.awayScore === 'number') {
+            state = 'past-with-result';
+          } else {
+            state = 'past-no-result';
+            if (needsAttention) attentionReason = 'Match date passed, result pending';
+          }
+        } else if (matchDay.getTime() === today.getTime()) {
+          // Today's match
+          state = 'today';
+        } else {
+          // Future match
+          state = 'future';
+          if (match.result && needsAttention) {
+            attentionReason = 'Result entered for a future match date';
+          }
+        }
+        
+        // Check for scheduling conflicts
+        if (conflicted) {
+          attentionReason = attentionReason || 'Scheduling conflict on this date';
+        }
+      } catch (error) {
+        console.warn('Error determining match state:', error);
+        state = 'error';
+      }
+    }
+
+    return {
+      state,
+      needsAttention,
+      attentionReason,
+      conflicted
+    };
+  }
+
+  /**
+   * Finds the next future match and navigates to the page containing it
+   */
+  navigateToNextFutureMatch() {
+    const filteredMatches = this.getFilteredMatches();
+    
+    if (!filteredMatches || filteredMatches.length === 0) {
+      this.currentPage = 1;
+      return;
+    }
+
+    // Find the first future match
+    const nextFutureMatchIndex = filteredMatches.findIndex(match => {
+      const matchInfo = this.getMatchInfo(match);
+      return matchInfo.state === 'future' || matchInfo.state === 'today';
+    });
+
+    if (nextFutureMatchIndex === -1) {
+      // No future matches found, stay on first page
+      this.currentPage = 1;
+      return;
+    }
+
+    // Calculate which page contains this match
+    const targetPage = Math.floor(nextFutureMatchIndex / this.itemsPerPage) + 1;
+    this.currentPage = Math.max(1, Math.min(targetPage, this.getTotalPages()));
+  }
+
+  /**
    * Gets the team name from the team ID
    * @param {string} teamId - Team ID
    * @returns {string} Team name
@@ -204,16 +348,47 @@ class LeagueSchedule extends HTMLElement {
   }
 
   /**
-   * Formats a match result for display
+   * Formats a match result for display with attention indicators
    * @param {Object} match - Match object
-   * @returns {string} Formatted result string
+   * @returns {string} Formatted result string with attention indicators
    */
   formatMatchResult(match) {
-    if (!match || !match.result) {
+    if (!match) {
       return '-';
     }
 
-    return `${match.result.homeScore || 0}-${match.result.awayScore || 0}`;
+    const matchInfo = this.getMatchInfo(match);
+    let resultText = '';
+    
+    // Format the basic result
+    if (match.result && 
+        typeof match.result.homeScore === 'number' && 
+        typeof match.result.awayScore === 'number') {
+      resultText = `${match.result.homeScore}-${match.result.awayScore}`;
+    } else {
+      resultText = '-';
+    }
+    
+    // Add attention indicators based on the specific issue
+    if (matchInfo.needsAttention || matchInfo.conflicted) {
+      let icon = '';
+      
+      if (matchInfo.conflicted) {
+        icon = '⚠️'; // Warning for scheduling conflicts
+      } else if (matchInfo.state === 'past-no-result') {
+        icon = '⏰'; // Clock for overdue results
+      } else if (matchInfo.attentionReason.includes('future match date')) {
+        icon = '🔮'; // Crystal ball for future results
+      } else if (matchInfo.state === 'no-date') {
+        icon = '📅'; // Calendar for missing date
+      } else {
+        icon = '❗'; // General attention needed
+      }
+      
+      return `${resultText} ${icon}`;
+    }
+    
+    return resultText;
   }
 
   /**
@@ -226,13 +401,84 @@ class LeagueSchedule extends HTMLElement {
   }
 
   /**
+   * Saves current filter state to sessionStorage
+   */
+  saveFilterState() {
+    try {
+      // Update storage key if we have league data
+      if (this.league && this.league._id) {
+        this.storageKey = `league-schedule-filters-${this.league._id}`;
+      }
+      
+      const filterState = {
+        selectedTeamId: this.selectedTeamId,
+        filterDate: this.filterDate,
+        currentPage: this.currentPage,
+        itemsPerPage: this.itemsPerPage,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(this.storageKey, JSON.stringify(filterState));
+    } catch (error) {
+      console.warn('[LeagueSchedule] Failed to save filter state:', error);
+    }
+  }
+
+  /**
+   * Restores filter state from sessionStorage
+   */
+  restoreFilterState() {
+    try {
+      // Update storage key if we have league data
+      if (this.league && this.league._id) {
+        this.storageKey = `league-schedule-filters-${this.league._id}`;
+      }
+      
+      const stored = sessionStorage.getItem(this.storageKey);
+      if (stored) {
+        const filterState = JSON.parse(stored);
+        
+        // Only restore if the data is recent (within last hour)
+        const maxAge = 60 * 60 * 1000; // 1 hour
+        if (Date.now() - filterState.timestamp < maxAge) {
+          this.selectedTeamId = filterState.selectedTeamId || null;
+          this.filterDate = filterState.filterDate || null;
+          this.currentPage = filterState.currentPage || 1;
+          this.itemsPerPage = filterState.itemsPerPage || 25;
+        } else {
+          sessionStorage.removeItem(this.storageKey);
+        }
+      }
+    } catch (error) {
+      console.warn('[LeagueSchedule] Failed to restore filter state:', error);
+    }
+  }
+
+  /**
+   * Clears saved filter state
+   */
+  clearFilterState() {
+    try {
+      sessionStorage.removeItem(this.storageKey);
+    } catch (error) {
+      console.warn('[LeagueSchedule] Failed to clear filter state:', error);
+    }
+  }
+
+  /**
    * Handles team filter change
    * @param {Event} e - Change event
    */
   handleTeamFilter = (e) => {
     this.selectedTeamId = e.target.value;
     this.currentPage = 1;
-    this.render();
+    
+    // Save filter state whenever it changes
+    this.saveFilterState();
+    
+    // Navigate to next future match when filter changes
+    this.navigateToNextFutureMatch();
+    
+    this.renderWithoutReset();
   }
 
   /**
@@ -242,6 +488,10 @@ class LeagueSchedule extends HTMLElement {
     this.selectedTeamId = null;
     this.filterDate = null;
     this.currentPage = 1;
+    
+    // Clear saved filter state
+    this.clearFilterState();
+    
     // Remove the filter-date attribute to notify parent component
     this.removeAttribute('filter-date');
     
@@ -260,7 +510,8 @@ class LeagueSchedule extends HTMLElement {
   handlePageChange = (page) => {
     if (page < 1 || page > this.getTotalPages()) return;
     this.currentPage = page;
-    this.render();
+    this.saveFilterState();
+    this.renderWithoutReset();
   }
 
   /**
@@ -279,7 +530,8 @@ class LeagueSchedule extends HTMLElement {
     
     this.itemsPerPage = value;
     this.currentPage = 1; // Reset to first page
-    this.render();
+    this.saveFilterState();
+    this.renderWithoutReset();
   }
 
   /**
@@ -292,13 +544,14 @@ class LeagueSchedule extends HTMLElement {
     // Toggle selection
     this.selectedMatchId = this.selectedMatchId === match._id ? null : match._id;
     
-    // Dispatch event
+    // Dispatch event for selection (not edit)
     this.dispatchEvent(new LeagueScheduleEvent({
       type: 'matchClick',
       match
     }));
     
-    this.render();
+    // Re-render without resetting filters
+    this.renderWithoutReset();
   }
 
   /**
@@ -307,6 +560,8 @@ class LeagueSchedule extends HTMLElement {
    * @param {Object} match - Match to edit
    */
   handleEditMatch = (e, match) => {
+
+    
     e.stopPropagation(); // Prevent row click
     
     if (!match) return;
@@ -315,12 +570,14 @@ class LeagueSchedule extends HTMLElement {
     this.selectedMatchId = match._id;
     
     // Dispatch edit event
+
     this.dispatchEvent(new LeagueScheduleEvent({
       type: 'matchEdit',
       match
     }));
     
-    this.render();
+    // Re-render without resetting filters
+    this.renderWithoutReset();
   }
 
   /**
@@ -393,13 +650,28 @@ class LeagueSchedule extends HTMLElement {
     }
     
     this.showExportMenu = false;
-    this.render();
+    this.renderWithoutReset();
+  }
+
+  /**
+   * Renders the component without resetting filter values
+   */
+  renderWithoutReset() {
+    this._render(false);
   }
 
   /**
    * Renders the component using lit-html
    */
   render() {
+    this._render(true);
+  }
+
+  /**
+   * Internal render method
+   * @param {boolean} resetFilters - Whether to reset filter form values
+   */
+  _render(resetFilters = true) {
     const { league, selectedTeamId, currentPage, itemsPerPage } = this;
     
     // Calculate matches to display based on filters and pagination
@@ -461,10 +733,22 @@ class LeagueSchedule extends HTMLElement {
             <tbody>
               ${currentMatches.map(match => {
                 const isSelected = this.selectedMatchId === match._id;
+                const matchInfo = this.getMatchInfo(match);
+                const cssClasses = [
+                  'match-row',
+                  matchInfo.state,
+                  matchInfo.needsAttention ? 'needs-attention' : '',
+                  matchInfo.conflicted ? 'conflicted' : '',
+                  isSelected ? 'selected' : ''
+                ].filter(Boolean).join(' ');
+                
+                const titleAttr = matchInfo.attentionReason ? 
+                  ` title="${matchInfo.attentionReason.replace(/"/g, '&quot;')}"` : '';
+                
                 return `
                   <tr 
-                    class="match-row ${isSelected ? 'selected' : ''}" 
-                    data-match-id="${match._id}"
+                    class="${cssClasses}" 
+                    data-match-id="${match._id}"${titleAttr}
                   >
                     <td>${this.formatMatchDate(match.date)}</td>
                     <td>${this.getTeamName(match.homeTeam._id)}</td>
@@ -551,6 +835,14 @@ class LeagueSchedule extends HTMLElement {
     `;
     
     this.setupEventListeners();
+    
+    // Preserve team filter value if not resetting
+    if (!resetFilters) {
+      const teamFilter = this.shadow.querySelector('#team-filter');
+      if (teamFilter && this.selectedTeamId) {
+        teamFilter.value = this.selectedTeamId;
+      }
+    }
   }
   
   /**

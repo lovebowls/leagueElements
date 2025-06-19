@@ -239,7 +239,8 @@ class LeagueElement extends HTMLElement {
       const attentionMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
       if (attentionMatchesElement) {
         attentionMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
-        attentionMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
+        // Pass the whole league data instead of just matches
+        attentionMatchesElement.setAttribute('data', JSON.stringify(this.data));
         
         // Add team mapping data for display name resolution
         attentionMatchesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
@@ -349,88 +350,8 @@ class LeagueElement extends HTMLElement {
       this.shadow.innerHTML = `<div class="error">Invalid or missing league data</div>`;
     }
 
-    // After main content rendering:
-    if (this.matchModalOpen) {
-
-      // Remove any existing modal first
-      let modal = this.shadow.querySelector('league-match');
-      if (modal) modal.remove();
-      modal = document.createElement('league-match');
-      
-      // Add display names to match data for UI presentation if they don't exist
-      if (this.matchModalData) {
-        const homeTeamId = this.matchModalData.homeTeam._id;
-        const awayTeamId = this.matchModalData.awayTeam._id;
-        
-        if (!this.matchModalData.homeTeamDisplay && homeTeamId) {
-          this.matchModalData.homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
-        }
-        if (!this.matchModalData.awayTeamDisplay && awayTeamId) {
-          this.matchModalData.awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
-        }
-      }
-      
-      modal.match = this.matchModalData;
-      
-      // FIXED: Use the correct team object format directly from matchModalTeams
-      modal.teams = this.matchModalTeams;
-      
-      // Pass the lovebowls teams data to the modal for reference if needed
-      // This is separate from the 'teams' prop which is for the dropdown options
-      if (this.lovebowlsTeams && this.lovebowlsTeams.length > 0) {
-        modal.lovebowlsTeams = this.lovebowlsTeams;
-      }
-      
-      modal.open = true; // This line sets the property
-      modal.isMobile = this._isMobile;
-      modal.mode = this.matchModalMode;
-      // Pass attention reason if available in matchModalData
-      if (this.matchModalData && this.matchModalData.attentionReason) {
-        modal.attentionReason = this.matchModalData.attentionReason;
-      }
-
-      modal.addEventListener('match-save', (e) => {
-        const savedMatch = e.detail.match;
-        console.log('[LeagueElement] match-save event received. Match data from modal:', JSON.parse(JSON.stringify(savedMatch)));
-        if (!this.data || !this.data.matches) {
-          // Should not happen if modal was opened with data, but safety check
-          console.error('Cannot save match, league data or matches array is missing.');
-          this.closeMatchModal();
-          return;
-        }
-
-        // Create a new Match instance from the plain object received from the event
-        const matchToSave = new Match(savedMatch);
-        // Find the index of the match in the *League instance's* matches array
-        const matchIndex = this.data.matches.findIndex(m => m._id === matchToSave._id);
-
-        if (matchIndex > -1) {
-          // Existing match, update it directly on the League instance
-          this.data.matches[matchIndex] = matchToSave;
-        } else {
-          // New match, push it to the League instance's matches array
-          this.data.matches.push(matchToSave);
-        }
-        
-        // Create a plain object representation of the league data for dispatching the event
-        const dataToDispatch = this.data.toJSON ? this.data.toJSON() : JSON.parse(JSON.stringify(this.data));
-
-        this.dispatchEvent(new LeagueEvent({ type: 'requestSaveLeague', league: dataToDispatch }));
-        
-        // The component's data is now updated, so we just need to re-render
-        this.render();
-        
-        this.closeMatchModal();
-      });
-      modal.addEventListener('match-cancel', () => {
-        this.closeMatchModal();
-      });
-      this.shadow.appendChild(modal);
-    } else {
-      // Remove modal if not open
-      let modal = this.shadow.querySelector('league-match');
-      if (modal) modal.remove();
-    }
+    // Render match modal separately to avoid full component re-renders
+    this._renderMatchModal();
   }
 
   setupPaging() {
@@ -2461,7 +2382,7 @@ class LeagueElement extends HTMLElement {
     this.matchModalTeams = teams;
     this.matchModalMode = mode;
 
-    this.render();
+    this._renderMatchModal();
 
     // If user is viewing the matrix, refresh its contents after modal interaction
     if (this.activeView === 'matrix') {
@@ -2486,7 +2407,91 @@ class LeagueElement extends HTMLElement {
     this.matchModalData = null;
     this.matchModalTeams = [];
     this.matchModalMode = 'new';
-    this.render();
+    this._renderMatchModal();
+  }
+
+  /**
+   * Renders only the match modal without affecting the rest of the component
+   * @private
+   */
+  _renderMatchModal() {
+    // Remove existing match modal if present
+    let modal = this.shadow.querySelector('league-match');
+    if (modal) modal.remove();
+    
+    if (this.matchModalOpen) {
+      modal = document.createElement('league-match');
+      
+      // Add display names to match data for UI presentation if they don't exist
+      if (this.matchModalData) {
+        const homeTeamId = this.matchModalData.homeTeam._id;
+        const awayTeamId = this.matchModalData.awayTeam._id;
+        
+        if (!this.matchModalData.homeTeamDisplay && homeTeamId) {
+          this.matchModalData.homeTeamDisplay = this.getTeamDisplayName(homeTeamId);
+        }
+        if (!this.matchModalData.awayTeamDisplay && awayTeamId) {
+          this.matchModalData.awayTeamDisplay = this.getTeamDisplayName(awayTeamId);
+        }
+      }
+      
+      modal.match = this.matchModalData;
+      
+      // FIXED: Use the correct team object format directly from matchModalTeams
+      modal.teams = this.matchModalTeams;
+      
+      // Pass the lovebowls teams data to the modal for reference if needed
+      // This is separate from the 'teams' prop which is for the dropdown options
+      if (this.lovebowlsTeams && this.lovebowlsTeams.length > 0) {
+        modal.lovebowlsTeams = this.lovebowlsTeams;
+      }
+      
+      modal.open = true; // This line sets the property
+      modal.isMobile = this._isMobile;
+      modal.mode = this.matchModalMode;
+      // Pass attention reason if available in matchModalData
+      if (this.matchModalData && this.matchModalData.attentionReason) {
+        modal.attentionReason = this.matchModalData.attentionReason;
+      }
+
+      modal.addEventListener('match-save', (e) => {
+        const savedMatch = e.detail.match;
+        console.log('[LeagueElement] match-save event received. Match data from modal:', JSON.parse(JSON.stringify(savedMatch)));
+        if (!this.data || !this.data.matches) {
+          // Should not happen if modal was opened with data, but safety check
+          console.error('Cannot save match, league data or matches array is missing.');
+          this.closeMatchModal();
+          return;
+        }
+
+        // Create a new Match instance from the plain object received from the event
+        const matchToSave = new Match(savedMatch);
+        // Find the index of the match in the *League instance's* matches array
+        const matchIndex = this.data.matches.findIndex(m => m._id === matchToSave._id);
+
+        if (matchIndex > -1) {
+          // Existing match, update it directly on the League instance
+          this.data.matches[matchIndex] = matchToSave;
+        } else {
+          // New match, push it to the League instance's matches array
+          this.data.matches.push(matchToSave);
+        }
+        
+        // Create a plain object representation of the league data for dispatching the event
+        const dataToDispatch = this.data.toJSON ? this.data.toJSON() : JSON.parse(JSON.stringify(this.data));
+
+        this.dispatchEvent(new LeagueEvent({ type: 'requestSaveLeague', league: dataToDispatch }));
+        
+        // The component's data is now updated, so we just need to re-render
+        this.render();
+        
+        this.closeMatchModal();
+      });
+      modal.addEventListener('match-cancel', () => {
+        this.closeMatchModal();
+      });
+      this.shadow.appendChild(modal);
+    }
   }
 
   _handleRecentMatchClick(e) {
