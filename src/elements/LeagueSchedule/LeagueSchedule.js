@@ -138,8 +138,22 @@ class LeagueSchedule extends HTMLElement {
         this.matches = Array.isArray(this.league.matches) ? this.league.matches : [];
         this.teams = Array.isArray(this.league.teams) ? this.league.teams : [];
         
-        // Sort matches by date
-        this.matches.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Sort matches by date first, then by rink number if present
+        this.matches.sort((a, b) => {
+          // First sort by date
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          const dateDiff = dateA - dateB;
+          
+          // If dates are the same, sort by rink number
+          if (dateDiff === 0) {
+            const rinkA = a.rink || 0; // Treat undefined/null as 0
+            const rinkB = b.rink || 0; // Treat undefined/null as 0
+            return rinkA - rinkB;
+          }
+          
+          return dateDiff;
+        });
       } else {
         this.league = null;
         this.matches = [];
