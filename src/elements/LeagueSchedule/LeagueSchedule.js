@@ -61,6 +61,10 @@ class LeagueSchedule extends HTMLElement {
     this.storageKey = `league-schedule-filters-${this.getAttribute('data-league-id') || 'default'}`;
   }
 
+  get _canEdit() {
+    return this.getAttribute('can-edit') === 'true';
+  }
+
   static get observedAttributes() {
     return ['data', 'is-mobile', 'can-edit', 'filter-date', 'selected-team'];
   }
@@ -564,7 +568,7 @@ class LeagueSchedule extends HTMLElement {
     
     e.stopPropagation(); // Prevent row click
     
-    if (!match) return;
+    if (!match || !this._canEdit) return;
     
     // Set as selected
     this.selectedMatchId = match._id;
@@ -685,7 +689,7 @@ class LeagueSchedule extends HTMLElement {
       return String.raw({ raw: strings }, ...values);
     };
     
-    const editable = this.hasAttribute('can-edit');
+    const editable = this._canEdit;
     
     const content = html`
       <div class="schedule-container">

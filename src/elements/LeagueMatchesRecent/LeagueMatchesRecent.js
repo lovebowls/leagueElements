@@ -28,8 +28,12 @@ class LeagueMatchesRecent extends HTMLElement {
     this.teamMapping = {};
   }
 
+  get _canEdit() {
+    return this.getAttribute('can-edit') === 'true';
+  }
+
   static get observedAttributes() {
-    return ['data', 'filter-date', 'is-mobile', 'team-mapping'];
+    return ['data', 'filter-date', 'is-mobile', 'team-mapping', 'can-edit'];
   }
 
   connectedCallback() {
@@ -54,6 +58,8 @@ class LeagueMatchesRecent extends HTMLElement {
     } else if (name === 'team-mapping') {
       this._setTeamMapping(newValue);
       this.render(); // Re-render to apply new team names
+    } else if (name === 'can-edit') {
+      this.render(); // Re-render to apply editing permissions
     }
   }
 
@@ -244,12 +250,15 @@ class LeagueMatchesRecent extends HTMLElement {
         lastDate = matchDateStr;
       }
 
+      const editableClass = this._canEdit ? 'match-editable' : 'match-readonly';
+      const linkElement = this._canEdit 
+        ? `<a href="#" class="match-link list-item-text-primary">${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}</a>`
+        : `<span class="match-text list-item-text-primary">${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}</span>`;
+
       html += `
         ${dateDisplayHtml}
-        <div class="match-item list-item-shared" data-match-id="${match._id}">
-          <a href="#" class="match-link list-item-text-primary">
-            ${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}
-          </a>
+        <div class="match-item list-item-shared ${editableClass}" data-match-id="${match._id}">
+          ${linkElement}
           <div class="list-item-actions match-score-container">
             <span class="match-score ${homeScoreClass}">${homeScore}</span>
             <span class="match-score"> - </span>
@@ -306,6 +315,10 @@ class LeagueMatchesRecent extends HTMLElement {
     matchLinks.forEach(link => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
+        // Only handle clicks if editing is enabled
+        if (!this._canEdit) {
+          return;
+        }
         const matchId = event.currentTarget.closest('.match-item').dataset.matchId;
         // Find the match object by _id
         const match = this.matches.find(m => m._id === matchId);

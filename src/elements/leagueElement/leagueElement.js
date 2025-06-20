@@ -50,8 +50,12 @@ class LeagueElement extends HTMLElement {
   get _isMobile() {
     return this.getAttribute('is-mobile') === 'true';
   }
+  
+  get _canEdit() {
+    return this.getAttribute('can-edit') === 'true';
+  }
   static get observedAttributes() {
-    return ['data', 'selectedMatch', 'is-mobile', 'lovebowls-teams'];
+    return ['data', 'selectedMatch', 'is-mobile', 'lovebowls-teams', 'can-edit'];
   }
 
   connectedCallback() {
@@ -93,6 +97,8 @@ class LeagueElement extends HTMLElement {
       }
     } else if (name === 'is-mobile') {
       this.render();
+    } else if (name === 'can-edit') {
+      this.render();
     }
   }
 
@@ -130,11 +136,29 @@ class LeagueElement extends HTMLElement {
     
     const currentTitle = (this.data && this.data.name ? this.data.name : 'League Table') || 'League Table';
 
+    // Conditionally render attention panel based on can-edit
+    const attentionPanel = this._canEdit ? 
+      (this._isMobile ? 
+        `<div class="panel">
+          <div class="panel-header panel-header-shared">Requiring Attention</div>
+          <league-matches-attention id="mobile-attention-matches" is-mobile="true"></league-matches-attention>
+        </div>` :
+        `<div class="panel">
+          <div class="panel-header panel-header-shared">Requiring Attention</div>
+          <league-matches-attention id="desktop-attention-matches"></league-matches-attention>
+        </div>`
+      ) : '';
+
+    // Generate can-edit attribute for child components
+    const canEditAttr = this._canEdit ? 'can-edit="true"' : 'can-edit="false"';
+
     return template
       .replace(/\{\{title\}\}/g, currentTitle)
       .replace('{{tableRows}}', this.tableRows)
       .replace('{{matrixView}}', this.activeView === 'matrix' ? this.renderMatrix() : '')
       .replace('{{trendsViewContent}}', this.activeView === 'trends' ? this.renderTrendsViewContent() : '')
+      .replace('{{attentionPanel}}', attentionPanel)
+      .replace(/\{\{canEditAttr\}\}/g, canEditAttr)
       .replace('{{overallSelected}}', this.tableFilter === 'overall' ? 'selected' : '')
       .replace('{{homeSelected}}', this.tableFilter === 'home' ? 'selected' : '')
       .replace('{{awaySelected}}', this.tableFilter === 'away' ? 'selected' : '')
@@ -218,6 +242,7 @@ class LeagueElement extends HTMLElement {
       const recentMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
       if (recentMatchesElement) {
         recentMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
+        recentMatchesElement.setAttribute('can-edit', this._canEdit.toString());
         recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
         
         // Add team mapping data for display name resolution
@@ -235,19 +260,21 @@ class LeagueElement extends HTMLElement {
         recentMatchesElement.addEventListener('league-matches-recent-event', this._handleRecentMatchClickBound);
       }
       
-      // Configure the attention matches components
-      const attentionMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
-      if (attentionMatchesElement) {
-        attentionMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
-        // Pass the whole league data instead of just matches
-        attentionMatchesElement.setAttribute('data', JSON.stringify(this.data));
-        
-        // Add team mapping data for display name resolution
-        attentionMatchesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
+      // Configure the attention matches components (only if editing is enabled)
+      if (this._canEdit) {
+        const attentionMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
+        if (attentionMatchesElement) {
+          attentionMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
+          // Pass the whole league data instead of just matches
+          attentionMatchesElement.setAttribute('data', JSON.stringify(this.data));
+          
+          // Add team mapping data for display name resolution
+          attentionMatchesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
 
-        attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAttentionMatchClick);
-        this._handleAttentionMatchClickBound = this._handleAttentionMatchClick.bind(this);
-        attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAttentionMatchClickBound);
+          attentionMatchesElement.removeEventListener('league-matches-attention-event', this._handleAttentionMatchClick);
+          this._handleAttentionMatchClickBound = this._handleAttentionMatchClick.bind(this);
+          attentionMatchesElement.addEventListener('league-matches-attention-event', this._handleAttentionMatchClickBound);
+        }
       }
       
       if (!this._isMobile) {
@@ -269,6 +296,7 @@ class LeagueElement extends HTMLElement {
       const upcomingFixturesElement = this.shadow.querySelector(this._isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
       if (upcomingFixturesElement) {
         upcomingFixturesElement.setAttribute('is-mobile', this._isMobile.toString());
+        upcomingFixturesElement.setAttribute('can-edit', this._canEdit.toString());
         
         // Add team mapping data for display name resolution
         upcomingFixturesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
@@ -296,6 +324,7 @@ class LeagueElement extends HTMLElement {
       const scheduleElement = this.shadow.querySelector(this._isMobile ? '#mobile-schedule' : '#desktop-schedule');
       if (scheduleElement) {
         scheduleElement.setAttribute('is-mobile', this._isMobile.toString());
+        scheduleElement.setAttribute('can-edit', this._canEdit.toString());
         
         if (this.data) {
           // Pass the entire league data to the schedule component
@@ -2369,6 +2398,12 @@ class LeagueElement extends HTMLElement {
    * @param {'edit'|'new'} mode
    */
   openMatchModal(matchData, teams, mode = 'edit') {
+    // Check if editing is allowed
+    if (!this._canEdit) {
+      console.log('[LeagueElement] Match editing is disabled via can-edit attribute');
+      return;
+    }
+    
     console.group('[LeagueElement] openMatchModal');
     console.log('Opening match modal with data:', {
       matchData,
@@ -2449,6 +2484,7 @@ class LeagueElement extends HTMLElement {
       modal.open = true; // This line sets the property
       modal.isMobile = this._isMobile;
       modal.mode = this.matchModalMode;
+      modal.canEdit = this._canEdit;
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;
@@ -2916,7 +2952,8 @@ class LeagueElement extends HTMLElement {
             const dateStr = new Date(match.date).toLocaleDateString();
             const tooltip = `${homeTeam.teamDisplayName || homeTeam.teamName} vs ${awayTeam.teamDisplayName || awayTeam.teamName} on ${dateStr}`;
             
-            matrixHTML += `<div class="matrix-cell matrix-cell-played" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>
+            const editableClass = this._canEdit ? ' matrix-cell-editable' : '';
+            matrixHTML += `<div class="matrix-cell matrix-cell-played${editableClass}" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>
               <span class="matrix-score">${homeScore}-${awayScore}</span>
               <div class="tooltip">${this.escapeHtml(tooltip)}</div>
             </div>`;
@@ -2925,7 +2962,8 @@ class LeagueElement extends HTMLElement {
             const dateStr = match.date ? new Date(match.date).toLocaleDateString() : 'Date TBD';
             const tooltip = `${homeTeam.teamDisplayName || homeTeam.teamName} vs ${awayTeam.teamDisplayName || awayTeam.teamName} - ${dateStr}`;
             
-            matrixHTML += `<div class="matrix-cell matrix-cell-scheduled" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>
+            const editableClass = this._canEdit ? ' matrix-cell-editable' : '';
+            matrixHTML += `<div class="matrix-cell matrix-cell-scheduled${editableClass}" title="${this.escapeHtml(tooltip)}" data-match='${JSON.stringify(match)}'>
               <span>vs</span>
               <div class="tooltip">${this.escapeHtml(tooltip)}</div>
             </div>`;
@@ -2960,6 +2998,9 @@ class LeagueElement extends HTMLElement {
     const matrixCells = this.shadow.querySelectorAll('.matrix-cell[data-match]');
     matrixCells.forEach(cell => {
       cell.addEventListener('click', (e) => {
+        if (!this._canEdit) {
+          return; // Don't handle clicks if editing is disabled
+        }
         try {
           const matchData = JSON.parse(e.currentTarget.dataset.match);
           const teams = this._getTeamsFromLeagueData();
@@ -2974,6 +3015,9 @@ class LeagueElement extends HTMLElement {
     const emptyCells = this.shadow.querySelectorAll('.matrix-cell-none');
     emptyCells.forEach(cell => {
       cell.addEventListener('click', (e) => {
+        if (!this._canEdit) {
+          return; // Don't handle clicks if editing is disabled
+        }
         // You could implement new match creation here if desired
         console.log('Clicked empty matrix cell - could create new match');
       });
@@ -3015,6 +3059,10 @@ class LeagueElement extends HTMLElement {
     const { type, match } = e.detail;
     
     if (type === 'matchEdit' && match) {
+      // Check if editing is allowed
+      if (!this._canEdit) {
+        return;
+      }
       // Open the match modal for editing
       const teams = this.data && this.data.teams ? this.data.teams : [];
       this.openMatchModal(match, teams, 'edit');

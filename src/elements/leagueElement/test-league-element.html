@@ -19,8 +19,17 @@
   <div>
     <button id="reset-data-btn" style="margin-bottom: 1em; padding: 0.5em; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Current League</button>
   </div>
+  <div style="margin-bottom: 1em; padding: 0.5em; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;">
+    <label style="display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
+      <input type="checkbox" id="can-edit-toggle" checked style="margin: 0;">
+      <span>Enable Editing (can-edit)</span>
+    </label>
+    <small style="color: #666; display: block; margin-top: 0.25em;">
+      When unchecked, the "Requiring Attention" panel will be hidden and match editing will be disabled.
+    </small>
+  </div>
   <!-- Remove hardcoded data attribute; we'll set it via JavaScript after checking session storage -->
-  <league-element id="test-league"></league-element>
+  <league-element id="test-league" can-edit="true"></league-element>
   <div id="event-log" style="margin-top:2em; background:#f9f9f9; padding:1em; border:1px solid #ccc; word-wrap: break-word;"><b>Event Log:</b><br></div>
   <script type="module">
     import '../../../dist/browser/leagueElement.js';
@@ -161,6 +170,18 @@
       throw new Error("Stopping script execution due to data load failure.");
     }
     
+    // Handle can-edit toggle checkbox
+    document.getElementById('can-edit-toggle').addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+      if (isChecked) {
+        el.setAttribute('can-edit', 'true');
+        logEvent('Editing enabled - can-edit set to true');
+      } else {
+        el.setAttribute('can-edit', 'false');
+        logEvent('Editing disabled - can-edit set to false');
+      }
+    });
+
     // Handle Reset button
     document.getElementById('reset-data-btn').addEventListener('click', () => {
       try {

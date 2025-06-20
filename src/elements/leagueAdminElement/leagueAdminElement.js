@@ -28,7 +28,6 @@ class LeagueAdminElement extends HTMLElement {
     super();
     this.LOG_PREFIX = "[LAD_LIFE_CYCLE] ";
     this.shadow = this.attachShadow({ mode: 'open' });
-    this._elementTitle = this.getAttribute('elementTitle') || 'League Administration';
     this._leagues = [];
     this._selectedLeagueId = null; // Store ID of the selected league
     this._currentLeagueId = null; // Store ID of the league to be pre-selected
@@ -69,7 +68,7 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['elementTitle', 'data', 'is-mobile', 'current-league-id', 'lovebowls-teams']; 
+    return ['data', 'is-mobile', 'current-league-id', 'lovebowls-teams']; 
   }
 
   _injectGlobalSwalStyles() {
@@ -116,7 +115,6 @@ class LeagueAdminElement extends HTMLElement {
 
   connectedCallback() {
     this._injectGlobalSwalStyles();
-    this._elementTitle = this.getAttribute('elementTitle') || this._elementTitle;
     this._currentLeagueId = this.getAttribute('current-league-id') || null;
     const rawData = this.getAttribute('data');
     if (rawData) {
@@ -138,10 +136,7 @@ class LeagueAdminElement extends HTMLElement {
     if (oldValue === newValue) return;
 
     let needsRender = false;
-    if (name === 'elementTitle') {
-      this._elementTitle = newValue || 'League Administration';
-      needsRender = true;
-    } else if (name === 'data') {
+    if (name === 'data') {
       this._data = newValue;
       this._parseAndLoadData();
       needsRender = true; // Data change always triggers a full re-render of the list
@@ -320,11 +315,6 @@ class LeagueAdminElement extends HTMLElement {
     }
   }
 
-  // Helper method to replace placeholders in template
-  _fillTemplate(templateString) {
-    return templateString.replace(/{{title}}/g, this._elementTitle);
-  }
-
   render() {
     console.log('[LeagueAdmin] render() called');
     let leagueForRender = null;
@@ -338,7 +328,7 @@ class LeagueAdminElement extends HTMLElement {
       <style>
         ${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}
       </style>
-      ${this._fillTemplate(TEMPLATE_CONTENT)}
+      ${TEMPLATE_CONTENT}
     `;
     
     // Setup resizer

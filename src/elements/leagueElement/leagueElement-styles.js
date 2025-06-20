@@ -869,7 +869,7 @@ export const BASE_STYLES = `
           <div class="view-container" id="mobile-schedule-view" style="display: none;">
             <div class="title">{{title}} - Schedule</div>
             <div class="schedule-container">
-              <league-schedule id="mobile-schedule" is-mobile="true" can-edit="true"></league-schedule>
+              <league-schedule id="mobile-schedule" is-mobile="true" {{canEditAttr}}></league-schedule>
             </div>
           </div>
           <div class="view-container" id="mobile-matrix-view" style="display: none;">
@@ -893,10 +893,7 @@ export const BASE_STYLES = `
           <div class="panel-header panel-header-shared">Recent Results</div>
           <league-matches-recent id="mobile-recent-matches" is-mobile="true"></league-matches-recent>
         </div>
-        <div class="panel">
-          <div class="panel-header panel-header-shared">Requiring Attention</div>
-          <league-matches-attention id="mobile-attention-matches" is-mobile="true"></league-matches-attention>
-        </div>
+        {{attentionPanel}}
       </div>
     `;
 
@@ -935,7 +932,7 @@ export const BASE_STYLES = `
           <div class="view-container" id="desktop-schedule-view" style="display: none;">
             <div class="title">{{title}} - Schedule</div>
             <div class="schedule-container">
-              <league-schedule id="desktop-schedule" can-edit="true"></league-schedule>
+              <league-schedule id="desktop-schedule" {{canEditAttr}}></league-schedule>
             </div>
           </div>
           <div class="view-container" id="desktop-matrix-view" style="display: none;">
@@ -961,10 +958,7 @@ export const BASE_STYLES = `
             <div class="panel-header panel-header-shared">Recent Results</div>
             <league-matches-recent id="desktop-recent-matches"></league-matches-recent>
           </div>
-          <div class="panel">
-            <div class="panel-header panel-header-shared">Requiring Attention</div>
-            <league-matches-attention id="desktop-attention-matches"></league-matches-attention>
-          </div>
+          {{attentionPanel}}
         </div>
       </div>
     `;
