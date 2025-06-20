@@ -32,10 +32,7 @@
     "dev": "rollup -c -w",
     "prepublishOnly": "npm run build:all",
     "docs": "typedoc --options typedoc.json",
-    "release": "node scripts/build.js",
-    "commit": "node scripts/commit.js",
-    "cli": "node scripts/cli.js",
-    "publish": "npm version patch && npm publish"
+    "release": "npm version patch && npm test && npm docs && npm publish"
   },
   "keywords": [
     "league",
