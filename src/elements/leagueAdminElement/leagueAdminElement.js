@@ -1438,73 +1438,53 @@ class LeagueAdminElement extends HTMLElement {
   _populateModalForm(modalBody, leagueData) {
       // Ensure settings and rinkPoints exist to avoid errors with undefined properties
       const settings = leagueData.settings || {};
-      const rinkPoints = settings.rinkPoints || {};
+      const tabsConfig = this._getModalTabsConfig();
+
+      // Generate tab navigation
+      const tabNavigation = tabsConfig.map(tab => 
+        `<button type="button" class="tab-button ${tab.active ? 'active' : ''}" data-tab="${tab.id}">${tab.label}</button>`
+      ).join('');
+
+      // Generate tab content
+      const tabContent = tabsConfig.map(tab => 
+        `<div id="${tab.id}-tab" class="tab-content ${tab.active ? 'active' : ''}">
+          ${tab.content(settings)}
+        </div>`
+      ).join('');
 
       modalBody.innerHTML = `
-        <div class="form-group">
-          <label for="leagueName">League Name</label>
-          <input type="text" id="leagueName" value="${leagueData.name || ''}" required>
+        <div class="modal-tabs-container">
+          <!-- League Name Section - Always visible above tabs -->
+          <div class="modal-league-name-section">
+            <div class="form-group">
+              <label for="leagueName">League Name</label>
+              <input type="text" id="leagueName" value="${leagueData.name || ''}" required>
+            </div>
+          </div>
+
+          <!-- Tab Navigation -->
+          <div class="tab-navigation">
+            ${tabNavigation}
+          </div>
+
+          <!-- Tab Content Container -->
+          <div class="tab-content-container">
+            ${tabContent}
+          </div>
         </div>
-        <fieldset>
-          <legend>Match Points</legend>
-          <div class="form-group">
-            <label for="pointsForWin">Points for Win</label>
-            <input type="number" id="pointsForWin" value="${settings.pointsForWin !== undefined ? settings.pointsForWin : 3}" min="0">
-          </div>
-          <div class="form-group">
-            <label for="pointsForDraw">Points for Draw</label>
-            <input type="number" id="pointsForDraw" value="${settings.pointsForDraw !== undefined ? settings.pointsForDraw : 1}" min="0">
-          </div>
-          <div class="form-group">
-            <label for="pointsForLoss">Points for Loss</label>
-            <input type="number" id="pointsForLoss" value="${settings.pointsForLoss !== undefined ? settings.pointsForLoss : 0}" min="0">
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>League Structure</legend>
-          <div class="form-group">
-            <label for="timesTeamsPlayOther">Times Teams Play Each Other</label>
-            <input type="number" id="timesTeamsPlayOther" value="${settings.timesTeamsPlayOther !== undefined ? settings.timesTeamsPlayOther : 2}" min="1" max="10">
-          </div>
-          <div class="form-group">
-            <label for="promotionPositions">Promotion Positions (0 for none)</label>
-            <input type="number" id="promotionPositions" value="${settings.promotionPositions !== undefined ? settings.promotionPositions : 0}" min="0">
-          </div>
-          <div class="form-group">
-            <label for="relegationPositions">Relegation Positions (0 for none)</label>
-            <input type="number" id="relegationPositions" value="${settings.relegationPositions !== undefined ? settings.relegationPositions : 0}" min="0">
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Rink Points</legend>
-          <div class="form-group">
-            <label for="rinkPointsEnabled">
-              <input type="checkbox" id="rinkPointsEnabled" ${rinkPoints.enabled ? 'checked' : ''}>
-              Enable Rink Points
-            </label>
-          </div>
-          <div id="rinkPointsSettingsArea" class="rink-points-settings" style="display: ${rinkPoints.enabled ? 'block' : 'none'};">
-            <div class="form-group">
-              <label for="pointsPerRinkWin">Points per Rink Win</label>
-              <input type="number" id="pointsPerRinkWin" value="${rinkPoints.pointsPerRinkWin !== undefined ? rinkPoints.pointsPerRinkWin : 2}" min="0">
-            </div>
-            <div class="form-group">
-              <label for="pointsPerRinkDraw">Points per Rink Draw</label>
-              <input type="number" id="pointsPerRinkDraw" value="${rinkPoints.pointsPerRinkDraw !== undefined ? rinkPoints.pointsPerRinkDraw : 1}" min="0">
-            </div>
-            <div class="form-group">
-              <label for="defaultRinks">Default Rinks per Match</label>
-              <input type="number" id="defaultRinks" value="${rinkPoints.defaultRinks !== undefined ? rinkPoints.defaultRinks : 4}" min="1">
-            </div>
-          </div>
-        </fieldset>
       `;
 
+      // Set up tab switching functionality
+      this._setupModalTabs(modalBody);
+
+      // Set up rink points toggle functionality
       const rinkPointsEnabledCheckbox = modalBody.querySelector('#rinkPointsEnabled');
       const rinkPointsSettingsArea = modalBody.querySelector('#rinkPointsSettingsArea');
       if (rinkPointsEnabledCheckbox && rinkPointsSettingsArea) {
           rinkPointsEnabledCheckbox.addEventListener('change', (e) => {
-              rinkPointsSettingsArea.style.display = e.target.checked ? 'block' : 'none';
+              const isEnabled = e.target.checked;
+              rinkPointsSettingsArea.style.display = isEnabled ? 'block' : 'none';
+              rinkPointsSettingsArea.classList.toggle('disabled', !isEnabled);
           });
       }
   }
@@ -1571,6 +1551,175 @@ class LeagueAdminElement extends HTMLElement {
     this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData }));
     this._hideModal();
     this._hideGlobalLeagueMenu(); // ADDED: Hide menu after action (if it was open due to edit)
+  }
+
+  /**
+   * Set up tab switching functionality for the modal
+   * @param {HTMLElement} modalBody - The modal body element
+   * @private
+   */
+  _setupModalTabs(modalBody) {
+    const tabButtons = modalBody.querySelectorAll('.tab-button');
+    const tabContents = modalBody.querySelectorAll('.tab-content');
+    
+    // Add click listeners to tab buttons
+    tabButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetTab = button.getAttribute('data-tab');
+        
+        // Remove active class from all tabs and buttons
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding content
+        button.classList.add('active');
+        const targetContent = modalBody.querySelector(`#${targetTab}-tab`);
+        if (targetContent) {
+          targetContent.classList.add('active');
+        }
+      });
+    });
+    
+    // Add keyboard navigation support
+    modalBody.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const activeButton = modalBody.querySelector('.tab-button.active');
+        if (activeButton) {
+          e.preventDefault();
+          const buttons = Array.from(tabButtons);
+          const currentIndex = buttons.indexOf(activeButton);
+          let nextIndex;
+          
+          if (e.key === 'ArrowLeft') {
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+          } else {
+            nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+          }
+          
+          buttons[nextIndex].click();
+          buttons[nextIndex].focus();
+        }
+      }
+    });
+  }
+
+  /**
+   * Get the configuration for modal tabs
+   * This method makes it easy to extend tabs in the future
+   * @returns {Array} Array of tab configurations
+   * @private
+   */
+  _getModalTabsConfig() {
+    return [
+      {
+        id: 'league-structure',
+        label: 'League Structure',
+        active: true,
+        content: this._getLeagueStructureTabContent.bind(this)
+      },
+      {
+        id: 'points',
+        label: 'Points',
+        active: false,
+        content: this._getPointsTabContent.bind(this)
+      }
+      // Future tabs can be added here:
+      // {
+      //   id: 'advanced',
+      //   label: 'Advanced Settings',
+      //   active: false,
+      //   content: this._getAdvancedTabContent.bind(this)
+      // }
+    ];
+  }
+
+  /**
+   * Generate the League Structure tab content
+   * @param {Object} settings - League settings object
+   * @returns {string} HTML content for the tab
+   * @private
+   */
+  _getLeagueStructureTabContent(settings) {
+    return `
+      <fieldset>
+        <legend>Match Schedule</legend>
+        <div class="form-group">
+          <label for="timesTeamsPlayOther">Times Teams Play Each Other</label>
+          <input type="number" id="timesTeamsPlayOther" value="${settings.timesTeamsPlayOther !== undefined ? settings.timesTeamsPlayOther : 2}" min="1" max="10">
+        </div>
+      </fieldset>
+      
+      <fieldset>
+        <legend>League Positions</legend>
+        <div class="form-group-grid">
+          <div class="form-group">
+            <label for="promotionPositions">Promotion Positions</label>
+            <input type="number" id="promotionPositions" value="${settings.promotionPositions !== undefined ? settings.promotionPositions : 0}" min="0" placeholder="0 for none">
+          </div>
+          <div class="form-group">
+            <label for="relegationPositions">Relegation Positions</label>
+            <input type="number" id="relegationPositions" value="${settings.relegationPositions !== undefined ? settings.relegationPositions : 0}" min="0" placeholder="0 for none">
+          </div>
+        </div>
+      </fieldset>
+    `;
+  }
+
+  /**
+   * Generate the Points tab content
+   * @param {Object} settings - League settings object
+   * @returns {string} HTML content for the tab
+   * @private
+   */
+  _getPointsTabContent(settings) {
+    const rinkPoints = settings.rinkPoints || {};
+    
+    return `
+      <fieldset>
+        <legend>Match Points</legend>
+        <div class="form-group-grid">
+          <div class="form-group">
+            <label for="pointsForWin">Points for Win</label>
+            <input type="number" id="pointsForWin" value="${settings.pointsForWin !== undefined ? settings.pointsForWin : 3}" min="0">
+          </div>
+          <div class="form-group">
+            <label for="pointsForDraw">Points for Draw</label>
+            <input type="number" id="pointsForDraw" value="${settings.pointsForDraw !== undefined ? settings.pointsForDraw : 1}" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pointsForLoss">Points for Loss</label>
+          <input type="number" id="pointsForLoss" value="${settings.pointsForLoss !== undefined ? settings.pointsForLoss : 0}" min="0">
+        </div>
+      </fieldset>
+      
+      <fieldset>
+        <legend>Rink Points</legend>
+        <div class="form-group">
+          <label for="rinkPointsEnabled">
+            <input type="checkbox" id="rinkPointsEnabled" ${rinkPoints.enabled ? 'checked' : ''}>
+            Enable Rink Points
+          </label>
+        </div>
+        <div id="rinkPointsSettingsArea" class="rink-points-settings ${!rinkPoints.enabled ? 'disabled' : ''}" style="display: ${rinkPoints.enabled ? 'block' : 'none'};">
+          <div class="form-group-grid">
+            <div class="form-group">
+              <label for="pointsPerRinkWin">Points per Rink Win</label>
+              <input type="number" id="pointsPerRinkWin" value="${rinkPoints.pointsPerRinkWin !== undefined ? rinkPoints.pointsPerRinkWin : 2}" min="0">
+            </div>
+            <div class="form-group">
+              <label for="pointsPerRinkDraw">Points per Rink Draw</label>
+              <input type="number" id="pointsPerRinkDraw" value="${rinkPoints.pointsPerRinkDraw !== undefined ? rinkPoints.pointsPerRinkDraw : 1}" min="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="defaultRinks">Default Rinks per Match</label>
+            <input type="number" id="defaultRinks" value="${rinkPoints.defaultRinks !== undefined ? rinkPoints.defaultRinks : 4}" min="1">
+          </div>
+        </div>
+      </fieldset>
+    `;
   }
 
   // Helper method to get custom classes for Swal
