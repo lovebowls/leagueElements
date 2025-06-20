@@ -94,8 +94,8 @@ export const BASE_STYLES = `
   }
   
   .schedule-table th:first-child,
-  .schedule-table th:nth-child(2),
-  .schedule-table th:nth-child(3) {
+  .schedule-table th:nth-child(3),
+  .schedule-table th:nth-child(4) {
     text-align: left;
   }
   
@@ -117,8 +117,8 @@ export const BASE_STYLES = `
   }
   
   .schedule-table td:first-child,
-  .schedule-table td:nth-child(2),
-  .schedule-table td:nth-child(3) {
+  .schedule-table td:nth-child(3),
+  .schedule-table td:nth-child(4) {
     text-align: left;
   }
   
@@ -208,6 +208,11 @@ export const BASE_STYLES = `
   
   .result-col {
     width: 15%;
+  }
+  
+  .rink-col {
+    width: 10%;
+    text-align: center;
   }
   
   .actions-col {
@@ -449,8 +454,8 @@ export const DESKTOP_STYLES = `
   }
   
   .schedule-table td:first-child,
-  .schedule-table td:nth-child(2),
-  .schedule-table td:nth-child(3) {
+  .schedule-table td:nth-child(3),
+  .schedule-table td:nth-child(4) {
     text-align: left;
   }
   

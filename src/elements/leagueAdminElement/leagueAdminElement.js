@@ -1500,6 +1500,11 @@ class LeagueAdminElement extends HTMLElement {
       return;
     }
 
+    const maxRinksPerSessionValue = modalBody.querySelector('#maxRinksPerSession').value;
+    const maxRinksPerSession = maxRinksPerSessionValue && maxRinksPerSessionValue.trim() !== '' 
+                                ? parseInt(maxRinksPerSessionValue) 
+                                : undefined;
+
     const leagueData = {
       name: leagueNameInput.value.trim(),
       settings: {
@@ -1509,6 +1514,7 @@ class LeagueAdminElement extends HTMLElement {
         timesTeamsPlayOther: parseInt(modalBody.querySelector('#timesTeamsPlayOther').value) || 2,
         promotionPositions: parseInt(modalBody.querySelector('#promotionPositions').value) || 0,
         relegationPositions: parseInt(modalBody.querySelector('#relegationPositions').value) || 0,
+        maxRinksPerSession: maxRinksPerSession,
         rinkPoints: {
           enabled: modalBody.querySelector('#rinkPointsEnabled').checked,
           pointsPerRinkWin: parseInt(modalBody.querySelector('#pointsPerRinkWin').value) || 0,
@@ -1644,9 +1650,15 @@ class LeagueAdminElement extends HTMLElement {
     return `
       <fieldset>
         <legend>Match Schedule</legend>
-        <div class="form-group">
-          <label for="timesTeamsPlayOther">Times Teams Play Each Other</label>
-          <input type="number" id="timesTeamsPlayOther" value="${settings.timesTeamsPlayOther !== undefined ? settings.timesTeamsPlayOther : 2}" min="1" max="10">
+        <div class="form-group-grid">
+          <div class="form-group">
+            <label for="timesTeamsPlayOther">Times Teams Play Each Other</label>
+            <input type="number" id="timesTeamsPlayOther" value="${settings.timesTeamsPlayOther !== undefined ? settings.timesTeamsPlayOther : 2}" min="1" max="10">
+          </div>
+          <div class="form-group">
+            <label for="maxRinksPerSession">Max Rinks per Session</label>
+            <input type="number" id="maxRinksPerSession" value="${settings.maxRinksPerSession !== undefined ? settings.maxRinksPerSession : ''}" min="1" max="24" placeholder="Optional">
+          </div>
         </div>
       </fieldset>
       

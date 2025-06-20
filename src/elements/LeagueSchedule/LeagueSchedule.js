@@ -65,6 +65,10 @@ class LeagueSchedule extends HTMLElement {
     return this.getAttribute('can-edit') === 'true';
   }
 
+  get _shouldShowRinkColumn() {
+    return this.league?.settings?.maxRinksPerSession && this.league.settings.maxRinksPerSession > 0;
+  }
+
   static get observedAttributes() {
     return ['data', 'is-mobile', 'can-edit', 'filter-date', 'selected-team'];
   }
@@ -393,6 +397,19 @@ class LeagueSchedule extends HTMLElement {
     }
     
     return resultText;
+  }
+
+  /**
+   * Format the rink for display
+   * @param {Object} match - Match object
+   * @returns {string} Formatted rink string
+   */
+  formatMatchRink(match) {
+    if (!match || !match.rink || match.rink === null || match.rink === undefined) {
+      return '-';
+    }
+    
+    return `Rink ${match.rink}`;
   }
 
   /**
@@ -728,6 +745,7 @@ class LeagueSchedule extends HTMLElement {
             <thead>
               <tr>
                 <th class="date-col">Date</th>
+                ${this._shouldShowRinkColumn ? `<th class="rink-col">Rink</th>` : ''}
                 <th class="team-col">Home</th>
                 <th class="team-col">Away</th>
                 <th class="result-col">Result</th>
@@ -754,10 +772,11 @@ class LeagueSchedule extends HTMLElement {
                     class="${cssClasses}" 
                     data-match-id="${match._id}"${titleAttr}
                   >
-                    <td>${this.formatMatchDate(match.date)}</td>
-                    <td>${this.getTeamName(match.homeTeam._id)}</td>
-                    <td>${this.getTeamName(match.awayTeam._id)}</td>
-                    <td>${this.formatMatchResult(match)}</td>
+                    <td data-label="Date">${this.formatMatchDate(match.date)}</td>
+                    ${this._shouldShowRinkColumn ? `<td data-label="Rink">${this.formatMatchRink(match)}</td>` : ''}
+                    <td data-label="Home">${this.getTeamName(match.homeTeam._id)}</td>
+                    <td data-label="Away">${this.getTeamName(match.awayTeam._id)}</td>
+                    <td data-label="Result">${this.formatMatchResult(match)}</td>
                     ${editable ? `
                       <td>
                         <div class="match-actions">

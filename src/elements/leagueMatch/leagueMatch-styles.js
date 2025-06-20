@@ -150,6 +150,12 @@ export const BASE_STYLES = `
         text-align: right;
       }
       
+      /* Rink number input styling */
+      #rinkNumber {
+        width: 120px;
+        max-width: 120px;
+      }
+      
       /* Responsive adjustment for mobile */
       @media (max-width: 480px) {
         .modal-shared-content {
@@ -193,6 +199,12 @@ export const BASE_STYLES = `
         .score-inputs span {
           font-size: 18px;
           font-weight: bold;
+        }
+        #rinkNumber {
+          width: 100% !important;
+          max-width: 100% !important;
+          font-size: 16px !important;
+          padding: 10px !important;
         }
         .button-shared {
           font-size: 16px !important;

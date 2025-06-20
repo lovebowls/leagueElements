@@ -291,6 +291,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     const homeTeamId = this.shadow.getElementById('homeTeam')?.value;
     const awayTeamId = this.shadow.getElementById('awayTeam')?.value;
     const matchDate = this.shadow.getElementById('matchDate')?.value;
+    const rinkNumber = this.shadow.getElementById('rinkNumber')?.value;
     const isPlayed = this.shadow.getElementById('isPlayed')?.checked || false;
     
     // Validate required fields
@@ -326,6 +327,17 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     };
     
     match.date = matchDate;
+    
+    // Handle optional rink number
+    if (rinkNumber && rinkNumber.trim() !== '') {
+      const rinkNum = parseInt(rinkNumber, 10);
+      if (!isNaN(rinkNum) && rinkNum > 0) {
+        match.rink = rinkNum;
+      }
+    } else {
+      // Remove rink property if no rink is specified
+      delete match.rink;
+    }
     
     // Handle result if match is played
     if (isPlayed) {
@@ -422,6 +434,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     const homeTeamId = this._match?.homeTeam?._id || '';
     const awayTeamId = this._match?.awayTeam?._id || '';
     const matchDate = this._match?.date ? new Date(this._match.date).toISOString().split('T')[0] : '';
+    const rinkNumber = this._match?.rink !== undefined && this._match?.rink !== null ? this._match.rink : '';
     const homeScore = this._match?.result?.homeScore !== undefined && this._match?.result?.homeScore !== null ? this._match.result.homeScore : '';
     const awayScore = this._match?.result?.awayScore !== undefined && this._match?.result?.awayScore !== null ? this._match.result.awayScore : '';
     const isPlayed = this._match?.result?.played !== undefined ? this._match.result.played : (homeScore !== '' || awayScore !== '');
@@ -468,6 +481,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
           <div class="form-group-shared">
             <label for="matchDate" class="form-label-shared">Date</label>
             <input type="date" id="matchDate" class="form-input-shared" value="${matchDate}">
+          </div>
+          <div class="form-group-shared">
+            <label for="rinkNumber" class="form-label-shared">Rink (Optional)</label>
+            <input type="number" id="rinkNumber" class="form-input-shared" value="${rinkNumber}" placeholder="Enter rink number" min="1" max="24">
           </div>
           <div class="form-group-shared">
             <label class="form-checkbox-label-shared">
