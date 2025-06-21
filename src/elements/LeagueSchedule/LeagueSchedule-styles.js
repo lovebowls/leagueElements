@@ -19,14 +19,11 @@ export const BASE_STYLES = `
   }
   
   .schedule-container {
-    display: flex;
-    flex-direction: column;
+    /* Layout properties moved to mobile/desktop sections */
   }
   
   .filter-panel {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    /* Layout properties moved to mobile/desktop sections */
     padding: 0;
     margin-bottom: 0;
     background: transparent;
@@ -34,19 +31,8 @@ export const BASE_STYLES = `
   }
   
   .filter-controls {
-    display: flex;
-    align-items: center;
+    /* Layout properties moved to mobile/desktop sections */
     gap: var(--le-padding-s, 0.5rem);
-  }
-  
-  .filter-label {
-    font-weight: normal;
-    color: var(--le-text-color-primary, #333);
-    margin-right: 0;
-  }
-  
-  .filter-team-select {
-    min-width: 200px;
   }
   
 
@@ -181,8 +167,7 @@ export const BASE_STYLES = `
   }
   
   .match-actions {
-    display: flex;
-    justify-content: center;
+    /* Layout properties moved to mobile/desktop sections */
     gap: var(--le-padding-xs, 0.25rem);
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
@@ -220,9 +205,7 @@ export const BASE_STYLES = `
   }
   
   .paging-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    /* Layout properties moved to mobile/desktop sections */
     margin-top: var(--le-padding-s, 0.5rem);
     padding: var(--le-padding-xs, 0.25rem) 0;
     background-color: transparent;
@@ -236,8 +219,7 @@ export const BASE_STYLES = `
   }
   
   .paging-settings {
-    display: flex;
-    align-items: center;
+    /* Layout properties moved to mobile/desktop sections */
     gap: var(--le-padding-xs, 0.25rem);
     font-size: 0.9em;
   }
@@ -263,7 +245,7 @@ export const BASE_STYLES = `
   }
   
   .paging-buttons {
-    display: flex;
+    /* Layout properties moved to mobile/desktop sections */
     gap: var(--le-padding-xs, 0.25rem);
   }
   
@@ -329,7 +311,14 @@ export const MOBILE_STYLES = `
     ${mobileStyles}
   }
   
+  /* Mobile-specific layout styles */
+  .schedule-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
   .filter-panel {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: var(--le-padding-s, 0.5rem);
@@ -337,12 +326,29 @@ export const MOBILE_STYLES = `
   }
   
   .filter-controls {
+    display: flex;
+    align-items: center;
     width: 100%;
   }
   
-  .filter-team-select {
+
+  
+  .paging-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--le-padding-s, 0.5rem);
+  }
+  
+  .paging-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .paging-buttons {
+    display: flex;
+    justify-content: center;
     width: 100%;
-    min-width: unset;
   }
   
   .filter-panel .dropdown-shared {
@@ -351,6 +357,13 @@ export const MOBILE_STYLES = `
   
   .filter-panel .dropdown-shared .dropdown-select-shared {
     width: 100%;
+    font-size: var(--le-font-size-medium, 1.1em); /* Increase font size for filter dropdown */
+  }
+  
+  /* Export dropdown - make it smaller */
+  .export-select {
+    font-size: var(--le-font-size-small, 0.9em); /* Reduce font size for export dropdown */
+    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-s, 0.5rem); /* Reduce padding */
   }
   
   .schedule-table {
@@ -372,12 +385,15 @@ export const MOBILE_STYLES = `
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-standard, 4px);
     padding: var(--le-padding-xs, 0.25rem);
+    font-size: var(--le-font-size-small, 0.9em); /* Reduce font size for match rows */
+    position: relative; /* For positioning the edit button */
   }
   
   /* Mobile match state styles */
   .match-row.past-no-result {
     border-left: 4px solid #ff6b6b;
     background-color: #fff5f5;
+    font-size: var(--le-font-size-small, 0.9em);
   }
   
   .schedule-table td {
@@ -392,29 +408,29 @@ export const MOBILE_STYLES = `
     font-weight: bold;
     width: 40%;
     margin-right: var(--le-padding-s, 0.5rem);
+    font-size: var(--le-font-size-small, 0.9em); /* Consistent smaller font size */
   }
   
+  /* Position edit button in top right corner of match row panel */
   .match-actions {
+    display: flex;
     opacity: 1;
-    justify-content: flex-start;
+    justify-content: flex-end; /* Move to right side */
+    position: absolute; /* Position absolutely within the match row */
+    top: var(--le-padding-xs, 0.25rem); /* Small gap from top */
+    right: var(--le-padding-xs, 0.25rem); /* Small gap from right */
+    z-index: 1; /* Ensure it's above other content */
   }
   
-  .paging-controls {
-    flex-direction: column;
-    gap: var(--le-padding-s, 0.5rem);
+  .edit-match-btn {
+    font-size: var(--le-font-size-small, 0.9em); /* Smaller button */
+    padding: var(--le-padding-xs, 0.25rem); /* Compact padding */
+    min-height: 28px; /* Smaller minimum height */
+    min-width: 28px; /* Square button */
   }
   
   .paging-info {
     text-align: center;
-  }
-  
-  .paging-settings {
-    justify-content: center;
-  }
-  
-  .paging-buttons {
-    justify-content: center;
-    width: 100%;
   }
 `;
 
@@ -423,6 +439,49 @@ export const DESKTOP_STYLES = `
   
   /* Desktop-specific overrides - following the same pattern as other components */
   :host {
+  }
+  
+  /* Desktop-specific layout styles */
+  .schedule-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .filter-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .filter-controls {
+    display: flex;
+    align-items: center;
+  }
+  
+  .filter-controls .dropdown-shared {
+    width: auto;
+    min-width: 200px;
+  }
+  
+  .match-actions {
+    display: flex;
+    justify-content: center;
+    opacity: 0;
+  }
+  
+  .paging-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .paging-settings {
+    display: flex;
+    align-items: center;
+  }
+  
+  .paging-buttons {
+    display: flex;
   }
   
   .schedule-table {
@@ -478,13 +537,14 @@ export const DESKTOP_STYLES = `
     opacity: 1;
   }
   
-  /* Desktop export dropdown */
-  .dropdown-shared {
+  /* Desktop dropdowns - consistent sizing */
+  .filter-panel .dropdown-shared {
     width: auto;
+    min-width: 200px;
   }
   
-  .dropdown-shared .dropdown-select-shared {
-    width: auto;
+  .filter-panel .dropdown-shared .dropdown-select-shared {
+    width: 100%;
   }
 `;
 

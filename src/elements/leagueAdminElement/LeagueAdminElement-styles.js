@@ -124,32 +124,21 @@ export const BASE_STYLES = `
       }
       .league-list-item {
         padding: var(--lae-padding-s) var(--lae-padding-xs);
-        /* flex-wrap: wrap; REMOVE - we want items on one line if possible */
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
         border-bottom: 1px solid var(--lae-border-color-light); /* Keep border */
+        /* Layout-specific properties moved to desktop/mobile sections */
       }
       .league-list-item:last-child {
         border-bottom: none;
       }
       .league-name-text {
         font-size: var(--lae-font-size-medium);
-        /* margin-bottom: var(--lae-padding-xs); REMOVE - no longer needed if side-by-side */
-        /* flex-basis: 100%; REMOVE - allow it to size naturally / grow */
-        flex-grow: 1; /* Allow name to take available space */
-        margin-right: var(--lae-padding-s); /* Space before buttons */
         pointer-events: none;
+        /* Layout-specific properties moved to desktop/mobile sections */
       }
       .league-item-actions-container { /* For View Table/Actions on selected league */
-        /* flex-basis: 100%; REMOVE - not needed if side-by-side */
-        display: flex;
-        justify-content: flex-end;
         gap: var(--lae-padding-s);
-        /* margin-top: var(--lae-padding-xs); REMOVE - not needed if side-by-side */
-        flex-shrink: 0; /* Prevent button container from shrinking */
         min-height: 32px; /* Reserve space for buttons */
+        /* Layout-specific properties moved to desktop/mobile sections */
       }
       .league-list-item.selected {
         background-color: var(--lae-background-color-selected-item, #e9eff7);
@@ -650,24 +639,36 @@ export const BASE_STYLES = `
           box-shadow: var(--lae-shadow-mobile-panel);
           padding: var(--lae-padding-xs);
       }
+      /* Mobile-specific league list layout */
       .league-list-item {
-        padding: var(--lae-padding-s) var(--lae-padding-xs); /* Adjusted padding */
-        flex-wrap: wrap; 
+        display: flex;
+        flex-direction: row; /* Keep items on same row for mobile too */
+        align-items: center; /* Center all content vertically */
+        justify-content: space-between;
+        min-height: 60px; /* Ensure consistent row height */
       }
       .league-name-text {
         font-size: var(--lae-font-size-medium); /* Relative to host (now 2em based) */
-        margin-bottom: var(--lae-padding-xs);
+        display: flex;
+        align-items: center; /* Center text vertically */
+        flex-grow: 1; /* Allow name to take available space */
+        text-align: left; /* Ensure left alignment */
+        margin-right: var(--lae-padding-s); /* Space before buttons */
       }
       .league-item-actions-container {
-        flex-basis: 100%; 
+        display: flex;
         justify-content: flex-end; 
-        margin-top: var(--lae-padding-xs);
-        min-height: 32px; /* Reserve space for buttons */
+        align-items: center; /* Center buttons vertically */
+        flex-shrink: 0; /* Prevent shrinking */
+        height: 100%; /* Take full height of parent */
       }
       .league-action-button { /* Smaller buttons in league list items */
         padding: var(--lae-padding-xs) var(--lae-padding-s);
         font-size: var(--lae-font-size-small); /* Relative to host */
-        min-height: 38px;
+        min-height: 44px; /* Increased height for better touch target */
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .league-action-dropdown .dropdown-content {
         min-width: 140px;
@@ -728,28 +729,36 @@ export const BASE_STYLES = `
         margin-left: var(--lae-padding-s); /* Add some left margin if needed, or rely on space-between */
       }
       
-      /* Team list item styling for mobile */
+      /* Mobile-specific team list layout */
       #teams-list li.team-item {
         list-style-type: none; 
         display: flex;
-        flex-direction: column; 
+        flex-direction: column; /* Stack name and actions vertically on mobile */
         padding: var(--lae-padding-s) 0; 
         border-bottom: 1px solid var(--lae-border-color-light);
+        min-height: 60px; /* Ensure consistent row height */
+        justify-content: center; /* Center content vertically */
       }
       #teams-list li.team-item:last-child {
         border-bottom: none;
       }
       #teams-list li.team-item .team-name {
         margin-bottom: var(--lae-padding-s); 
-        font-size: var(--lae-font-size-medium); 
+        font-size: var(--lae-font-size-medium);
+        text-align: left; /* Ensure left alignment */
+        display: flex;
+        align-items: center; /* Center text vertically */
+        width: 100%; /* Take full width */
       }
       #teams-list li.team-item .team-actions {
         display: flex;
         justify-content: flex-end; 
         gap: var(--lae-padding-s);
         min-height: 32px; /* Reserve space for buttons */
+        align-items: center; /* Center buttons vertically */
+        width: 100%; /* Take full width */
       }
-      /* End of Team list item styling for mobile */
+      /* End of Mobile-specific team list layout */
 
       .team-name { /* General .team-name, may be overridden by more specific above */
         font-size: var(--lae-font-size-medium); /* Relative to host */
@@ -836,6 +845,27 @@ export const BASE_STYLES = `
         min-height: 32px; /* Reserve space for buttons */
       }
       /* .team-actions button styles are covered by .button-shared.button-sm */
+      
+      /* Desktop-specific league list layout */
+      .league-list-item {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .league-name-text {
+        flex-grow: 1; /* Allow name to take available space */
+        margin-right: var(--lae-padding-s); /* Space before buttons */
+        display: flex;
+        align-items: center;
+        text-align: left;
+      }
+      .league-item-actions-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        flex-shrink: 0; /* Prevent button container from shrinking */
+      }
       
       .league-list-container {
         flex-shrink: 0; 

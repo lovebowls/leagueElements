@@ -728,17 +728,18 @@ class LeagueSchedule extends HTMLElement {
         
         <div class="filter-panel">
           <div class="filter-controls">
-            <span class="filter-label">Team:</span>
-            <select class="filter-team-select" id="team-filter">
-              <option value="">All Teams</option>
-              ${league?.teams?.map(team => `
-                <option value="${team._id}" ${team._id === selectedTeamId ? 'selected' : ''}>
-                  ${team.name}
-                </option>
-              `).join('')}
-            </select>
+            <div class="dropdown-shared">
+              <select class="dropdown-select-shared" id="team-filter">
+                <option value="">All Teams</option>
+                ${league?.teams?.map(team => `
+                  <option value="${team._id}" ${team._id === selectedTeamId ? 'selected' : ''}>
+                    ${team.name}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
             ${selectedTeamId || this.filterDate ? `
-              <button class="clear-filters" id="clear-filters">Clear Filters</button>
+              <button class="clear-filters" id="clear-filters">Clear</button>
             ` : ''}
           </div>
           
@@ -781,6 +782,16 @@ class LeagueSchedule extends HTMLElement {
                 const titleAttr = matchInfo.attentionReason ? 
                   ` title="${matchInfo.attentionReason.replace(/"/g, '&quot;')}"` : '';
                 
+                // Check if there's an actual result to show
+                const hasResult = match.result && 
+                  typeof match.result.homeScore === 'number' && 
+                  typeof match.result.awayScore === 'number';
+                
+                // For mobile, conditionally include the result row
+                const isMobile = this.getAttribute('is-mobile') === 'true';
+                const resultCell = (isMobile && !hasResult) ? '' : 
+                  `<td data-label="Result">${this.formatMatchResult(match)}</td>`;
+                
                 return `
                   <tr 
                     class="${cssClasses}" 
@@ -790,7 +801,7 @@ class LeagueSchedule extends HTMLElement {
                     ${this._shouldShowRinkColumn ? `<td data-label="Rink">${this.formatMatchRink(match)}</td>` : ''}
                     <td data-label="Home">${this.getTeamName(match.homeTeam._id)}</td>
                     <td data-label="Away">${this.getTeamName(match.awayTeam._id)}</td>
-                    <td data-label="Result">${this.formatMatchResult(match)}</td>
+                    ${resultCell}
                     ${editable ? `
                       <td>
                         <div class="match-actions">
@@ -859,7 +870,7 @@ class LeagueSchedule extends HTMLElement {
           </div>
         ` : `
           <div class="no-matches">
-            No matches found. ${selectedTeamId ? `<button id="clear-filters">Clear filters</button>` : ''}
+            No matches found. ${selectedTeamId ? `<button id="clear-filters">Clear</button>` : ''}
           </div>
         `}
       </div>

@@ -544,6 +544,16 @@ class LeagueAdminElement extends HTMLElement {
       return; 
     }
 
+    // Clear the team filter from the schedule component before changing leagues
+    const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
+    if (scheduleElement) {
+      scheduleElement.selectedTeamId = null;
+      scheduleElement.removeAttribute('selected-team');
+      if (typeof scheduleElement.clearFilterState === 'function') {
+        scheduleElement.clearFilterState();
+      }
+    }
+
     // Find the clicked league in our data - only match by _id
     const selectedLeague = this._leagues.find(league => league._id === leagueId);
   
@@ -2306,6 +2316,7 @@ class LeagueAdminElement extends HTMLElement {
           break;
           
         case 'matchEdit':
+          console.log(e.detail)
           if (e.detail.match) {
             const selectedLeague = this._getSelectedLeague();
             if (selectedLeague) {

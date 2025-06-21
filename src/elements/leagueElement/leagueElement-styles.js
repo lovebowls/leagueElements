@@ -160,9 +160,9 @@ export const BASE_STYLES = `
         font-size: var(--le-font-size-small); /* MODIFIED - Relative to parent */
         margin-bottom: var(--le-padding-xs); 
       }
-      /* Tab Styles */
+      
+      /* Tab Styles - Layout-agnostic properties only */
       .tab-bar {
-        display: flex;
         border-bottom: 1px solid var(--le-border-color-medium); 
         background-color: var(--le-background-color-header); 
       }
@@ -185,29 +185,23 @@ export const BASE_STYLES = `
         font-weight: bold;
       }
 
-      /* Schedule Styles */
+      /* Schedule Styles - Layout-agnostic properties only */
       .schedule-container {
         overflow: auto; /* For scrolling */
-        flex: 1; /* Take available space if parent is flex column */
         padding: var(--le-padding-m);
         height: 100%;
       }
       
-      /* Matrix Styles */
+      /* Matrix Styles - Layout-agnostic properties only */
       .matrix-container {
         overflow: auto; /* For scrolling */
-        flex: 1; /* Take available space if parent is flex column */
         padding: var(--le-padding-m); 
       }
       .matrix-grid {
-        display: grid;
         border: 1px solid var(--le-border-color-dark); 
       }
       .matrix-cell {
         border: 1px solid var(--le-border-color-light); 
-        display: flex;
-        align-items: center;
-        justify-content: center;
         aspect-ratio: 1 / 1;
         position: relative;
         font-size: var(--le-font-size-base); 
@@ -232,8 +226,8 @@ export const BASE_STYLES = `
         font-size: var(--le-font-size-small); 
         width: 100%;
       }
-      .matrix-cell-played { background-color: #e3f2fd; color: var(--le-text-color-accent-hover); } /* MODIFIED (minor adjustment) */
-      .matrix-cell-scheduled { background-color: #e8f5e9; color: #2e7d32; } /* MODIFIED to light green */
+      .matrix-cell-played { background-color: #e3f2fd; color: var(--le-text-color-accent-hover); } 
+      .matrix-cell-scheduled { background-color: #e8f5e9; color: #2e7d32; } 
       .matrix-cell-none { 
         background-color: var(--le-background-color-panel);
         position: relative;
@@ -299,37 +293,22 @@ export const BASE_STYLES = `
         visibility: visible;
         opacity: 1;
       }
-      .view-container {
-        flex: 1; 
-        display: flex; 
-        flex-direction: column;
-        min-height: 0; 
-      }
 
-      /* Trends View Styles */
+      /* Trends View Styles - Layout-agnostic properties only */
       .trends-view-wrapper {
-        display: flex;
-        flex-direction: column;
         padding: var(--le-padding-m); 
-        gap: var(--le-padding-m); 
         height: 100%;
         box-sizing: border-box;
       }
       .trends-controls {
-        display: flex;
-        align-items: center;
         gap: var(--le-padding-s, 0.5rem);
         margin-bottom: var(--le-padding-s, 0.5rem);
       }
       .trends-content-area {
-        flex: 1; 
-        display: flex;
-        flex-direction: column; 
         gap: var(--le-padding-m); 
         min-height: 0; 
       }
       .trends-graph-area {
-        flex: 1; 
         border: 1px solid var(--le-border-color-medium); 
         border-radius: var(--le-border-radius-small); 
         overflow: hidden; 
@@ -347,8 +326,6 @@ export const BASE_STYLES = `
         font-size: var(--le-font-size-small); 
       }
       .trends-graph-legend .legend-item {
-        display: flex;
-        align-items: center;
         margin-bottom: var(--le-padding-xs); 
       }
       .trends-graph-legend .legend-color-box {
@@ -365,7 +342,7 @@ export const BASE_STYLES = `
         shape-rendering: crispEdges;
       }
       .trends-graph-area .axis text {
-        font-size: calc(var(--le-font-size-small) * 0.9); /* MODIFIED to be smaller */
+        font-size: calc(var(--le-font-size-small) * 0.9); 
         fill: var(--le-text-color-primary); 
       }
       .trends-graph-area .line {
@@ -398,39 +375,25 @@ export const BASE_STYLES = `
         font-weight: bold;
       }
 
-      /* Table View Filter Styles */
-      .title-with-filter {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      /* Trends View Styles */
-      .trends-controls {
-        display: flex;
-        align-items: center;
-        gap: var(--le-padding-s, 0.5rem);
-        margin-bottom: var(--le-padding-s, 0.5rem);
-      }
-
+      /* Position cell styles */
       td.position-cell {
         text-align: left;
         width: 30px; 
         min-width: 30px; 
         max-width: 30px; 
-        position: relative; /* Add relative positioning to contain absolute elements */
-        padding-right: 15px; /* Add extra padding on the right for the indicators */
+        position: relative; 
+        padding-right: 15px; 
       }
       .position-cell .rank-up,
       .position-cell .rank-down {
         display: inline-block;
-        position: absolute; /* Position absolutely to avoid affecting row height */
-        right: 3px; /* Position from right side of the cell */
-        top: 50%; /* Center vertically */
-        transform: translateY(-50%); /* Perfect vertical centering */
-        margin-left: 0; /* Remove left margin */
-        font-size: 0.85em; /* Slightly smaller font size */
-        line-height: 1; /* Ensure consistent line height */
+        position: absolute; 
+        right: 3px; 
+        top: 50%; 
+        transform: translateY(-50%); 
+        margin-left: 0; 
+        font-size: 0.85em; 
+        line-height: 1; 
       }
       .rank-up {
         color: var(--le-rank-up-color);
@@ -445,7 +408,7 @@ export const BASE_STYLES = `
       }
       .pos-cell-relegation {
         background-color: var(--le-background-color-relegation); 
-        color: #721c24; /* Specific dark red, could be a variable too */
+        color: #721c24; 
         font-weight: bold;
       }
       .pos-cell-default {
@@ -473,14 +436,59 @@ export const BASE_STYLES = `
         padding: 0.3rem 2rem 0.3rem 0.5rem;
       }
       
-      /* Better spacing for filter in title */
-      .title-with-filter {
-        gap: 10px;
+      /* Mobile-specific layout styles */
+      .tab-bar {
+        display: flex;
+      }
+      .view-container {
+        flex: 1; 
+        display: flex; 
+        flex-direction: column;
+        min-height: 0; 
+      }
+      .trends-view-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: var(--le-padding-m); 
+      }
+      .trends-controls {
+        display: flex;
         align-items: center;
       }
-      
+      .trends-content-area {
+        flex: 1; 
+        display: flex;
+        flex-direction: column; 
+      }
+      .trends-graph-area {
+        flex: 1; 
+      }
+      .trends-graph-legend .legend-item {
+        display: flex;
+        align-items: center;
+      }
+      .title-with-filter {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
       .title-with-filter span {
         font-size: 1.3em; /* Slightly smaller than default mobile title */
+      }
+      .matrix-grid {
+        display: grid;
+      }
+      .matrix-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .schedule-container {
+        flex: 1; 
+      }
+      .matrix-container {
+        flex: 1; 
       }
       
       /* Matrix specific mobile adjustments - COMPLETELY REDESIGNED */
@@ -697,6 +705,57 @@ export const BASE_STYLES = `
         padding: var(--le-padding-m); 
         height: 100%;
         background-color: var(--le-background-color-host); /* MODIFIED - Can be different for desktop host if desired */
+      }
+      
+      /* Desktop-specific layout styles */
+      .tab-bar {
+        display: flex;
+      }
+      .view-container {
+        flex: 1; 
+        display: flex; 
+        flex-direction: column;
+        min-height: 0; 
+      }
+      .trends-view-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: var(--le-padding-m); 
+      }
+      .trends-controls {
+        display: flex;
+        align-items: center;
+      }
+      .trends-content-area {
+        flex: 1; 
+        display: flex;
+        flex-direction: column; 
+      }
+      .trends-graph-area {
+        flex: 1; 
+      }
+      .trends-graph-legend .legend-item {
+        display: flex;
+        align-items: center;
+      }
+      .title-with-filter {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .matrix-grid {
+        display: grid;
+      }
+      .matrix-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .schedule-container {
+        flex: 1; 
+      }
+      .matrix-container {
+        flex: 1; 
       }
       .dashboard {
         display: flex;

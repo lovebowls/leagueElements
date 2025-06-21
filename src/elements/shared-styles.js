@@ -415,6 +415,7 @@ export const listItemStyles = `
     align-items: center;
     justify-content: space-between; /* Common for items with actions on the right */
     gap: var(--le-padding-s, 0.75em); /* Increased gap */
+    min-height: 44px; /* Ensure consistent height for touch targets */
   }
 
   .list-item-shared:last-child {
@@ -425,6 +426,9 @@ export const listItemStyles = `
   .list-item-shared .list-item-text-primary {
     flex-grow: 1;
     font-size: var(--le-font-size-small, 1.0em); /* Added explicit font size */
+    text-align: left; /* Ensure text is left-aligned */
+    display: flex;
+    align-items: center; /* Center text vertically within its container */
     /* Potentially add text overflow properties if needed */
     /* white-space: nowrap; */
     /* overflow: hidden; */
@@ -443,11 +447,11 @@ export const mobileStyles = `
   /* Mobile-specific styling that can be added to host elements */
   
   /* Increased font sizes for better readability on mobile */
-  --le-font-size-base: 1.4em;
-  --le-font-size-small: 1.2em;
-  --le-font-size-medium: 1.6em;
-  --le-font-size-large: 1.8em;
-  --le-font-size-xlarge: 2em;
+  --le-font-size-base: 1.1em;
+  --le-font-size-small: 0.6em;
+  --le-font-size-medium: 0.8em;
+  --le-font-size-large: 1.1em;
+  --le-font-size-xlarge: 1.5em;
   
   /* Adjust padding for better touch targets */
   --le-padding-s: 0.6rem;
