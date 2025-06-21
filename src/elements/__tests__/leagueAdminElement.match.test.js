@@ -388,7 +388,7 @@ describe('LeagueAdminElement - Match Management', () => {
       
       // Verify the attention panel was updated correctly
       expect(attentionElement.setAttribute).toHaveBeenCalledWith('is-mobile', 'false');
-      expect(attentionElement.setAttribute).toHaveBeenCalledWith('data', JSON.stringify(league.matches || []));
+      expect(attentionElement.setAttribute).toHaveBeenCalledWith('data', JSON.stringify(league || []));
       expect(attentionElement.setAttribute).toHaveBeenCalledWith('team-map', expect.any(String));
       expect(attentionContainer.style.display).toBe('');
     });

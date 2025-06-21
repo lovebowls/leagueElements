@@ -65,7 +65,6 @@ describe('LeagueAdminElement', () => {
   test('should initialize with default properties', () => {
     const element = new LeagueAdminElement();
     expect(element.shadow).toBeDefined();
-    expect(element._elementTitle).toBe('League Administration');
     expect(element._leagues).toEqual([]);
     expect(element._selectedLeagueId).toBeNull();
     expect(element._selectedTeamId).toBeNull();

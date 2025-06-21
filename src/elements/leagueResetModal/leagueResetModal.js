@@ -44,6 +44,12 @@ class LeagueResetModal extends HTMLElement {
     const shouldRender = this._open !== !!value;
     this._open = !!value;
     this.setAttribute('open', this._open.toString());
+    
+    if (this._open) {
+      // Reset and initialize form data when opening the modal
+      this._initializeFormData();
+    }
+    
     if (shouldRender) {
       this.render();
     }
@@ -102,6 +108,47 @@ class LeagueResetModal extends HTMLElement {
     return this._league?.settings || {}; 
   }
 
+  /**
+   * Get the maximum rinks per session from league settings
+   * @returns {number|null} - The maximum rinks per session or null if not set
+   */
+  get maxRinksPerSession() {
+    return this._league?.settings?.maxRinksPerSession || null;
+  }
+
+  /**
+   * Get the default value for maximum matches per day
+   * @returns {string} - The default value or empty string
+   */
+  get defaultMaxMatchesPerDay() {
+    const maxRinks = this.maxRinksPerSession;
+    return maxRinks ? maxRinks.toString() : '';
+  }
+
+  /**
+   * Get the placeholder text for maximum matches per day field
+   * @returns {string} - The placeholder text
+   */
+  get maxMatchesPerDayPlaceholder() {
+    const maxRinks = this.maxRinksPerSession;
+    return maxRinks ? `Default: ${maxRinks} (based on rinks available)` : 'No limit';
+  }
+
+  /**
+   * Initialize form data with defaults
+   */
+  _initializeFormData() {
+    // Reset form data to defaults
+    this._formData = {
+      startDate: '',
+      maxMatchesPerDay: this.defaultMaxMatchesPerDay,
+      schedulingPattern: 'interval',
+      intervalNumber: 1,
+      intervalUnit: 'weeks',
+      selectedDays: []
+    };
+  }
+
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) return;
 
@@ -138,6 +185,9 @@ class LeagueResetModal extends HTMLElement {
   _onOk() {
     this.clearError();
 
+    // Sync form data with current DOM values before validation
+    this._syncFormDataFromDOM();
+
     // Validate form data
     const validation = this._validateForm();
     if (!validation.isValid) {
@@ -158,7 +208,7 @@ class LeagueResetModal extends HTMLElement {
       // Generate fixtures using the enhanced initialiseFixtures method
       const schedulingParams = this._getSchedulingParams();
       const startDate = this._formData.startDate ? new Date(this._formData.startDate) : null;
-      
+      console.log(schedulingParams)
       const success = tempLeague.initialiseFixtures(startDate, schedulingParams);
       
       if (!success) {
@@ -218,8 +268,18 @@ class LeagueResetModal extends HTMLElement {
     }
 
     // Validate max matches per day if provided
-    if (this._formData.maxMatchesPerDay && parseInt(this._formData.maxMatchesPerDay, 10) <= 0) {
-      return { isValid: false, error: 'Maximum matches per day must be a positive number.' };
+    if (this._formData.maxMatchesPerDay) {
+      const maxMatchesValue = parseInt(this._formData.maxMatchesPerDay, 10);
+      
+      if (maxMatchesValue <= 0) {
+        return { isValid: false, error: 'Maximum matches per day must be a positive number.' };
+      }
+      
+      // Check against maxRinksPerSession limit if it exists
+      const maxRinks = this.maxRinksPerSession;
+      if (maxRinks && maxMatchesValue > maxRinks) {
+        return { isValid: false, error: `Maximum matches per day cannot exceed ${maxRinks} (based on available rinks).` };
+      }
     }
 
     // Validate scheduling pattern
@@ -325,26 +385,29 @@ class LeagueResetModal extends HTMLElement {
       <div class="modal-shared-overlay" style="display: ${this._open ? 'flex' : 'none'};">
         <div class="modal-shared-content ${mobileClass}">
           <div class="modal-shared-header">
-            <h3>Reset League Matches</h3>
-            <button type="button" class="modal-close-button" id="close-reset-modal" aria-label="Close">&times;</button>
+            <div class="header-title-row">
+              <h3>Reset League Matches</h3>
+              <button type="button" class="modal-close-button" id="close-reset-modal" aria-label="Close">&times;</button>
+            </div>
+            ${hasExistingMatches ? '<div class="header-warning">This will clear all existing matches and generate new ones with the scheduling parameters below.</div>' : ''}
           </div>
           <div class="modal-shared-body">
-            <div id="reset-modal-error" class="form-error-shared" style="display: none;"></div>
             
             <div class="league-info">
               <p><strong>League:</strong> ${this._escapeHtml(this.leagueName)}</p>
               <p><strong>Teams:</strong> ${this.teamCount}</p>
-              ${hasExistingMatches ? '<p class="warning-text">This will clear all existing matches and generate new ones with the scheduling parameters below.</p>' : ''}
             </div>
 
-            <div class="form-group-shared">
-              <label for="startDate" class="form-label-shared">Start Date *</label>
-              <input type="date" id="startDate" class="form-input-shared" required>
-            </div>
+            <div class="form-row">
+              <div class="form-group-shared">
+                <label for="startDate" class="form-label-shared">Start Date *</label>
+                <input type="date" id="startDate" class="form-input-shared" required>
+              </div>
 
-            <div class="form-group-shared">
-              <label for="maxMatchesPerDay" class="form-label-shared">Maximum matches per day (optional)</label>
-              <input type="number" id="maxMatchesPerDay" class="form-input-shared" min="1" placeholder="No limit">
+              <div class="form-group-shared">
+                <label for="maxMatchesPerDay" class="form-label-shared">Max rinks per session</label>
+                <input type="number" id="maxMatchesPerDay" class="form-input-shared" min="1" ${this.maxRinksPerSession ? `max="${this.maxRinksPerSession}"` : ''} placeholder="${this.maxMatchesPerDayPlaceholder}" value="${this.defaultMaxMatchesPerDay}">
+              </div>
             </div>
 
             <fieldset class="form-fieldset-shared">
@@ -387,8 +450,11 @@ class LeagueResetModal extends HTMLElement {
             </div>
           </div>
           <div class="modal-shared-footer">
-            <button type="button" class="button-shared" id="cancel-reset-button">Cancel</button>
-            <button type="button" class="button-shared button-primary" id="confirm-reset-button">Reset Matches</button>
+            <div id="reset-modal-error" class="footer-error" style="display: none;"></div>
+            <div class="footer-buttons">
+              <button type="button" class="button-shared" id="cancel-reset-button">Cancel</button>
+              <button type="button" class="button-shared button-primary" id="confirm-reset-button">Reset Matches</button>
+            </div>
           </div>
         </div>
       </div>
@@ -396,6 +462,7 @@ class LeagueResetModal extends HTMLElement {
 
     this._attachEventListeners();
     this._updateFormState();
+    this._updateFormValues();
   }
 
   _attachEventListeners() {
@@ -500,10 +567,74 @@ class LeagueResetModal extends HTMLElement {
     }
   }
 
+  _updateFormValues() {
+    // Update form field values to match current form data
+    const maxMatchesInput = this.shadow.querySelector('#maxMatchesPerDay');
+    if (maxMatchesInput && this._formData.maxMatchesPerDay) {
+      maxMatchesInput.value = this._formData.maxMatchesPerDay;
+    }
+
+    const startDateInput = this.shadow.querySelector('#startDate');
+    if (startDateInput && this._formData.startDate) {
+      startDateInput.value = this._formData.startDate;
+    }
+
+    const intervalNumberInput = this.shadow.querySelector('#intervalNumber');
+    if (intervalNumberInput) {
+      intervalNumberInput.value = this._formData.intervalNumber;
+    }
+
+    const intervalUnitSelect = this.shadow.querySelector('#intervalUnit');
+    if (intervalUnitSelect) {
+      intervalUnitSelect.value = this._formData.intervalUnit;
+    }
+  }
+
   _updatePreview() {
     const previewElement = this.shadow.querySelector('#previewText');
     if (previewElement) {
       previewElement.textContent = this._getPreviewText();
+    }
+  }
+
+  /**
+   * Sync internal form data with current DOM input values
+   */
+  _syncFormDataFromDOM() {
+    const startDateInput = this.shadow.querySelector('#startDate');
+    const maxMatchesInput = this.shadow.querySelector('#maxMatchesPerDay');
+    const intervalPatternRadio = this.shadow.querySelector('#intervalPattern');
+    const dayOfWeekPatternRadio = this.shadow.querySelector('#dayOfWeekPattern');
+    const intervalNumberInput = this.shadow.querySelector('#intervalNumber');
+    const intervalUnitSelect = this.shadow.querySelector('#intervalUnit');
+    const dayCheckboxes = this.shadow.querySelectorAll('#dayCheckboxes input[type="checkbox"]');
+
+    if (startDateInput) {
+      this._formData.startDate = startDateInput.value;
+    }
+
+    if (maxMatchesInput) {
+      this._formData.maxMatchesPerDay = maxMatchesInput.value;
+    }
+
+    if (intervalPatternRadio && intervalPatternRadio.checked) {
+      this._formData.schedulingPattern = 'interval';
+    } else if (dayOfWeekPatternRadio && dayOfWeekPatternRadio.checked) {
+      this._formData.schedulingPattern = 'dayOfWeek';
+    }
+
+    if (intervalNumberInput) {
+      this._formData.intervalNumber = parseInt(intervalNumberInput.value, 10) || 1;
+    }
+
+    if (intervalUnitSelect) {
+      this._formData.intervalUnit = intervalUnitSelect.value;
+    }
+
+    if (dayCheckboxes) {
+      this._formData.selectedDays = Array.from(dayCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.value, 10));
     }
   }
 

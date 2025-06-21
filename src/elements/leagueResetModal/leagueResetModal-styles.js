@@ -28,6 +28,51 @@ export const BASE_STYLES = `
     display: flex; 
   }
 
+  /* Reduce modal body padding for tighter layout */
+  .modal-shared-body {
+    padding: var(--le-padding-m, 1rem) !important;
+    padding-bottom: var(--le-padding-s, 0.5rem) !important;
+  }
+
+  /* Override shared modal header styles for two-row layout */
+  .modal-shared-header {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+
+  .header-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--le-padding-m, 1rem);
+    background-color: var(--le-background-color-header, #f9f9f9);
+    border-bottom: 1px solid var(--le-border-color-medium, #eee);
+  }
+
+  .header-title-row h3 {
+    margin: 0 !important;
+    text-align: left !important;
+    flex: 1;
+    font-size: var(--le-font-size-large, 1.4em);
+    font-weight: bold;
+    color: var(--le-text-color-primary, #333);
+  }
+
+  /* Header warning text styling */
+  .header-warning {
+    color: var(--le-color-status-warning, #f39c12);
+    font-weight: normal;
+    margin: 0;
+    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 1rem);
+    font-size: 0.75rem;
+    line-height: 1.2;
+    display: block;
+    width: 100%;
+  }
+
   .league-info {
     background-color: var(--le-background-color-light, #f9f9f9);
     border: 1px solid var(--le-border-color-light, #e0e0e0);
@@ -40,10 +85,51 @@ export const BASE_STYLES = `
     margin: 0.25rem 0;
   }
 
+  /* Remove warning text styling from league-info since it's moved to header */
   .warning-text {
-    color: var(--le-color-status-warning, #f39c12);
-    font-weight: bold;
-    margin-top: var(--le-padding-s, 0.5rem) !important;
+    display: none;
+  }
+
+  /* Horizontal form row for start date and max rinks */
+  .form-row {
+    display: flex;
+    gap: var(--le-padding-m, 1rem);
+    margin-bottom: var(--le-padding-m, 1rem);
+  }
+
+  .form-row .form-group-shared {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  /* Footer single-row layout with error on left, buttons on right */
+  .modal-shared-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem) !important;
+    text-align: left !important;
+    gap: var(--le-padding-m, 1rem);
+  }
+
+  .footer-error {
+    color: var(--le-color-status-error, #e74c3c);
+    font-size: var(--le-font-size-small, 0.9rem);
+    margin: 0;
+    text-align: left;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: auto;
+  }
+
+  .footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--le-padding-s, 0.5rem);
+    flex-shrink: 0;
   }
 
   .form-fieldset-shared {
@@ -107,6 +193,7 @@ export const BASE_STYLES = `
     border-radius: var(--le-border-radius-standard, 4px);
     padding: var(--le-padding-m, 1rem);
     margin-top: var(--le-padding-m, 1rem);
+    margin-bottom: var(--le-padding-s, 0.5rem);
   }
 
   .preview-section h4 {
@@ -178,6 +265,12 @@ export const BASE_STYLES = `
     .form-checkbox-label-shared {
       font-size: 16px !important;
     }
+
+    /* Stack form row vertically on mobile */
+    .form-row {
+      flex-direction: column;
+      gap: var(--le-padding-s, 0.5rem);
+    }
     
     .interval-inputs {
       flex-direction: column;
@@ -215,6 +308,10 @@ export const BASE_STYLES = `
     
     .form-fieldset-shared {
       padding: 12px;
+    }
+
+    .footer-buttons {
+      flex-direction: column;
     }
   }
 `; 
