@@ -258,21 +258,21 @@ class LeagueTeams extends HTMLElement {
             <!-- Error Display -->
             <div id="teams-error" class="form-error-shared" style="display: none;"></div>
             
-                                      <!-- Action Buttons -->
-             <div class="teams-action-buttons ${this._showEditor ? 'disabled' : ''}">
-               <button type="button" class="button-shared button-primary" id="add-team-btn" ${this._showEditor ? 'disabled' : ''}>Add Team</button>
-             </div>
+            <!-- Team Editor Panel (moved above teams list) -->
+            ${this._showEditor ? this._renderTeamEditor() : `
+              <!-- Action Buttons -->
+              <div class="teams-action-buttons">
+                <button type="button" class="button-shared button-primary" id="add-team-btn">Add Team</button>
+              </div>
+            `}
              
-             <!-- Teams List Panel -->
-             <div class="teams-list-panel ${this._showEditor ? 'disabled' : ''}">
-               <h4>Teams in League (${teams.length})</h4>
-               <div class="teams-list-container">
-                 ${this._renderTeamsList(teams)}
-               </div>
-             </div>
-            
-            <!-- Team Editor Panel -->
-            ${this._showEditor ? this._renderTeamEditor() : ''}
+            <!-- Teams List Panel -->
+            <div class="teams-list-panel ${this._showEditor ? 'disabled' : ''}">
+              <h4>Teams in League (${teams.length})</h4>
+              <div class="teams-list-container">
+                ${this._renderTeamsList(teams)}
+              </div>
+            </div>
           </div>
           
           <div class="teams-manager-footer">
@@ -283,7 +283,7 @@ class LeagueTeams extends HTMLElement {
                   Next: Fixture Scheduler
                 </label>
               </div>
-            ` : ''}
+            ` : '<div></div>'}
             <div class="footer-buttons">
               <button type="button" class="button-shared" id="cancel-teams-manager" ${this._showEditor ? 'disabled' : ''}>Cancel</button>
               <button type="button" class="button-shared button-primary" id="save-teams-manager" ${this._showEditor ? 'disabled' : ''}>OK</button>
@@ -323,6 +323,7 @@ class LeagueTeams extends HTMLElement {
 
   _renderTeamEditor() {
     const title = this._editorMode === 'edit' ? 'Edit Team' : 'Add Team';
+    const buttonText = this._editorMode === 'edit' ? 'Update' : 'Add';
     const currentTeamData = this._editingTeam || { _id: '', name: '' };
     
     // Determine if it's a Lovebowls team
@@ -361,22 +362,29 @@ class LeagueTeams extends HTMLElement {
 
           <div id="existingTeamSelectGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'block' : 'none'};">
             <label for="existingTeamSelect" class="form-label-shared">Select Team</label>
-            <select id="existingTeamSelect" class="form-input-shared">
-              <option value="">-- Select a Team --</option>
-              ${optionsHtml}
-            </select>
+            <div class="team-input-with-buttons">
+              <select id="existingTeamSelect" class="form-input-shared">
+                <option value="">-- Select a Team --</option>
+                ${optionsHtml}
+              </select>
+              <div class="inline-buttons">
+                <button type="button" class="button-shared" id="cancel-team-editor">Cancel</button>
+                <button type="button" class="button-shared button-update" id="update-team" disabled>${buttonText}</button>
+              </div>
+            </div>
             ${filteredTeams.length === 0 ? '<div style="color: var(--le-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
           </div>
 
           <div id="newTeamNameGroup" class="form-group-shared" style="display: ${isLovebowlsTeam ? 'none' : 'block'};">
             <label for="teamName" class="form-label-shared">Team Name</label>
-            <input type="text" id="teamName" class="form-input-shared" value="${isLovebowlsTeam ? '' : currentTeamData.name}" ${isLovebowlsTeam ? 'disabled' : ''}>
+            <div class="team-input-with-buttons">
+              <input type="text" id="teamName" class="form-input-shared" value="${isLovebowlsTeam ? '' : currentTeamData.name}" ${isLovebowlsTeam ? 'disabled' : ''}>
+              <div class="inline-buttons">
+                <button type="button" class="button-shared" id="cancel-team-editor">Cancel</button>
+                <button type="button" class="button-shared button-update" id="update-team" disabled>${buttonText}</button>
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div class="team-editor-footer">
-          <button type="button" class="button-shared" id="cancel-team-editor">Cancel</button>
-          <button type="button" class="button-shared button-update" id="update-team">Update</button>
         </div>
       </div>
     `;
@@ -477,11 +485,17 @@ class LeagueTeams extends HTMLElement {
   }
 
   _attachEditorEventListeners() {
-    const cancelEditorBtn = this.shadow.querySelector('#cancel-team-editor');
-    const updateTeamBtn = this.shadow.querySelector('#update-team');
+    const cancelEditorBtns = this.shadow.querySelectorAll('#cancel-team-editor');
+    const updateTeamBtns = this.shadow.querySelectorAll('#update-team');
 
-    if (cancelEditorBtn) cancelEditorBtn.addEventListener('click', () => this._hideEditor());
-    if (updateTeamBtn) updateTeamBtn.addEventListener('click', () => this._handleUpdateTeam());
+    // Handle multiple buttons (one for each input group)
+    cancelEditorBtns.forEach(btn => {
+      if (btn) btn.addEventListener('click', () => this._hideEditor());
+    });
+    
+    updateTeamBtns.forEach(btn => {
+      if (btn) btn.addEventListener('click', () => this._handleUpdateTeam());
+    });
 
     // Form field event listeners
     const useExistingTeamCheckbox = this.shadow.querySelector('#useExistingTeamCheckbox');
@@ -513,11 +527,49 @@ class LeagueTeams extends HTMLElement {
             useExistingTeamCheckbox.checked = false;
           }
         }
+        
+        // Update button state after toggling
+        this._updateButtonState();
+      });
+
+      // Add real-time validation for team name input
+      teamNameInput.addEventListener('input', () => {
+        this._updateButtonState();
+      });
+
+      // Add real-time validation for existing team select
+      existingTeamSelect.addEventListener('change', () => {
+        this._updateButtonState();
       });
 
       // Initial state setup
       this._updateEditorFormState();
+      this._updateButtonState();
     }
+  }
+
+  _updateButtonState() {
+    const updateTeamBtns = this.shadow.querySelectorAll('#update-team');
+    const useExistingTeamCheckbox = this.shadow.querySelector('#useExistingTeamCheckbox');
+    const teamNameInput = this.shadow.querySelector('#teamName');
+    const existingTeamSelect = this.shadow.querySelector('#existingTeamSelect');
+    
+    let hasValidInput = false;
+    
+    if (useExistingTeamCheckbox && useExistingTeamCheckbox.checked) {
+      // Using existing team - check if something is selected
+      hasValidInput = existingTeamSelect && existingTeamSelect.value.trim() !== '';
+    } else {
+      // Using new team name - check if name is entered
+      hasValidInput = teamNameInput && teamNameInput.value.trim() !== '';
+    }
+    
+    // Update all update buttons
+    updateTeamBtns.forEach(btn => {
+      if (btn) {
+        btn.disabled = !hasValidInput;
+      }
+    });
   }
 
   _updateEditorFormState() {
@@ -608,7 +660,15 @@ class LeagueTeams extends HTMLElement {
       // Single-click behavior: select the team
       this._selectedTeamId = teamId;
     }
+    
     this.render();
+    
+    // If we selected a team, ensure it remains visible after render
+    if (this._selectedTeamId) {
+      setTimeout(() => {
+        this._scrollToSelectedTeam();
+      }, 50);
+    }
   }
 
   _handleUpdateTeam() {
@@ -695,6 +755,47 @@ class LeagueTeams extends HTMLElement {
 
     this._selectedTeamId = teamId;
     this._hideEditor();
+    
+    // Scroll to the newly added/edited team after render
+    setTimeout(() => {
+      this._scrollToSelectedTeam();
+    }, 50);
+  }
+
+  _scrollToSelectedTeam() {
+    if (!this._selectedTeamId) return;
+    
+    const teamListItem = this.shadow.querySelector(`[data-team-id="${this._selectedTeamId}"]`);
+    const teamsListContainer = this.shadow.querySelector('.teams-list-container');
+    
+    if (teamListItem && teamsListContainer) {
+      // First try the modern scrollIntoView method
+      try {
+        teamListItem.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      } catch (e) {
+        // Fallback for older browsers or if scrollIntoView fails
+        const itemOffsetTop = teamListItem.offsetTop;
+        const containerHeight = teamsListContainer.clientHeight;
+        const itemHeight = teamListItem.offsetHeight;
+        
+        // Center the item in the container
+        const scrollTop = itemOffsetTop - (containerHeight / 2) + (itemHeight / 2);
+        
+        // Use smooth scrolling if supported, otherwise instant
+        if (teamsListContainer.scrollTo) {
+          teamsListContainer.scrollTo({
+            top: Math.max(0, scrollTop),
+            behavior: 'smooth'
+          });
+        } else {
+          teamsListContainer.scrollTop = Math.max(0, scrollTop);
+        }
+      }
+    }
   }
 
   _showEditorError(message) {

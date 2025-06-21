@@ -91,6 +91,7 @@ export const BASE_STYLES = `
     display: flex;
     gap: var(--le-padding-m, 1rem);
     justify-content: flex-end;
+    margin-left: auto;
   }
 
   .checkbox-label {
@@ -106,6 +107,44 @@ export const BASE_STYLES = `
   .checkbox-label input[type="checkbox"] {
     margin: 0;
     cursor: pointer;
+  }
+
+  /* Team Input with Inline Buttons */
+  .team-input-with-buttons {
+    display: flex;
+    gap: var(--le-padding-m, 1rem);
+    align-items: flex-end;
+  }
+
+  .team-input-with-buttons .form-input-shared {
+    flex: 1;
+  }
+
+  .inline-buttons {
+    display: flex;
+    gap: var(--le-padding-s, 0.5rem);
+    flex-shrink: 0;
+  }
+
+  .inline-buttons .button-shared {
+    min-width: 80px;
+    white-space: nowrap;
+  }
+
+
+
+  /* Update button disabled state */
+  .button-update:disabled {
+    background-color: var(--le-background-color-disabled, #f5f5f5) !important;
+    color: var(--le-text-color-disabled, #999) !important;
+    border-color: var(--le-border-color-disabled, #ddd) !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .button-update:disabled:hover {
+    background-color: var(--le-background-color-disabled, #f5f5f5) !important;
+    border-color: var(--le-border-color-disabled, #ddd) !important;
   }
 
   /* Action Buttons */
@@ -177,6 +216,18 @@ export const BASE_STYLES = `
   .team-list-item.selected {
     background-color: var(--le-background-color-selected, #e3f2fd);
     border-left: 3px solid var(--le-border-color-primary, #2196f3);
+    animation: highlightTeam 0.6s ease-out;
+  }
+
+  @keyframes highlightTeam {
+    0% {
+      background-color: var(--le-background-color-accent, #4caf50);
+      transform: scale(1.02);
+    }
+    100% {
+      background-color: var(--le-background-color-selected, #e3f2fd);
+      transform: scale(1);
+    }
   }
 
   .team-list-item:last-child {
@@ -259,14 +310,7 @@ export const BASE_STYLES = `
     padding: var(--le-padding-l, 1.5rem);
   }
 
-  .team-editor-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--le-padding-m, 1rem);
-    padding: var(--le-padding-m, 1rem);
-    border-top: 1px solid var(--le-border-color-light, #eee);
-    background: var(--le-background-color-footer, #f8f9fa);
-  }
+
 
   .modal-close-button {
     background: none;
@@ -387,6 +431,7 @@ export const BASE_STYLES = `
       order: 2;
       flex-direction: column-reverse;
       gap: 10px;
+      margin-left: 0;
     }
 
     .footer-buttons .button-shared {
@@ -443,15 +488,23 @@ export const BASE_STYLES = `
       padding: 15px 10px;
     }
 
-    .team-editor-footer {
-      padding: 15px 10px;
-      flex-direction: column-reverse;
+    /* Mobile inline buttons */
+    .team-input-with-buttons {
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .inline-buttons {
+      justify-content: flex-end;
       gap: 10px;
     }
 
-    .team-editor-footer .button-shared {
-      width: 100%;
+    .inline-buttons .button-shared {
+      min-width: 100px;
     }
+
+
     
     .form-label-shared {
       font-size: 16px !important;
