@@ -421,7 +421,7 @@ export const listItemStyles = `
 const fontSizeVariables = `
   /* Base font sizes for different contexts */
   --le-font-size-base-desktop: 1em;
-  --le-font-size-base-mobile: 1.3em;
+  --le-font-size-base-mobile: 1.5em;
   
   /* Specific sizes for common UI elements */
   --le-font-size-button: var(--le-font-size-medium);

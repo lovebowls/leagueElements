@@ -721,7 +721,6 @@ export const BASE_STYLES = `
       }
       #teams-list li.team-item .team-name {
         margin-bottom: var(--lae-padding-s); 
-        font-size: var(--le-font-size-medium);
         text-align: left; /* Ensure left alignment */
         display: flex;
         align-items: center; /* Center text vertically */

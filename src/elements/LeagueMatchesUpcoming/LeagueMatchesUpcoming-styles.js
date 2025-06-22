@@ -31,7 +31,6 @@ export const BASE_STYLES = `
       }
       .match-date {
         color: var(--le-text-color-secondary, #666);
-        font-size: 0.85em;
         margin-bottom: var(--le-padding-xs, 0.2em);
       }
       .match-teams { /* This class was present but not used, can be removed if still unused */
@@ -53,7 +52,6 @@ export const BASE_STYLES = `
         border: 1px solid var(--lae-border-color-dark, #ccc);
         border-radius: var(--lae-border-radius-small, 3px);
         padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
-        font-size: 1em;
         cursor: pointer;
       }
       .paging-btn:disabled {

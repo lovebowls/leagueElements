@@ -19,7 +19,6 @@ export const BASE_STYLES = `
       }
       .match-date {
         color: var(--le-text-color-secondary, #666);
-        font-size: var(--le-font-size-small, 0.85em);
         margin-bottom: var(--le-padding-xs, 0.2em);
       }
       .paging-controls {
@@ -39,7 +38,6 @@ export const BASE_STYLES = `
       .warning-icon-pending-result { color: var(--le-color-status-pending, #e74c3c); }
       .warning-icon-no-date { color: var(--le-color-status-info, #2196f3); }
       .warning-icon {
-        font-size: var(--le-font-size-medium, 1.2em);
         flex-shrink: 0;
       }
       .no-matches {
@@ -57,7 +55,6 @@ export const MOBILE_STYLES = `
       .paging-btn {
       }
       .match-item {
-        font-size: var(--le-font-size-medium, 1em);
         padding: var(--lae-padding-xs, 0.2rem) 0;
       }
     `;
@@ -68,7 +65,6 @@ export const DESKTOP_STYLES = `
         ${desktopStyles}
       }
       .match-item {
-        font-size: var(--le-font-size-medium, 1em);
         padding: var(--lae-padding-xs, 0.2rem) 0;
       }
     `;
