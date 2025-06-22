@@ -1,10 +1,9 @@
+// Shared base styles for dropdown elements
 export const dropdownStyles = `
-  .dropdown-shared {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .dropdown-select-shared {
+  /* Shared base styles for dropdown elements */
+  .dropdown-base-shared,
+  .dropdown-select-shared,
+  .dropdown-menu-button-shared {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -25,23 +24,23 @@ export const dropdownStyles = `
     background-size: 1em;
   }
   
-  .dropdown-select-shared:hover {
+  .dropdown-base-shared:hover,
+  .dropdown-select-shared:hover,
+  .dropdown-menu-button-shared:hover {
     border-color: var(--le-border-color-dark, #ccc);
   }
   
-  .dropdown-select-shared:focus {
+  .dropdown-base-shared:focus,
+  .dropdown-select-shared:focus,
+  .dropdown-menu-button-shared:focus {
     outline: none;
     border-color: var(--le-text-color-accent, #2196f3);
     box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
   }
-  
-  /* Mobile-specific adjustments */
-  @media (max-width: 480px) {
-    .dropdown-select-shared {
-      font-size: 1.1em;
-      padding: 0.3rem 2rem 0.3rem 0.5rem;
-      background-size: 0.8em;
-    }
+
+  .dropdown-shared {
+    position: relative;
+    display: inline-block;
   }
   
   /* For dropdown containers that need to be right-aligned */
@@ -64,36 +63,11 @@ export const dropdownStyles = `
   }
   
   .dropdown-menu-button-shared {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-color: var(--le-background-color-panel, #fff);
-    border: 1px solid var(--le-border-color-medium, #ddd);
-    border-radius: var(--le-border-radius-small, 3px);
-    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 0.75rem);
-    padding-right: calc(var(--le-padding-m, 0.75rem) * 2);
-    font-size: var(--le-font-size-base, 1em);
-    color: var(--le-text-color-primary, #333);
-    cursor: pointer;
-    line-height: 1.4;
-    max-width: 100%;
-    width: auto;
     min-width: auto;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.5em center;
-    background-size: 1em;
   }
   
   .dropdown-menu-button-shared:hover {
-    border-color: var(--le-border-color-dark, #ccc);
     background-color: var(--le-background-color-hover, #f1f1f1);
-  }
-  
-  .dropdown-menu-button-shared:focus {
-    outline: none;
-    border-color: var(--le-text-color-accent, #2196f3);
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
   }
   
   .dropdown-menu-list-shared {
@@ -142,7 +116,7 @@ export const dropdownStyles = `
   /* Mobile-specific adjustments for dropdown menus */
   @media (max-width: 480px) {
     .dropdown-menu-button-shared {
-      font-size: 1.1em;
+      font-size: var(--le-font-size-medium, 1.2em);
       padding: 0.3rem 2rem 0.3rem 0.5rem;
       background-size: 0.8em;
     }
@@ -311,7 +285,7 @@ export const modalStyles = `
 
   .modal-shared-header .close-button-shared { /* Specific styling for a close button if needed */
     color: var(--le-text-color-secondary, #aaa);
-    font-size: 1.75em; /* Increased size */
+    font-size: var(--le-font-size-xxlarge, 1.8em); /* Increased size */
     font-weight: bold;
     background: none;
     border: none;
@@ -425,7 +399,7 @@ export const listItemStyles = `
   /* Example of a text part within a list item that should grow */
   .list-item-shared .list-item-text-primary {
     flex-grow: 1;
-    font-size: var(--le-font-size-small, 1.0em); /* Added explicit font size */
+    font-size: var(--le-font-size-base, 1em);
     text-align: left; /* Ensure text is left-aligned */
     display: flex;
     align-items: center; /* Center text vertically within its container */
@@ -443,21 +417,11 @@ export const listItemStyles = `
   }
 `;
 
-export const mobileStyles = `
-  /* Mobile-specific styling that can be added to host elements */
-  
+// Shared font size base variables and UI element font sizes (used internally)
+const fontSizeVariables = `
   /* Base font sizes for different contexts */
   --le-font-size-base-desktop: 1em;
-  --le-font-size-base-mobile: 1.1em;
-  
-  /* Standardized font sizes for mobile - these cascade to all sub-components */
-  --le-font-size-base: var(--le-font-size-base-mobile);
-  --le-font-size-xs: 0.75em;
-  --le-font-size-small: 0.9em;
-  --le-font-size-medium: 1.0em;
-  --le-font-size-large: 1.2em;
-  --le-font-size-xlarge: 1.4em;
-  --le-font-size-xxlarge: 1.6em;
+  --le-font-size-base-mobile: 1.3em;
   
   /* Specific sizes for common UI elements */
   --le-font-size-button: var(--le-font-size-medium);
@@ -468,6 +432,21 @@ export const mobileStyles = `
   --le-font-size-table-cell: var(--le-font-size-small);
   --le-font-size-paging: var(--le-font-size-xs);
   --le-font-size-dropdown: var(--le-font-size-medium);
+`;
+
+export const mobileStyles = `
+  /* Mobile-specific styling that can be added to host elements */
+  
+  ${fontSizeVariables}
+  
+  /* Standardized font sizes for mobile - these cascade to all sub-components */
+  --le-font-size-base: var(--le-font-size-base-mobile);
+  --le-font-size-xs: 0.9em;
+  --le-font-size-small: 1.0em;
+  --le-font-size-medium: 1.2em;
+  --le-font-size-large: 1.4em;
+  --le-font-size-xlarge: 1.6em;
+  --le-font-size-xxlarge: 1.8em;
   
   /* Adjust padding for better touch targets */
   --le-padding-s: 0.6rem;
@@ -481,9 +460,7 @@ export const mobileStyles = `
 export const desktopStyles = `
   /* Desktop-specific styling that can be added to host elements */
   
-  /* Base font sizes for different contexts */
-  --le-font-size-base-desktop: 1em;
-  --le-font-size-base-mobile: 1.1em;
+  ${fontSizeVariables}
   
   /* Standardized font sizes for desktop - these cascade to all sub-components */
   --le-font-size-base: var(--le-font-size-base-desktop);
@@ -493,16 +470,6 @@ export const desktopStyles = `
   --le-font-size-large: 1.2em;
   --le-font-size-xlarge: 1.4em;
   --le-font-size-xxlarge: 1.6em;
-  
-  /* Specific sizes for common UI elements */
-  --le-font-size-button: var(--le-font-size-medium);
-  --le-font-size-button-sm: var(--le-font-size-small);
-  --le-font-size-label: var(--le-font-size-small);
-  --le-font-size-input: var(--le-font-size-medium);
-  --le-font-size-table-header: var(--le-font-size-small);
-  --le-font-size-table-cell: var(--le-font-size-small);
-  --le-font-size-paging: var(--le-font-size-xs);
-  --le-font-size-dropdown: var(--le-font-size-medium);
   
   /* Desktop optimizations */
   font-size: var(--le-font-size-base);
@@ -524,7 +491,7 @@ export const sweetAlertMobileOverrides = `
 
       .lae-swal-popup-mobile .swal2-title,
       .lae-swal-title-mobile {
-        font-size: 1.4rem !important; /* Readable title size for mobile */
+        font-size: var(--le-font-size-large, 1.4em) !important; /* Readable title size for mobile */
         padding: 0.5rem 0.5rem 0.75rem !important; /* Adjusted padding */
         margin-bottom: 0 !important; /* Remove default bottom margin if any, handled by container */
         line-height: 1.3 !important;
@@ -550,7 +517,7 @@ export const sweetAlertMobileOverrides = `
       .lae-swal-styled-mobile {
         width: 100% !important; /* Full width buttons */
         padding: 0.85rem !important; /* Generous padding for touch targets */
-        font-size: 1rem !important;
+        font-size: var(--le-font-size-medium, 1.2em) !important;
         margin: 0 !important; /* Remove individual margins, gap handles spacing */
         border-radius: 0.3rem !important;
       }

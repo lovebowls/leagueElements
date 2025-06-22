@@ -90,7 +90,6 @@ export const BASE_STYLES = `
         /* No font size mappings needed - use le- variables directly throughout */
         /* --- End Mappings --- */
 
-        /* Remove main-content-font-size - use shared system instead */
       }
       .header { /* Main header for "League Administration" title. May not use panel-header-shared directly if it has very unique structure */
         font-weight: bold;
