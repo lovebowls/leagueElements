@@ -381,52 +381,197 @@ export const MOBILE_STYLES = `
   }
   
   .schedule-table tr {
-    margin-bottom: var(--le-padding-s, 0.5rem);
-    border: 1px solid var(--le-border-color-medium, #ddd);
-    border-radius: var(--le-border-radius-standard, 4px);
-    padding: var(--le-padding-xs, 0.25rem);
-    font-size: var(--le-font-size-small, 0.9em); /* Reduce font size for match rows */
-    position: relative; /* For positioning the edit button */
+    margin-bottom: 1rem;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: var(--le-font-size-base, 1em);
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #e9ecef;
+    transition: all 0.2s ease-in-out;
   }
   
-  /* Mobile match state styles */
+  .schedule-table tr:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Enhanced mobile match state styles */
   .match-row.past-no-result {
     border-left: 4px solid #ff6b6b;
-    background-color: #fff5f5;
-    font-size: var(--le-font-size-small, 0.9em);
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15), 0 1px 3px rgba(255, 107, 107, 0.1);
+  }
+  
+  .match-row.past-with-result {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(135deg, #f8fff9 0%, #e6f7e6 100%);
+    opacity: 0.85;
+  }
+  
+  .match-row.today {
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2), 0 1px 3px rgba(255, 193, 7, 0.1);
+  }
+  
+  .match-row.future {
+    border-left: 4px solid #007bff;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  }
+  
+  .match-row.needs-attention {
+    border-left: 4px solid #ff9800;
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15), 0 1px 3px rgba(255, 152, 0, 0.1);
   }
   
   .schedule-table td {
     display: flex;
-    padding: var(--le-padding-xs, 0.25rem);
+    align-items: center;
+    padding: 0.4rem 0;
     border: none;
     text-align: left;
+    min-height: 2.2rem;
   }
   
   .schedule-table td::before {
     content: attr(data-label);
-    font-weight: bold;
-    width: 40%;
-    margin-right: var(--le-padding-s, 0.5rem);
-    font-size: var(--le-font-size-small, 0.9em); /* Consistent smaller font size */
+    font-weight: 600;
+    width: 28%;
+    margin-right: 0.75rem;
+    font-size: 0.85em;
+    color: var(--le-text-color-secondary, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
   }
   
-  /* Position edit button in top right corner of match row panel */
+  .schedule-table td:after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, transparent 100%);
+    margin-left: auto;
+    margin-right: 0.5rem;
+  }
+  
+  /* Remove the line for the last cell */
+  .schedule-table td:last-child:after {
+    display: none;
+  }
+  
+  /* Style the actual data content */
+  .schedule-table td {
+    font-weight: 500;
+    color: var(--le-text-color-primary, #333);
+    font-size: 0.95em;
+    line-height: 1.4;
+  }
+  
+  /* Special styling for result cells with attention indicators */
+  .schedule-table .match-row.past-no-result td[data-label="Result"],
+  .schedule-table .match-row.needs-attention td[data-label="Result"] {
+    font-weight: 700;
+    font-size: 1.2em;
+    color: #d63031;
+  }
+  
+  /* Team name styling - make them stand out more */
+  .schedule-table td[data-label="Home"],
+  .schedule-table td[data-label="Away"] {
+    font-weight: 700;
+    color: var(--le-text-color-primary, #2c3e50);
+    font-size: 1.05em;
+  }
+  
+  /* Date styling - make it more prominent */
+  .schedule-table td[data-label="Date"] {
+    font-weight: 700;
+    color: var(--le-color-primary, #007bff);
+    font-size: 1.05em;
+  }
+  
+  /* Rink styling */
+  .schedule-table td[data-label="Rink"] {
+    font-weight: 600;
+    color: var(--le-text-color-secondary, #6c757d);
+    font-size: 0.9em;
+    font-style: italic;
+  }
+  
+  /* Result styling for completed matches */
+  .schedule-table .match-row.past-with-result td[data-label="Result"] {
+    font-weight: 700;
+    font-size: 1.1em;
+    color: #28a745;
+  }
+  
+  /* Today's match special styling */
+  .schedule-table .match-row.today td[data-label="Date"] {
+    color: #e67e22;
+    text-shadow: 0 1px 2px rgba(230, 126, 34, 0.3);
+  }
+  
+  /* Add some breathing room between content sections */
+  .schedule-table td:not(:last-child) {
+    margin-bottom: 0.2rem;
+  }
+  
+  /* Enhance the visual hierarchy with better spacing */
+  .schedule-table td::before {
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Enhanced edit button positioning for card design */
   .match-actions {
     display: flex;
     opacity: 1;
-    justify-content: flex-end; /* Move to right side */
-    position: absolute; /* Position absolutely within the match row */
-    top: var(--le-padding-xs, 0.25rem); /* Small gap from top */
-    right: var(--le-padding-xs, 0.25rem); /* Small gap from right */
-    z-index: 1; /* Ensure it's above other content */
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .match-actions:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   }
   
   .edit-match-btn {
-    font-size: var(--le-font-size-small, 0.9em); /* Smaller button */
-    padding: var(--le-padding-xs, 0.25rem); /* Compact padding */
-    min-height: 28px; /* Smaller minimum height */
-    min-width: 28px; /* Square button */
+    font-size: 1.1em;
+    padding: 0;
+    min-height: 36px;
+    min-width: 36px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+  }
+  
+  .edit-match-btn:hover {
+    transform: scale(1.1);
+  }
+  
+  .edit-match-btn:active {
+    transform: scale(0.95);
   }
   
   .paging-info {
