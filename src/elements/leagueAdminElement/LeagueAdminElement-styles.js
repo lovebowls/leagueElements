@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
@@ -16,13 +16,9 @@ export const BASE_STYLES = `
 
         /* ADMIN THEME VARIABLES (lae prefix for LeagueAdminElement) */
         --lae-font-family-main: 'Open Sans', Helvetica, Arial, sans-serif;
-        --lae-font-size-base-desktop: 1em;
-        --lae-font-size-base-mobile: 2em; 
-
-        --lae-font-size-small: 0.85em; 
-        --lae-font-size-medium: 1em;   
-        --lae-font-size-large: 1.2em;  
-        --lae-font-size-xlarge: 1.5em; 
+        
+        /* Use shared font sizing system - no more lae- font size variables */
+        /* Mobile and desktop will inherit appropriate sizing from shared styles */
 
         --lae-text-color-primary: #333;
         --lae-text-color-secondary: #666;
@@ -91,11 +87,10 @@ export const BASE_STYLES = `
 
         --le-border-radius-standard: var(--lae-border-radius-standard);
         
-        --le-font-size-medium: var(--lae-font-size-medium);
-        --le-font-size-small: var(--lae-font-size-small);
+        /* No font size mappings needed - use le- variables directly throughout */
         /* --- End Mappings --- */
 
-        --main-content-font-size: var(--lae-font-size-base-desktop); 
+        /* Remove main-content-font-size - use shared system instead */
       }
       .header { /* Main header for "League Administration" title. May not use panel-header-shared directly if it has very unique structure */
         font-weight: bold;
@@ -105,7 +100,7 @@ export const BASE_STYLES = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: var(--lae-font-size-large); /* Specific to this main header */
+        font-size: var(--le-font-size-large); /* Use shared variable */
       }
       .content-area {
         padding: var(--lae-padding-s) var(--lae-padding-xs);
@@ -131,7 +126,7 @@ export const BASE_STYLES = `
         border-bottom: none;
       }
       .league-name-text {
-        font-size: var(--lae-font-size-medium);
+        font-size: var(--le-font-size-medium); /* Use shared variable */
         pointer-events: none;
         /* Layout-specific properties moved to desktop/mobile sections */
       }
@@ -153,7 +148,7 @@ export const BASE_STYLES = `
         background-color: var(--lae-background-color-button);
         cursor: pointer;
         border-radius: var(--lae-border-radius-standard);
-        font-size: var(--lae-font-size-small); 
+        font-size: var(--le-font-size-small); /* Use shared variable */
       }
       .league-action-button:hover {
         background-color: var(--lae-background-color-button-hover);
@@ -168,22 +163,6 @@ export const BASE_STYLES = `
         margin-bottom: var(--lae-padding-m);
       }
       /* .action-buttons button styles are covered by .button-shared class in template */
-      /* .action-buttons button {
-        padding: var(--lae-padding-s) var(--lae-padding-m);
-        border: 1px solid var(--lae-border-color-medium);
-        background-color: var(--lae-background-color-button);
-        cursor: pointer;
-        border-radius: var(--lae-border-radius-standard);
-        font-size: var(--lae-font-size-medium);
-      } */
-      /* .action-buttons button:disabled {
-        background-color: var(--lae-background-color-button-disabled);
-        color: var(--lae-text-color-secondary);
-        cursor: not-allowed;
-      } */
-      /* .action-buttons button:hover:not(:disabled) {
-        background-color: var(--lae-background-color-button-hover);
-      } */
       .modal {
         display: none; 
         position: fixed; 
@@ -211,7 +190,7 @@ export const BASE_STYLES = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: var(--lae-font-size-large);
+        font-size: var(--le-font-size-large);
          /* Ensure shared padding is applied if not overridden by specificity */
         padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
         border-bottom: 1px solid var(--le-border-color-medium, #eee);
@@ -255,9 +234,9 @@ export const BASE_STYLES = `
         border-bottom: none;
         padding: var(--lae-padding-s) var(--lae-padding-m);
         cursor: pointer;
-        font-size: var(--lae-font-size-medium);
+        font-size: var(--le-font-size-medium);
         font-weight: 500;
-        color: var(--lae-text-color-secondary);
+        color: var(--le-text-color-secondary);
         border-radius: var(--lae-border-radius-standard) var(--lae-border-radius-standard) 0 0;
         position: relative;
         transition: all 0.2s ease;
@@ -268,12 +247,12 @@ export const BASE_STYLES = `
 
       .tab-button:hover {
         background: var(--lae-background-color-button-hover);
-        color: var(--lae-text-color-primary);
+        color: var(--le-text-color-primary);
       }
 
       .tab-button.active {
         background: var(--lae-background-color-panel);
-        color: var(--lae-text-color-primary);
+        color: var(--le-text-color-primary);
         font-weight: 600;
         border-bottom: 2px solid var(--lae-background-color-panel);
         margin-bottom: -2px;
@@ -314,9 +293,9 @@ export const BASE_STYLES = `
 
       .tab-content fieldset legend {
         font-weight: 600;
-        color: var(--lae-text-color-primary);
+        color: var(--le-text-color-primary);
         padding: 0 var(--lae-padding-s);
-        font-size: var(--lae-font-size-medium);
+        font-size: var(--le-font-size-medium);
       }
 
       .tab-content fieldset:last-child {
@@ -336,7 +315,7 @@ export const BASE_STYLES = `
         display: block;
         margin-bottom: var(--lae-padding-xs);
         font-weight: 500;
-        color: var(--lae-text-color-primary);
+        color: var(--le-text-color-primary);
       }
 
       .tab-content .form-group input[type="text"],
@@ -347,7 +326,7 @@ export const BASE_STYLES = `
         border: 1px solid var(--lae-border-color-dark);
         border-radius: var(--lae-border-radius-standard);
         box-sizing: border-box;
-        font-size: var(--lae-font-size-medium);
+        font-size: var(--le-font-size-medium);
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
@@ -355,7 +334,7 @@ export const BASE_STYLES = `
       .tab-content .form-group input[type="number"]:focus,
       .tab-content .form-group select:focus {
         outline: none;
-        border-color: var(--lae-text-color-accent);
+        border-color: var(--le-text-color-accent);
         box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
       }
 
@@ -394,7 +373,7 @@ export const BASE_STYLES = `
         .tab-button {
           padding: var(--lae-padding-xs) var(--lae-padding-s);
           min-width: 100px;
-          font-size: var(--lae-font-size-small);
+          font-size: var(--le-font-size-small);
         }
 
         .form-group-grid {
@@ -423,7 +402,7 @@ export const BASE_STYLES = `
         border: 1px solid var(--lae-border-color-dark);
         border-radius: var(--lae-border-radius-standard);
         box-sizing: border-box;
-        font-size: var(--lae-font-size-medium);
+        font-size: var(--le-font-size-medium);
       }
       .form-group input[type="checkbox"] {
         margin-right: var(--lae-padding-s);
@@ -477,7 +456,7 @@ export const BASE_STYLES = `
       .panel .panel-header { /* Styles for panel headers that have .panel-header-shared in template */
          /* Shared properties from .panel-header-shared apply */
          /* Overrides or additional styles for these specific panel headers: */
-         font-size: var(--lae-font-size-medium); 
+         font-size: var(--le-font-size-medium); 
          display: flex; /* Ensure these are flex for button alignment */
         justify-content: space-between;
         align-items: center;
@@ -500,7 +479,7 @@ export const BASE_STYLES = `
       .close-button {
         color: var(--lae-text-color-secondary, #aaa);
         float: right;
-        font-size: 1.5em; 
+        font-size: var(--le-font-size-large, 1.5em); 
         font-weight: bold;
         cursor: pointer;
       }
@@ -541,7 +520,7 @@ export const BASE_STYLES = `
         background: none;
         border: none;
         cursor: pointer;
-        font-size: var(--lae-font-size-small);
+        font-size: var(--le-font-size-small);
       }
       .dropdown-content button:hover {
         background-color: var(--lae-background-color-button-hover, #f1f1f1);
@@ -550,10 +529,10 @@ export const BASE_STYLES = `
         display: block;
       }
       #admin-matches-attention-container league-matches-attention {
-          font-size: var(--lae-font-size-small); /* Adjust font size for attention component within admin panel */
+          font-size: var(--le-font-size-small); /* Adjust font size for attention component within admin panel */
       }
       #main-title {
-        font-size: var(--lae-font-size-xlarge);
+        font-size: var(--le-font-size-xlarge);
       }
       .header-actions {
         /* Styles for the container of header actions if needed */
@@ -591,13 +570,12 @@ export const BASE_STYLES = `
       ${BASE_STYLES}
 
       :host {
+        ${mobileStyles}
         background: var(--lae-background-color-host-mobile, #f5f5f5);
         border: none;
         border-radius: 0;
         padding: var(--lae-padding-s);
         min-height: 100vh;
-        font-size: var(--lae-font-size-base-mobile, 2em); /* Use mobile base font size */
-        --main-content-font-size: var(--lae-font-size-base-mobile, 2em); /* For children expecting this */
       }
       .columns { /* Main container for left/right columns */
         display: flex;
@@ -648,7 +626,7 @@ export const BASE_STYLES = `
         min-height: 60px; /* Ensure consistent row height */
       }
       .league-name-text {
-        font-size: var(--lae-font-size-medium); /* Relative to host (now 2em based) */
+        font-size: var(--le-font-size-medium); /* Relative to host (now 2em based) */
         display: flex;
         align-items: center; /* Center text vertically */
         flex-grow: 1; /* Allow name to take available space */
@@ -664,7 +642,7 @@ export const BASE_STYLES = `
       }
       .league-action-button { /* Smaller buttons in league list items */
         padding: var(--lae-padding-xs) var(--lae-padding-s);
-        font-size: var(--lae-font-size-small); /* Relative to host */
+        font-size: var(--le-font-size-small); /* Relative to host */
         min-height: 44px; /* Increased height for better touch target */
         display: flex;
         align-items: center;
@@ -674,7 +652,7 @@ export const BASE_STYLES = `
         min-width: 140px;
       }
       .header { /* "League Administration" title in mobile */
-        font-size: var(--lae-font-size-large); /* Relative to host */
+        font-size: var(--le-font-size-xlarge); /* Use larger size for mobile title */
         font-weight: bold;
         padding: var(--lae-padding-s) var(--lae-padding-xs);
         background: none;
@@ -687,7 +665,7 @@ export const BASE_STYLES = `
       }
       .action-buttons button { /* New, Copy etc. buttons */
         min-height: 44px;
-        font-size: var(--lae-font-size-medium); /* Relative to host */
+        font-size: var(--le-font-size-medium); /* Use consistent font size variable */
         padding: var(--lae-padding-s) var(--lae-padding-m);
         border-radius: var(--lae-border-radius-standard);
         margin-bottom: var(--lae-padding-xs);
@@ -711,7 +689,7 @@ export const BASE_STYLES = `
         flex-direction: row; /* Align items in a row */
         justify-content: space-between; /* Space between title and button */
         align-items: center; /* Vertically align items */
-        font-size: var(--lae-font-size-medium); /* Relative to host */
+        font-size: var(--le-font-size-medium); /* Relative to host */
         font-weight: bold;
         margin-bottom: var(--lae-padding-s);
         background: none; /* Keep transparent background */
@@ -723,7 +701,7 @@ export const BASE_STYLES = `
           margin-right: auto; /* Push button to the right if h4 is used */
       }
       .panel-header button { /* Add Team button */
-        font-size: var(--lae-font-size-medium); /* Relative to host */
+        font-size: var(--le-font-size-medium); /* Use consistent font size variable */
         padding: var(--lae-padding-s) var(--lae-padding-m); /* Keep existing padding */
         margin-top: 0; /* Remove top margin */
         margin-left: var(--lae-padding-s); /* Add some left margin if needed, or rely on space-between */
@@ -744,7 +722,7 @@ export const BASE_STYLES = `
       }
       #teams-list li.team-item .team-name {
         margin-bottom: var(--lae-padding-s); 
-        font-size: var(--lae-font-size-medium);
+        font-size: var(--le-font-size-medium);
         text-align: left; /* Ensure left alignment */
         display: flex;
         align-items: center; /* Center text vertically */
@@ -761,28 +739,28 @@ export const BASE_STYLES = `
       /* End of Mobile-specific team list layout */
 
       .team-name { /* General .team-name, may be overridden by more specific above */
-        font-size: var(--lae-font-size-medium); /* Relative to host */
+        font-size: var(--le-font-size-medium); /* Relative to host */
       }
       .team-actions button { /* General .team-actions button, may be overridden */
-        font-size: var(--lae-font-size-small); /* Relative to host */
+        font-size: var(--le-font-size-small); /* Relative to host */
       }
 
       .match-item { /* For items within Matches panel in mobile */
-        font-size: var(--lae-font-size-medium); /* Relative to host */
+        font-size: var(--le-font-size-medium); /* Relative to host */
         padding: var(--lae-padding-s) var(--lae-padding-xs);
       }
       .match-date {
-        font-size: var(--lae-font-size-small); /* Relative to host */
+        font-size: var(--le-font-size-small); /* Relative to host */
       }
       .match-team { 
-        font-size: var(--lae-font-size-medium);   /* Relative to host */
+        font-size: var(--le-font-size-medium);   /* Relative to host */
       }
       .match-score {
-        font-size: var(--lae-font-size-medium);   /* Relative to host */
+        font-size: var(--le-font-size-medium);   /* Relative to host */
         padding: 0 var(--lae-padding-xs);
       }
       .match-status {
-        font-size: var(--lae-font-size-small); /* Relative to host */
+        font-size: var(--le-font-size-small); /* Relative to host */
         align-self: center; 
       }
       .team-item.selected-team { /* ADDED for mobile selection highlight */
@@ -796,17 +774,16 @@ export const BASE_STYLES = `
   export const DESKTOP_STYLES = `
       ${BASE_STYLES} /* Includes :host variables */
       :host {
+         ${desktopStyles}
          padding: var(--lae-padding-m);
          height: 100%;
-         font-size: var(--lae-font-size-base-desktop); /* Set desktop base font size */
          background-color: var(--lae-background-color-host-desktop);
-         --main-content-font-size: var(--lae-font-size-base-desktop); /* For children */
       }
       /* .dashboard, .left-panel, .right-panel, .resizer use variables defined in BASE_STYLES */
       /* .panel and .panel-header in desktop will use variables from BASE_STYLES */
       /* Specific overrides for desktop panel headers: */
       .panel-header { 
-        font-size: var(--lae-font-size-large); /* Larger for desktop panel titles */
+        font-size: var(--le-font-size-large); /* Larger for desktop panel titles */
         flex-direction: row; 
         align-items: center; 
         background: var(--lae-background-color-header); 
@@ -817,7 +794,7 @@ export const BASE_STYLES = `
           margin-bottom: 0;
       }
       .panel-header button { /* Add Team/Match on Desktop */
-        font-size: var(--lae-font-size-small); /* Smaller than main action buttons */
+        font-size: var(--le-font-size-small); /* Smaller than main action buttons */
         padding: var(--lae-padding-xs) var(--lae-padding-s);
         margin-left: auto; /* Push to the right */
       }
@@ -880,7 +857,7 @@ export const BASE_STYLES = `
         min-height: 32px; /* Reserve space for buttons */
       }
       .league-action-button { /* View Table, Actions buttons in league list for desktop */
-        font-size: var(--lae-font-size-small); /* Uses base style, already small */
+        font-size: var(--le-font-size-small); /* Uses base style, already small */
         padding: var(--lae-padding-xs) var(--lae-padding-s);
       }
       /* REMOVED: Override for desktop dropdown to open upwards */

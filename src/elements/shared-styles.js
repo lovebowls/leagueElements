@@ -186,7 +186,7 @@ export const buttonStyles = `
     color: var(--le-text-color-primary, #333); /* Ensure text color contrasts with button background */
     cursor: pointer;
     border-radius: var(--le-border-radius-standard, 4px);
-    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
+    font-size: var(--le-font-size-button, var(--le-font-size-medium, 1.15em)); /* Use variable with fallback */
     text-decoration: none;
     display: inline-block;
     text-align: center;
@@ -220,7 +220,7 @@ export const buttonStyles = `
   /* Small button variant */
   .button-shared.button-sm {
     padding: var(--le-padding-xs, 0.4rem) var(--le-padding-s, 0.75rem); /* Increased padding */
-    font-size: var(--le-font-size-small, 1em); /* Increased small font size */
+    font-size: var(--le-font-size-button-sm, var(--le-font-size-small, 1em)); /* Use variable with fallback */
     /* line-height can be tighter if needed for small buttons */
     /* line-height: 1.2; */
   }
@@ -354,7 +354,7 @@ export const formStyles = `
     margin-bottom: var(--le-padding-xs, 0.4em); /* Increased margin */
     font-weight: bold;
     color: var(--le-text-color-primary, #333);
-    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
+    font-size: var(--le-font-size-label, var(--le-font-size-small, 1.15em)); /* Use variable with fallback */
   }
 
   .form-input-shared,
@@ -365,7 +365,7 @@ export const formStyles = `
     border: 1px solid var(--le-border-color-dark, #ccc);
     border-radius: var(--le-border-radius-standard, 4px);
     box-sizing: border-box;
-    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
+    font-size: var(--le-font-size-input, var(--le-font-size-medium, 1.15em)); /* Use variable with fallback */
     color: var(--le-text-color-primary, #333);
     background-color: var(--le-background-color-panel, #fff);
   }
@@ -383,7 +383,7 @@ export const formStyles = `
     display: flex; /* Changed to flex for better alignment */
     align-items: center;
     font-weight: normal; /* Typically labels for checkboxes are not bold by default */
-    font-size: var(--le-font-size-medium, 1.15em); /* Increased font size */
+    font-size: var(--le-font-size-label, var(--le-font-size-small, 1.15em)); /* Use variable with fallback */
     color: var(--le-text-color-primary, #333);
   }
 
@@ -446,12 +446,28 @@ export const listItemStyles = `
 export const mobileStyles = `
   /* Mobile-specific styling that can be added to host elements */
   
-  /* Increased font sizes for better readability on mobile */
-  --le-font-size-base: 1.1em;
-  --le-font-size-small: 0.6em;
-  --le-font-size-medium: 0.8em;
-  --le-font-size-large: 1.1em;
-  --le-font-size-xlarge: 1.5em;
+  /* Base font sizes for different contexts */
+  --le-font-size-base-desktop: 1em;
+  --le-font-size-base-mobile: 1.1em;
+  
+  /* Standardized font sizes for mobile - these cascade to all sub-components */
+  --le-font-size-base: var(--le-font-size-base-mobile);
+  --le-font-size-xs: 0.75em;
+  --le-font-size-small: 0.9em;
+  --le-font-size-medium: 1.0em;
+  --le-font-size-large: 1.2em;
+  --le-font-size-xlarge: 1.4em;
+  --le-font-size-xxlarge: 1.6em;
+  
+  /* Specific sizes for common UI elements */
+  --le-font-size-button: var(--le-font-size-medium);
+  --le-font-size-button-sm: var(--le-font-size-small);
+  --le-font-size-label: var(--le-font-size-small);
+  --le-font-size-input: var(--le-font-size-medium);
+  --le-font-size-table-header: var(--le-font-size-small);
+  --le-font-size-table-cell: var(--le-font-size-small);
+  --le-font-size-paging: var(--le-font-size-xs);
+  --le-font-size-dropdown: var(--le-font-size-medium);
   
   /* Adjust padding for better touch targets */
   --le-padding-s: 0.6rem;
@@ -460,7 +476,38 @@ export const mobileStyles = `
   /* Other mobile optimizations */
   font-size: var(--le-font-size-base);
   line-height: 1.4;
-`; 
+`;
+
+export const desktopStyles = `
+  /* Desktop-specific styling that can be added to host elements */
+  
+  /* Base font sizes for different contexts */
+  --le-font-size-base-desktop: 1em;
+  --le-font-size-base-mobile: 1.1em;
+  
+  /* Standardized font sizes for desktop - these cascade to all sub-components */
+  --le-font-size-base: var(--le-font-size-base-desktop);
+  --le-font-size-xs: 0.75em;
+  --le-font-size-small: 0.9em;
+  --le-font-size-medium: 1.0em;
+  --le-font-size-large: 1.2em;
+  --le-font-size-xlarge: 1.4em;
+  --le-font-size-xxlarge: 1.6em;
+  
+  /* Specific sizes for common UI elements */
+  --le-font-size-button: var(--le-font-size-medium);
+  --le-font-size-button-sm: var(--le-font-size-small);
+  --le-font-size-label: var(--le-font-size-small);
+  --le-font-size-input: var(--le-font-size-medium);
+  --le-font-size-table-header: var(--le-font-size-small);
+  --le-font-size-table-cell: var(--le-font-size-small);
+  --le-font-size-paging: var(--le-font-size-xs);
+  --le-font-size-dropdown: var(--le-font-size-medium);
+  
+  /* Desktop optimizations */
+  font-size: var(--le-font-size-base);
+  line-height: 1.4;
+`;
 
 // SweetAlert2 Mobile-Specific Style Overrides
 // These styles are specifically designed to improve the appearance and usability

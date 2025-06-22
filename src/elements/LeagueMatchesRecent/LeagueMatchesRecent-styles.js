@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
@@ -81,9 +81,10 @@ export const MOBILE_STYLES = `
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
+        ${desktopStyles}
       }
       .match-item {
-        font-size: 1em;
+        font-size: var(--le-font-size-medium, 1em);
       }
     `;
 

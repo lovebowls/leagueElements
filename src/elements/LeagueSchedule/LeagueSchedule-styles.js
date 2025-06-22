@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, mobileStyles, dropdownStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, mobileStyles, desktopStyles, dropdownStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
   ${panelStyles}
@@ -42,19 +42,19 @@ export const BASE_STYLES = `
     border-collapse: collapse;
     table-layout: fixed;
     margin-top: var(--le-padding-s, 0.5rem);
-    font-size: 1em;
+    font-size: var(--le-font-size-table-cell, 1em);
     display: table;
   }
   
   .schedule-table * {
-    font-size: 1em;
+    font-size: inherit;
   }
   
   .schedule-table tr {
     display: table-row;
     margin: 0;
     padding: 0;
-    font-size: 1em;
+    font-size: inherit;
   }
   
   .schedule-table td,
@@ -62,7 +62,7 @@ export const BASE_STYLES = `
     display: table-cell;
     margin: 0;
     padding: 0.25rem 0.5rem;
-    font-size: 1em;
+    font-size: inherit;
     line-height: 1.4;
   }
   
@@ -73,7 +73,7 @@ export const BASE_STYLES = `
     text-align: center;
     padding: 0.25rem 0.5rem;
     border-bottom: 2px solid var(--le-border-color-medium, #ddd);
-    font-size: 1em;
+    font-size: var(--le-font-size-table-header, 1em);
     display: table-cell;
     vertical-align: middle;
     line-height: 1.4;
@@ -92,7 +92,7 @@ export const BASE_STYLES = `
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
-    font-size: 1em;
+    font-size: var(--le-font-size-table-cell, 1em);
     display: table-cell;
     vertical-align: middle;
     line-height: 1.4;
@@ -115,7 +115,7 @@ export const BASE_STYLES = `
   .match-row {
     cursor: pointer;
     display: table-row;
-    font-size: 1em;
+    font-size: inherit;
     line-height: 1.4;
     padding: 0;
     margin: 0;
@@ -159,7 +159,7 @@ export const BASE_STYLES = `
     font-style: normal;
     font-weight: 600;
     text-align: center;
-    font-size: 1.2em;
+    font-size: var(--le-font-size-medium, 1.2em);
   }
   
   .match-row.future {
@@ -214,14 +214,14 @@ export const BASE_STYLES = `
   }
   
   .paging-info {
-    font-size: 0.9em;
+    font-size: var(--le-font-size-paging, 0.9em);
     color: var(--le-text-color-secondary, #666);
   }
   
   .paging-settings {
     /* Layout properties moved to mobile/desktop sections */
     gap: var(--le-padding-xs, 0.25rem);
-    font-size: 0.9em;
+    font-size: var(--le-font-size-paging, 0.9em);
   }
   
   .paging-settings label {
@@ -234,7 +234,7 @@ export const BASE_STYLES = `
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-small, 3px);
-    font-size: 0.9em;
+    font-size: var(--le-font-size-paging, 0.9em);
     text-align: center;
   }
   
@@ -251,13 +251,13 @@ export const BASE_STYLES = `
   
   .paging-buttons button {
     padding: 0.25rem 0.5rem;
-    font-size: 0.85em;
+    font-size: var(--le-font-size-button-sm, 0.85em);
   }
   
   .clear-filters {
     margin-left: 0.5rem;
     padding: 0.25rem 0.5rem;
-    font-size: 0.85em;
+    font-size: var(--le-font-size-button-sm, 0.85em);
   }
   
   .no-matches {
@@ -295,7 +295,7 @@ export const BASE_STYLES = `
     font-style: normal;
     font-weight: 600;
     text-align: center;
-    font-size: 1.2em;
+    font-size: var(--le-font-size-medium, 1.2em);
   }
 
   /* Mobile needs attention styles */
@@ -357,12 +357,12 @@ export const MOBILE_STYLES = `
   
   .filter-panel .dropdown-shared .dropdown-select-shared {
     width: 100%;
-    font-size: var(--le-font-size-medium, 1.1em); /* Increase font size for filter dropdown */
+    font-size: var(--le-font-size-dropdown, 1.1em); /* Use consistent dropdown font size */
   }
   
   /* Export dropdown - make it smaller */
   .export-select {
-    font-size: var(--le-font-size-small, 0.9em); /* Reduce font size for export dropdown */
+    font-size: var(--le-font-size-small, 0.9em); /* Use consistent small font size */
     padding: var(--le-padding-xs, 0.25rem) var(--le-padding-s, 0.5rem); /* Reduce padding */
   }
   
@@ -385,7 +385,7 @@ export const MOBILE_STYLES = `
     border: none;
     border-radius: 12px;
     padding: 1rem;
-    font-size: var(--le-font-size-base, 1em);
+    font-size: var(--le-font-size-medium, 1em);
     position: relative;
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -442,7 +442,7 @@ export const MOBILE_STYLES = `
     font-weight: 600;
     width: 28%;
     margin-right: 0.75rem;
-    font-size: 0.85em;
+    font-size: var(--le-font-size-small, 0.85em);
     color: var(--le-text-color-secondary, #6c757d);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -467,7 +467,7 @@ export const MOBILE_STYLES = `
   .schedule-table td {
     font-weight: 500;
     color: var(--le-text-color-primary, #333);
-    font-size: 0.95em;
+    font-size: var(--le-font-size-small, 0.95em);
     line-height: 1.4;
   }
   
@@ -475,7 +475,7 @@ export const MOBILE_STYLES = `
   .schedule-table .match-row.past-no-result td[data-label="Result"],
   .schedule-table .match-row.needs-attention td[data-label="Result"] {
     font-weight: 700;
-    font-size: 1.2em;
+    font-size: var(--le-font-size-large, 1.2em);
     color: #d63031;
   }
   
@@ -484,28 +484,28 @@ export const MOBILE_STYLES = `
   .schedule-table td[data-label="Away"] {
     font-weight: 700;
     color: var(--le-text-color-primary, #2c3e50);
-    font-size: 1.05em;
+    font-size: var(--le-font-size-medium, 1.05em);
   }
   
   /* Date styling - make it more prominent */
   .schedule-table td[data-label="Date"] {
     font-weight: 700;
     color: var(--le-color-primary, #007bff);
-    font-size: 1.05em;
+    font-size: var(--le-font-size-medium, 1.05em);
   }
   
   /* Rink styling */
   .schedule-table td[data-label="Rink"] {
     font-weight: 600;
     color: var(--le-text-color-secondary, #6c757d);
-    font-size: 0.9em;
+    font-size: var(--le-font-size-small, 0.9em);
     font-style: italic;
   }
   
   /* Result styling for completed matches */
   .schedule-table .match-row.past-with-result td[data-label="Result"] {
     font-weight: 700;
-    font-size: 1.1em;
+    font-size: var(--le-font-size-medium, 1.1em);
     color: #28a745;
   }
   
@@ -552,7 +552,7 @@ export const MOBILE_STYLES = `
   }
   
   .edit-match-btn {
-    font-size: 1.1em;
+    font-size: var(--le-font-size-medium, 1.1em);
     padding: 0;
     min-height: 36px;
     min-width: 36px;
@@ -584,6 +584,7 @@ export const DESKTOP_STYLES = `
   
   /* Desktop-specific overrides - following the same pattern as other components */
   :host {
+    ${desktopStyles}
   }
   
   /* Desktop-specific layout styles */
@@ -654,7 +655,7 @@ export const DESKTOP_STYLES = `
     padding: 0.25rem 0.5rem;
     border-bottom: 1px solid var(--le-border-color-light, #eee);
     text-align: center;
-    font-size: 1em;
+    font-size: var(--le-font-size-table-cell, 1em);
   }
   
   .schedule-table td:first-child,

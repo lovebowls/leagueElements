@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, dropdownStyles, mobileStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
@@ -702,6 +702,7 @@ export const BASE_STYLES = `
   export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
+        ${desktopStyles}
         padding: var(--le-padding-m); 
         height: 100%;
         background-color: var(--le-background-color-host); /* MODIFIED - Can be different for desktop host if desired */

@@ -1,4 +1,4 @@
-import { buttonStyles, modalStyles, formStyles, mobileStyles } from '../shared-styles.js';
+import { buttonStyles, modalStyles, formStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
   ${buttonStyles}
@@ -25,7 +25,8 @@ export const BASE_STYLES = `
   }
   
   :host([open]) {
-    display: flex; 
+    display: flex;
+    ${desktopStyles}
   }
 
   /* Teams Manager Layout */
@@ -100,7 +101,7 @@ export const BASE_STYLES = `
     gap: var(--le-padding-s, 0.5rem);
     cursor: pointer;
     color: var(--le-text-color-primary, #333);
-    font-size: var(--le-font-size-base, 1rem);
+    font-size: var(--le-font-size-medium, 1rem);
     user-select: none;
   }
 
@@ -175,7 +176,7 @@ export const BASE_STYLES = `
     padding: var(--le-padding-m, 1rem);
     background: var(--le-background-color-header, #f8f9fa);
     border-bottom: 1px solid var(--le-border-color-light, #eee);
-    font-size: var(--le-font-size-base, 1rem);
+    font-size: var(--le-font-size-medium, 1rem);
     color: var(--le-text-color-primary, #333);
   }
 
@@ -302,7 +303,7 @@ export const BASE_STYLES = `
 
   .team-editor-header h4 {
     margin: 0;
-    font-size: var(--le-font-size-base, 1rem);
+    font-size: var(--le-font-size-medium, 1rem);
     color: var(--le-text-color-primary, #333);
   }
 
@@ -315,7 +316,7 @@ export const BASE_STYLES = `
   .modal-close-button {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: var(--le-font-size-large, 1.5rem);
     cursor: pointer;
     color: var(--le-text-color-secondary, #666);
     padding: 0;
@@ -354,7 +355,7 @@ export const BASE_STYLES = `
     padding: var(--le-padding-s, 0.5rem);
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-standard, 4px);
-    font-size: var(--le-font-size-base, 1rem);
+    font-size: var(--le-font-size-input, 1rem);
     background-color: var(--le-background-color-panel, #fff);
     color: var(--le-text-color-primary, #333);
     box-sizing: border-box;
@@ -399,7 +400,7 @@ export const BASE_STYLES = `
       width: 95% !important;
       max-width: 95% !important;
       margin: 5% auto;
-      font-size: 16px !important;
+      font-size: var(--le-font-size-medium, 16px) !important;
       max-height: 95vh;
     }
     
@@ -408,7 +409,7 @@ export const BASE_STYLES = `
     }
     
     .teams-manager-header h3 {
-      font-size: 18px !important;
+      font-size: var(--le-font-size-large, 18px) !important;
     }
     
     .teams-manager-body {
@@ -507,24 +508,24 @@ export const BASE_STYLES = `
 
     
     .form-label-shared {
-      font-size: 16px !important;
+      font-size: var(--le-font-size-label, 16px) !important;
       margin-bottom: 8px;
     }
     
     .form-input-shared {
-      font-size: 16px !important;
+      font-size: var(--le-font-size-input, 16px) !important;
       padding: 10px !important;
       height: auto !important;
     }
     
     .button-shared {
-      font-size: 16px !important;
+      font-size: var(--le-font-size-button, 16px) !important;
       padding: 10px 15px !important;
       min-height: 44px;
     }
 
     .button-sm {
-      font-size: 14px !important;
+      font-size: var(--le-font-size-button-sm, 14px) !important;
       padding: 8px 12px !important;
       min-height: 36px;
     }

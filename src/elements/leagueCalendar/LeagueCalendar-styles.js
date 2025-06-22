@@ -1,4 +1,4 @@
-import { mobileStyles } from '../shared-styles.js';
+import { mobileStyles, desktopStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
@@ -185,6 +185,9 @@ export const MOBILE_STYLES = `
 // Desktop-specific styles
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
+      :host {
+        ${desktopStyles}
+      }
       .panel-header {
         font-size: var(--le-font-size-large, 1.1rem); /* Adjusted for desktop panel header */
       }

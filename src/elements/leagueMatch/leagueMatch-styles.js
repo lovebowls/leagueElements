@@ -1,4 +1,4 @@
-import { buttonStyles, modalStyles, formStyles, mobileStyles } from '../shared-styles.js';
+import { buttonStyles, modalStyles, formStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
       ${buttonStyles}

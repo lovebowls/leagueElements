@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
       ${panelStyles}
@@ -84,6 +84,9 @@ export const MOBILE_STYLES = `
 
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
+      :host {
+        ${desktopStyles}
+      }
     `;
 
 export const TEMPLATE = `
