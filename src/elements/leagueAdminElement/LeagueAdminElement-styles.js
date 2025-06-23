@@ -1,7 +1,7 @@
 import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, mobileStyles, desktopStyles, tabStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
-export const BASE_STYLES = `
+const BASE_STYLES = `
       ${panelStyles}   /* ADDED SHARED STYLE */
       ${buttonStyles}  /* ADDED SHARED STYLE */
       ${modalStyles}   /* ADDED SHARED MODAL STYLE */
@@ -610,16 +610,13 @@ export const BASE_STYLES = `
 
   // Desktop-specific styles
   export const DESKTOP_STYLES = `
-      ${BASE_STYLES} /* Includes :host variables */
+      ${BASE_STYLES}
       :host {
          ${desktopStyles}
          padding: var(--swal-padding-m);
          height: 100%;
          background-color: var(--swal-background-color-host-desktop);
       }
-      /* .dashboard, .left-panel, .right-panel, .resizer use variables defined in BASE_STYLES */
-      /* .panel and .panel-header in desktop will use variables from BASE_STYLES */
-      /* Specific overrides for desktop panel headers: */
       .panel-header { 
         font-size: var(--le-font-size-large); /* Larger for desktop panel titles */
         flex-direction: row; 

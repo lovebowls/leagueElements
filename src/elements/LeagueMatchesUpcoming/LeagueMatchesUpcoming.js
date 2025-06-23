@@ -8,13 +8,7 @@ class LeagueMatchesUpcomingEvent extends CustomEvent {
     });
   }
 }
-
-import {
-    BASE_STYLES,
-    MOBILE_STYLES,
-    DESKTOP_STYLES,
-    TEMPLATE
-} from './LeagueMatchesUpcoming-styles.js';
+import { MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE } from './LeagueMatchesUpcoming-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
 
 /**

@@ -7,7 +7,7 @@ import '../leagueMatch/leagueMatch.js';
 import '../leagueResetModal/leagueResetModal.js';
 import '../leagueTeams/leagueTeams.js';
 import '../LeagueSchedule/LeagueSchedule.js';
-import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
+import {  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 

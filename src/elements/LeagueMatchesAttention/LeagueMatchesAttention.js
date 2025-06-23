@@ -9,13 +9,7 @@ class LeagueMatchesAttentionEvent extends CustomEvent {
     });
   }
 }
-
-import {
-    BASE_STYLES,
-    MOBILE_STYLES,
-    DESKTOP_STYLES,
-    TEMPLATE
-} from './LeagueMatchesAttention-styles.js';
+import { MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE } from './LeagueMatchesAttention-styles.js';
 
 /**
  * Custom element to display matches requiring attention with paging.

@@ -15,9 +15,6 @@ class LeagueMatchEvent extends CustomEvent {
 }
 
 class LeagueMatch extends HTMLElement { // Or extends LitElement
-  // static get BASE_STYLES() { // Or static styles for LitElement // REMOVED
-  // REMOVED ALL BASE_STYLES CONTENT
-  // }
 
   static get observedAttributes() {
     return ['open', 'is-mobile', 'mode', 'attention-reason', 'leagueSettings']; // Added leagueSettings

@@ -1,18 +1,12 @@
 import { mobileStyles, desktopStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
-export const BASE_STYLES = `
+const BASE_STYLES = `
       :host {
         display: block;
         font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
         box-sizing: border-box;
         color: var(--le-text-color-primary, #333);
-        font-size: var(--le-font-size-base, 1em);
-      }
-      .panel-header { /* Copied from LeagueMatchesUpcoming for consistency */
-        margin-bottom: var(--le-padding-s, 0.5rem);
-        color: var(--le-text-color-primary, #333);
-        font-size: var(--le-font-size-medium, 1.2em); /* Will be overridden by mobile/desktop */
       }
       .calendar-container {
         padding: var(--le-padding-s, 0.5rem);
@@ -24,7 +18,6 @@ export const BASE_STYLES = `
         align-items: center;
         margin-bottom: var(--le-padding-s, 0.5rem);
         font-weight: bold;
-        font-size: var(--le-font-size-medium, 1.2em);
       }
       .calendar-nav {
         cursor: pointer;
@@ -43,7 +36,6 @@ export const BASE_STYLES = `
       }
       .calendar-grid > div { /* Applies to headers and days */
         padding: var(--le-padding-s, 0.5rem) var(--le-padding-xs, 0.25rem);
-        font-size: var(--le-font-size-small, 0.9em);
         border-radius: var(--le-border-radius-small, 2px);
       }
       .calendar-day-header { /* Specifically for Su, Mo, Tu... */
@@ -91,7 +83,6 @@ export const BASE_STYLES = `
         color: var(--le-text-color-on-primary, white); /* Assuming on-primary is suitable for tooltip text */
         padding: var(--le-padding-s, 0.5rem);
         border-radius: var(--le-border-radius-standard, 4px);
-        font-size: var(--le-font-size-small, 0.85em);
         white-space: pre-wrap; /* Allows line breaks from \n */
         z-index: 100;
         visibility: hidden;
@@ -118,7 +109,6 @@ export const BASE_STYLES = `
         border: 1px solid var(--le-border-color-dark, #ccc);
         border-radius: var(--le-border-radius-small, 3px);
         padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
-        font-size: var(--le-font-size-small, 0.9em)
         cursor: pointer;
         color: var(--le-text-color-button, var(--le-text-color-primary));
       }
@@ -143,7 +133,6 @@ export const BASE_STYLES = `
         border-left: 3px solid var(--le-text-color-accent, #2196f3);
         padding: var(--le-padding-s, 0.3rem) var(--le-padding-m, 0.5rem);
         margin-bottom: var(--le-padding-s, 0.5rem);
-        font-size: var(--le-font-size-small, 0.9em);
         color: var(--le-text-color-accent-hover, #1976d2);
         display: flex;
         justify-content: space-between;
@@ -154,7 +143,6 @@ export const BASE_STYLES = `
         border: none;
         color: var(--le-text-color-accent, #2196f3);
         cursor: pointer;
-        font-size: var(--le-font-size-small, 0.9em);
         padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.5rem);
       }
       .filter-indicator button:hover {
@@ -168,15 +156,9 @@ export const MOBILE_STYLES = `
       :host {
         ${mobileStyles}
       }
-      .panel-header {
-        font-size: var(--le-font-size-medium, 1.2em); /* Adjusted for mobile context */
-      }
-      .calendar-grid > div { /* For day numbers and headers */
-        padding: var(--le-padding-s, 0.4rem) var(--le-padding-xs, 0.2rem); /* Slightly less padding */
-        font-size: var(--le-font-size-small, 1.0em);
-      }
-      .calendar-header {
-        font-size: var(--le-font-size-medium, 1.2em);
+      .calendar-grid > div { /* Applies to headers and days */
+        padding: var(--le-padding-s, 0.5rem) var(--le-padding-xs, 0.25rem);
+        border-radius: var(--le-border-radius-small, 2px);
       }
     `;
 
@@ -185,9 +167,6 @@ export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
         ${desktopStyles}
-      }
-      .panel-header {
-        font-size: var(--le-font-size-large, 1.2em); /* Adjusted for desktop panel header */
       }
     `;
 

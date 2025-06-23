@@ -1,8 +1,8 @@
 const baseFontSizeConstants = `
 
 /* Base font sizes for different contexts */
-  --le-font-size-base-desktop: 1em;
-  --le-font-size-base-mobile: 1.8em;
+  --le-font-size-base-desktop: 16px;
+  --le-font-size-base-mobile: 24px;
   line-height: 1.4;
 `;
 
@@ -13,11 +13,53 @@ const fontSizeElementVariables = `
   --le-font-size-button-sm: var(--le-font-size-small);
   --le-font-size-label: var(--le-font-size-small);
   --le-font-size-input: var(--le-font-size-medium);
-  --le-font-size-table-header: var(--le-font-size-xlarge);
-  --le-font-size-table-cell: var(--le-font-size-xlarge);
-  --le-font-size-paging: var(--le-font-size-xs);
+  --le-font-size-table-header: var(--le-font-size-small);
+  --le-font-size-table-cell: var(--le-font-size-small);
+  --le-font-size-paging: var(--le-font-size-small);
   --le-font-size-dropdown: var(--le-font-size-medium);
 `;
+
+
+export const mobileStyles = `
+  font-size: var(--le-font-size-base-mobile);
+
+  ${baseFontSizeConstants}
+
+  /* Mobile-specific styling that can be added to host elements */
+  --le-font-size-base: 1em;
+  --le-font-size-xs: 1.2em;
+  --le-font-size-small: 1.4em;
+  --le-font-size-medium: 1.6em;
+  --le-font-size-large: 2em;
+  --le-font-size-xlarge: 2.4em;
+  --le-font-size-xxlarge: 2.8em;
+  
+   ${fontSizeElementVariables}
+
+  /* Adjust padding for better touch targets */
+  --le-padding-s: 0.6rem;
+  --le-padding-m: 1rem;
+  
+`;
+
+export const desktopStyles = `
+  ${baseFontSizeConstants}
+  font-size: var(--le-font-size-base-desktop);
+
+  /* Standardized font sizes for desktop - these cascade to all sub-components */
+  --le-font-size-base: 1em;
+  --le-font-size-xs: 0.75em;
+  --le-font-size-small: 0.9em;
+  --le-font-size-medium: 1.0em;
+  --le-font-size-large: 1.2em;
+  --le-font-size-xlarge: 1.4em;
+  --le-font-size-xxlarge: 1.6em;
+
+  ${fontSizeElementVariables}
+
+`;
+
+
 // Shared base styles for dropdown elements
 export const dropdownStyles = `
   /* Shared base styles for dropdown elements */
@@ -288,8 +330,6 @@ export const modalStyles = `
   }
 
   .modal-shared-header {
-    /* Utilizes .panel-header-shared for base styling if desired, or define fully here */
-    /* This example assumes it might be combined with .panel-header-shared or similar */
     padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
     border-bottom: 1px solid var(--le-border-color-medium, #eee);
     font-weight: bold;
@@ -419,7 +459,7 @@ export const listItemStyles = `
   /* Example of a text part within a list item that should grow */
   .list-item-shared .list-item-text-primary {
     flex-grow: 1;
-    font-size: var(--le-font-size-base, 1em);
+    font-size: var(--le-font-size-medium, 1.2em);
     text-align: left; /* Ensure text is left-aligned */
     display: flex;
     align-items: center; /* Center text vertically within its container */
@@ -435,45 +475,6 @@ export const listItemStyles = `
     display: flex;
     gap: var(--le-padding-xs, 0.4em); /* Increased gap */
   }
-`;
-
-export const mobileStyles = `
-  font-size: 18px;
-
-  ${baseFontSizeConstants}
-
-  /* Mobile-specific styling that can be added to host elements */
-  --le-font-size-base: var(--le-font-size-base-mobile);
-  --le-font-size-xs: 0.9em;
-  --le-font-size-small: 1.0em;
-  --le-font-size-medium: 1.2em;
-  --le-font-size-large: 1.4em;
-  --le-font-size-xlarge: 1.6em;
-  --le-font-size-xxlarge: 1.8em;
-  
-   ${fontSizeElementVariables}
-
-  /* Adjust padding for better touch targets */
-  --le-padding-s: 0.6rem;
-  --le-padding-m: 1rem;
-  
-`;
-
-export const desktopStyles = `
-  ${baseFontSizeConstants}
-  
-  /* Standardized font sizes for desktop - these cascade to all sub-components */
-  --le-font-size-base: var(--le-font-size-base-desktop);
-  --le-font-size-xs: 0.75em;
-  --le-font-size-small: 0.9em;
-  --le-font-size-medium: 1.0em;
-  --le-font-size-large: 1.2em;
-  --le-font-size-xlarge: 1.4em;
-  --le-font-size-xxlarge: 1.6em;
-
-
-  ${fontSizeElementVariables}
-
 `;
 
 // SweetAlert2 Mobile-Specific Style Overrides

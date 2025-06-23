@@ -52,15 +52,7 @@ class LeagueCalendarEvent extends CustomEvent {
   }
 }
 
-// Import shared styles if needed
-// import { mobileStyles } from './shared-styles.js'; // REMOVED
-
-import {
-    BASE_STYLES,
-    MOBILE_STYLES,
-    DESKTOP_STYLES,
-    TEMPLATE
-} from './LeagueCalendar-styles.js';
+import { MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE } from './LeagueCalendar-styles.js';
 
 // Import Temporal API utilities
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';

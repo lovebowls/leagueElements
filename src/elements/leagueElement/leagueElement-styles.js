@@ -1,7 +1,7 @@
 import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles, tabStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
-export const BASE_STYLES = `
+const BASE_STYLES = `
       ${panelStyles}   /* ADDED SHARED STYLE */
       ${buttonStyles}  /* ADDED SHARED STYLE */
       ${dropdownStyles} /* ADDED SHARED STYLE */
@@ -16,8 +16,6 @@ export const BASE_STYLES = `
 
         /* THEME VARIABLES */
         --le-font-family-main: 'Open Sans', Helvetica, Arial, sans-serif;
-        /* Font sizes removed - now inherited from shared mobile/desktop styles */
-        --le-font-size-page-title: 1.3em; /* For main titles like league name - keep this as it's specific */
 
         --le-text-color-primary: #333;
         --le-text-color-secondary: #666;
@@ -448,9 +446,6 @@ export const BASE_STYLES = `
         align-items: center;
         gap: 10px;
       }
-      .title-with-filter span {
-        font-size: var(--le-font-size-page-title); /* Use page title variable */
-      }
       .matrix-grid {
         display: grid;
       }
@@ -775,7 +770,6 @@ export const BASE_STYLES = `
         background: var(--le-text-color-secondary); 
       }
       .title { /* Main title in the left panel (Table/Matrix/Trends) */
-        font-size: var(--le-font-size-page-title); 
         margin-bottom: var(--le-padding-s); 
         padding: var(--le-padding-m); 
       }
@@ -784,8 +778,7 @@ export const BASE_STYLES = `
         padding: var(--le-padding-m); 
       }
       th, td {
-        padding: var(--le-padding-s); /* MODIFIED - Was 0.75rem */
-        /* font-size inherited from BASE_STYLES via --le-font-size-base */
+        padding: var(--le-padding-s);
       }
       th:nth-child(3),
       td:nth-child(3) {

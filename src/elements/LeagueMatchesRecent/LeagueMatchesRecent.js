@@ -9,7 +9,7 @@ class LeagueMatchesRecentEvent extends CustomEvent {
   }
 }
 
-import {BASE_STYLES, MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE} from './LeagueMatchesRecent-styles.js';
+import {MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE} from './LeagueMatchesRecent-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueMatchesRecent extends HTMLElement {

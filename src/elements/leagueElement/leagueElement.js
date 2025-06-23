@@ -16,7 +16,7 @@ import '../leagueMatch/leagueMatch.js';
 import '../leagueCalendar/LeagueCalendar.js';
 import '../LeagueSchedule/LeagueSchedule.js';
 
-import {  BASE_STYLES,  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
+import {  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
 import { League, Match } from '@lovebowls/leaguejs';
 import { FormUtils } from '../../utils/formUtils.js';

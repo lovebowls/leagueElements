@@ -9,14 +9,7 @@ class LeagueScheduleEvent extends CustomEvent {
   }
 }
 
-import {
-  BASE_STYLES,
-  MOBILE_STYLES,
-  DESKTOP_STYLES,
-  TEMPLATE,
-  TABLE_TEMPLATE,
-  NO_MATCHES_TEMPLATE
-} from './LeagueSchedule-styles.js';
+import { MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE, TABLE_TEMPLATE, NO_MATCHES_TEMPLATE } from './LeagueSchedule-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
 import {
   exportMatchesToCSV,

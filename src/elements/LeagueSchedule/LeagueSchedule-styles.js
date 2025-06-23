@@ -1,6 +1,6 @@
 import { panelStyles, buttonStyles, mobileStyles, desktopStyles, dropdownStyles } from '../shared-styles.js';
 
-export const BASE_STYLES = `
+const BASE_STYLES = `
   ${panelStyles}
   ${buttonStyles}
   ${dropdownStyles}
