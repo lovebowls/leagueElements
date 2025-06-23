@@ -20,7 +20,7 @@ export const BASE_STYLES = `
       }
       .match-date {
         color: var(--le-text-color-secondary, #666);
-        font-size: 0.85em;
+        font-size: var(--le-font-size-small, 0.9em);
         margin-bottom: var(--le-padding-xs, 0.2em);
       }
       .match-details {
@@ -42,7 +42,7 @@ export const BASE_STYLES = `
         padding: var(--le-padding-xs, 0.1em) var(--le-padding-s, 0.3em);
         border-radius: var(--le-border-radius-small, 3px);
         color: var(--le-text-color-on-primary, #fff);
-        font-size: 0.8em;
+        font-size: var(--le-font-size-xs, 0.75em);
         font-weight: bold;
         margin-left: var(--le-padding-s, 0.5rem);
       }
@@ -73,7 +73,7 @@ export const MOBILE_STYLES = `
         ${mobileStyles}
       }
       .match-item {
-        font-size: 1em;
+        font-size: var(--le-font-size-base, 1.5em);
       }
     `;
 
@@ -84,7 +84,7 @@ export const DESKTOP_STYLES = `
         ${desktopStyles}
       }
       .match-item {
-        font-size: var(--le-font-size-medium, 1em);
+        font-size: var(--le-font-size-base, 1em);
       }
     `;
 

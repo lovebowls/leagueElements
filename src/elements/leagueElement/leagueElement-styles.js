@@ -664,6 +664,10 @@ export const BASE_STYLES = `
         padding: var(--le-padding-s) var(--le-padding-xs); /* Adjusted padding */
         font-size: var(--le-font-size-base); /* Explicitly set font size for mobile table cells */
       }
+      th:nth-child(2), 
+      td:nth-child(2) {
+        text-align: left; 
+      }
       th:nth-child(3),
       td:nth-child(3) {
         font-weight: bold;

@@ -1,3 +1,20 @@
+
+// Shared font size base variables and UI element font sizes (used internally)
+const fontSizeVariables = `
+  /* Base font sizes for different contexts */
+  --le-font-size-base-desktop: 1em;
+  --le-font-size-base-mobile: 1.3em;
+  
+  /* Specific sizes for common UI elements */
+  --le-font-size-button: var(--le-font-size-medium);
+  --le-font-size-button-sm: var(--le-font-size-small);
+  --le-font-size-label: var(--le-font-size-small);
+  --le-font-size-input: var(--le-font-size-medium);
+  --le-font-size-table-header: var(--le-font-size-small);
+  --le-font-size-table-cell: var(--le-font-size-small);
+  --le-font-size-paging: var(--le-font-size-xs);
+  --le-font-size-dropdown: var(--le-font-size-medium);
+`;
 // Shared base styles for dropdown elements
 export const dropdownStyles = `
   /* Shared base styles for dropdown elements */
@@ -417,22 +434,6 @@ export const listItemStyles = `
   }
 `;
 
-// Shared font size base variables and UI element font sizes (used internally)
-const fontSizeVariables = `
-  /* Base font sizes for different contexts */
-  --le-font-size-base-desktop: 1em;
-  --le-font-size-base-mobile: 1.5em;
-  
-  /* Specific sizes for common UI elements */
-  --le-font-size-button: var(--le-font-size-medium);
-  --le-font-size-button-sm: var(--le-font-size-small);
-  --le-font-size-label: var(--le-font-size-small);
-  --le-font-size-input: var(--le-font-size-medium);
-  --le-font-size-table-header: var(--le-font-size-small);
-  --le-font-size-table-cell: var(--le-font-size-small);
-  --le-font-size-paging: var(--le-font-size-xs);
-  --le-font-size-dropdown: var(--le-font-size-medium);
-`;
 
 export const mobileStyles = `
   /* Mobile-specific styling that can be added to host elements */
@@ -485,8 +486,8 @@ export const sweetAlertMobileOverrides = `
       .swal2-popup.lae-swal-popup-mobile {
         width: 90vw !important;
         max-width: 480px !important;
-        padding: 1rem !important; /* Increased padding for better touch spacing */
-        font-size: 1rem !important; /* Base font size for content */
+        padding: var(--le-padding-m, 1rem) !important; /* Increased padding for better touch spacing */
+        font-size: var(--le-font-size-base, 1.5em) !important; /* Use mobile base font size */
       }
 
       .lae-swal-popup-mobile .swal2-title,
@@ -499,7 +500,7 @@ export const sweetAlertMobileOverrides = `
 
       .lae-swal-popup-mobile .swal2-html-container,
       .lae-swal-html-container-mobile {
-        font-size: 0.95rem !important; /* Slightly smaller for body text */
+        font-size: var(--le-font-size-small, 1.0em) !important; /* Use shared variable instead of hardcoded rem */
         margin: 0.75rem 0.5rem !important; /* Vertical and horizontal margin */
         line-height: 1.5 !important;
         text-align: center !important;

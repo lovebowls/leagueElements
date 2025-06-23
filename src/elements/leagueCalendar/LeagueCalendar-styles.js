@@ -12,7 +12,7 @@ export const BASE_STYLES = `
       .panel-header { /* Copied from LeagueMatchesUpcoming for consistency */
         margin-bottom: var(--le-padding-s, 0.5rem);
         color: var(--le-text-color-primary, #333);
-        font-size: 1.1rem; /* Default size, can be overridden by mobile/desktop */
+        font-size: var(--le-font-size-medium, 1.2em); /* Will be overridden by mobile/desktop */
       }
       .calendar-container {
         padding: var(--le-padding-s, 0.5rem);
@@ -26,7 +26,7 @@ export const BASE_STYLES = `
         align-items: center;
         margin-bottom: var(--le-padding-s, 0.5rem);
         font-weight: bold;
-        font-size: 1.1em;
+        font-size: var(--le-font-size-medium, 1.2em);
       }
       .calendar-nav {
         cursor: pointer;
@@ -45,7 +45,7 @@ export const BASE_STYLES = `
       }
       .calendar-grid > div { /* Applies to headers and days */
         padding: var(--le-padding-s, 0.5rem) var(--le-padding-xs, 0.25rem);
-        font-size: 0.9em;
+        font-size: var(--le-font-size-small, 0.9em);
         border-radius: var(--le-border-radius-small, 2px);
       }
       .calendar-day-header { /* Specifically for Su, Mo, Tu... */
@@ -120,7 +120,7 @@ export const BASE_STYLES = `
         border: 1px solid var(--le-border-color-dark, #ccc);
         border-radius: var(--le-border-radius-small, 3px);
         padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
-        font-size: 0.9em;
+        font-size: var(--le-font-size-small, 0.9em)
         cursor: pointer;
         color: var(--le-text-color-button, var(--le-text-color-primary));
       }
@@ -156,7 +156,7 @@ export const BASE_STYLES = `
         border: none;
         color: var(--le-text-color-accent, #2196f3);
         cursor: pointer;
-        font-size: 0.9em;
+        font-size: var(--le-font-size-small, 0.9em);
         padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.5rem);
       }
       .filter-indicator button:hover {
@@ -171,14 +171,14 @@ export const MOBILE_STYLES = `
         ${mobileStyles}
       }
       .panel-header {
-        font-size: var(--le-font-size-medium, 1em); /* Adjusted for mobile context */
+        font-size: var(--le-font-size-medium, 1.2em); /* Adjusted for mobile context */
       }
       .calendar-grid > div { /* For day numbers and headers */
         padding: var(--le-padding-s, 0.4rem) var(--le-padding-xs, 0.2rem); /* Slightly less padding */
-        font-size: var(--le-font-size-small, 0.85em);
+        font-size: var(--le-font-size-small, 1.0em);
       }
       .calendar-header {
-        font-size: var(--le-font-size-medium, 1em);
+        font-size: var(--le-font-size-medium, 1.2em);
       }
     `;
 
@@ -189,7 +189,7 @@ export const DESKTOP_STYLES = `
         ${desktopStyles}
       }
       .panel-header {
-        font-size: var(--le-font-size-large, 1.1rem); /* Adjusted for desktop panel header */
+        font-size: var(--le-font-size-large, 1.2em); /* Adjusted for desktop panel header */
       }
     `;
 

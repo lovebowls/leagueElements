@@ -552,7 +552,7 @@ export const BASE_STYLES = `
 
       /* SweetAlert2 Custom Theming */
       .swal2-popup {
-        font-size: var(--le-font-size-base, 1rem);
+        font-size: var(--le-font-size-base, 1em);
       }
       
       .swal2-confirm {
