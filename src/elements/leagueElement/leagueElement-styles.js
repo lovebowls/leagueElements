@@ -15,12 +15,8 @@ export const BASE_STYLES = `
 
         /* THEME VARIABLES */
         --le-font-family-main: 'Open Sans', Helvetica, Arial, sans-serif;
-        --le-font-size-base: 1em; /* Base for general text within this component */
-        --le-font-size-small: 0.85em;
-        --le-font-size-medium: 1.2em;
-        --le-font-size-large: 1.4em;
-        --le-font-size-xlarge: 1.6em;
-        --le-font-size-page-title: 1.3em; /* For main titles like league name */
+        /* Font sizes removed - now inherited from shared mobile/desktop styles */
+        --le-font-size-page-title: 1.3em; /* For main titles like league name - keep this as it's specific */
 
         --le-text-color-primary: #333;
         --le-text-color-secondary: #666;
@@ -234,7 +230,7 @@ export const BASE_STYLES = `
       }
       .matrix-cell-none .add-match-icon {
         color: var(--le-border-color-dark);
-        font-size: 1.2em;
+        font-size: var(--le-font-size-medium);
         opacity: 0.6;
         transition: opacity 0.2s ease-in-out;
       }
@@ -392,7 +388,7 @@ export const BASE_STYLES = `
         top: 50%; 
         transform: translateY(-50%); 
         margin-left: 0; 
-        font-size: 0.85em; 
+        font-size: var(--le-font-size-xs); 
         line-height: 1; 
       }
       .rank-up {
@@ -432,7 +428,7 @@ export const BASE_STYLES = `
       
       /* Mobile-specific dropdown adjustments */
       .dropdown-select-shared {
-        font-size: 1em; /* Override the doubled font size for dropdowns */
+        /* font-size now inherited from shared mobile styles */
         padding: 0.3rem 2rem 0.3rem 0.5rem;
       }
       
@@ -474,7 +470,7 @@ export const BASE_STYLES = `
         gap: 10px;
       }
       .title-with-filter span {
-        font-size: 1.3em; /* Slightly smaller than default mobile title */
+        font-size: var(--le-font-size-page-title); /* Use page title variable */
       }
       .matrix-grid {
         display: grid;
@@ -513,7 +509,7 @@ export const BASE_STYLES = `
         text-align: center;
         vertical-align: middle;
         border: 1px solid var(--le-border-color-light);
-        font-size: 0.9em;
+        font-size: var(--le-font-size-small);
         position: relative;
       }
       
@@ -523,7 +519,7 @@ export const BASE_STYLES = `
         border: 1px solid var(--le-border-color-light);
         word-break: break-word;
         hyphens: auto;
-        font-size: 0.9em;
+        font-size: var(--le-font-size-small);
       }
       
       .matrix-table th:first-child {
@@ -556,7 +552,7 @@ export const BASE_STYLES = `
         writing-mode: vertical-rl;
         transform: rotate(180deg);
         text-orientation: mixed;
-        font-size: 0.9em;
+        font-size: var(--le-font-size-small);
         overflow-wrap: break-word;
         word-wrap: break-word;
         word-break: break-word;
@@ -615,13 +611,13 @@ export const BASE_STYLES = `
       }
       
       .matrix-score {
-        font-size: 1.2em;
+        font-size: var(--le-font-size-medium);
         font-weight: bold;
       }
       
       .add-match-icon {
         opacity: 0.6;
-        font-size: 1.2em;
+        font-size: var(--le-font-size-medium);
       }
       
       /* Rest of mobile styles remain unchanged */

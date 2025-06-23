@@ -9,7 +9,7 @@ export const BASE_STYLES = `
         font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
         box-sizing: border-box;
         color: var(--le-text-color-primary, #333);
-        font-size: var(--le-font-size-base, 1em);
+        /* font-size removed - will be set by mobile/desktop styles */
       }
       .match-item {
         padding: var(--lae-padding-xs, 0.2rem) 0;
