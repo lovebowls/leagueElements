@@ -1,10 +1,11 @@
-import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles, tabStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 export const BASE_STYLES = `
       ${panelStyles}   /* ADDED SHARED STYLE */
       ${buttonStyles}  /* ADDED SHARED STYLE */
       ${dropdownStyles} /* ADDED SHARED STYLE */
+      ${tabStyles}
       :host {
         display: block;
         border: 1px solid var(--le-border-color-medium, #ccc); 
@@ -155,31 +156,7 @@ export const BASE_STYLES = `
         color: var(--le-text-color-secondary); 
         font-size: var(--le-font-size-small); /* MODIFIED - Relative to parent */
         margin-bottom: var(--le-padding-xs); 
-      }
-      
-      /* Tab Styles - Layout-agnostic properties only */
-      .tab-bar {
-        border-bottom: 1px solid var(--le-border-color-medium); 
-        background-color: var(--le-background-color-header); 
-      }
-      .tab-button {
-        padding: var(--le-padding-s) var(--le-padding-l); 
-        cursor: pointer;
-        border: none;
-        background: none;
-        font-size: var(--le-font-size-medium); 
-        color: var(--le-tab-text-color); 
-        border-bottom: 3px solid transparent;
-        transition: color 0.2s, border-bottom-color 0.2s;
-      }
-      .tab-button:hover {
-        color: var(--le-tab-text-color-hover); 
-      }
-      .tab-button.active {
-        color: var(--le-text-color-accent); 
-        border-bottom-color: var(--le-tab-border-color-active); 
-        font-weight: bold;
-      }
+      }      
 
       /* Schedule Styles - Layout-agnostic properties only */
       .schedule-container {
@@ -662,7 +639,7 @@ export const BASE_STYLES = `
       }
       th, td {
         padding: var(--le-padding-s) var(--le-padding-xs); /* Adjusted padding */
-        font-size: var(--le-font-size-base); /* Explicitly set font size for mobile table cells */
+        font-size: var(--le-font-size-table-cell);
       }
       th:nth-child(2), 
       td:nth-child(2) {
@@ -683,10 +660,6 @@ export const BASE_STYLES = `
       .match-score { /* This seems to be for a different component, but if used here */
         color: var(--le-form-color-w); /* MODIFIED (using win color for general score) */
         font-weight: bold;
-      }
-      .tab-button {
-        padding: var(--le-padding-s) var(--le-padding-m); /* Increased padding for better touch targets */
-        font-size: var(--le-font-size-medium);
       }
       /* Make form icons more visible */
       .form-icon {

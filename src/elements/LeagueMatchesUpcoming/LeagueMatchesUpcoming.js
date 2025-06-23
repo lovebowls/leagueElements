@@ -251,7 +251,9 @@ class LeagueMatchesUpcoming extends HTMLElement {
       return '<div class="match-item no-matches">None</div>';
     }
     let lastDate = null;
-    return pageItems.map(match => {
+    const htmlParts = [];
+    
+    pageItems.forEach(match => {
       // Get display names for teams using new helper method
       const homeTeam = this.getTeamDataFromMatch(match, 'home');
       const awayTeam = this.getTeamDataFromMatch(match, 'away');
@@ -259,22 +261,26 @@ class LeagueMatchesUpcoming extends HTMLElement {
       const currentDateObj = new Date(match.date);
       currentDateObj.setHours(0, 0, 0, 0);
       const matchDateStr = TemporalUtils.formatDateString(currentDateObj);
-      let dateDisplay = '';
+      
+      // Add date header if this is a new date
       if (matchDateStr !== lastDate) {
-        dateDisplay = `<div class="match-date">${matchDateStr}</div>`;
+        htmlParts.push(`<div class="match-date">${matchDateStr}</div>`);
         lastDate = matchDateStr;
       }
+      
       const editableClass = this._canEdit ? 'match-editable' : 'match-readonly';
       const linkElement = this._canEdit 
         ? `<a href="#" class="match-link list-item-text-primary" data-match-id="${match._id}">${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}</a>`
         : `<span class="match-text list-item-text-primary" data-match-id="${match._id}">${this.escapeHtml(homeTeam.displayName)} vs ${this.escapeHtml(awayTeam.displayName)}</span>`;
 
-      return `
+      // Add match item
+      htmlParts.push(`
       <div class="match-item list-item-shared ${editableClass}">
-        ${dateDisplay}
         ${linkElement}
-      </div>
-    `}).join('');
+      </div>`);
+    });
+    
+    return htmlParts.join('');
   }
 
   _fillTemplate(template) {

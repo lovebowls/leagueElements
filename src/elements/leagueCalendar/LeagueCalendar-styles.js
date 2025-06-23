@@ -16,8 +16,6 @@ export const BASE_STYLES = `
       }
       .calendar-container {
         padding: var(--le-padding-s, 0.5rem);
-        border: 1px solid var(--le-border-color-medium, #ddd);
-        border-radius: var(--le-border-radius-standard, 4px);
         background-color: var(--le-background-color-panel, #fff);
       }
       .calendar-header {

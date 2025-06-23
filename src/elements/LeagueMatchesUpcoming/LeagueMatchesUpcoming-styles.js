@@ -9,7 +9,6 @@ export const BASE_STYLES = `
         font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
         box-sizing: border-box;
         color: var(--le-text-color-primary, #333);
-        /* font-size removed - will be set by mobile/desktop styles */
       }
       .upcoming-matches-container { /* Renamed for clarity */
         /* display: flex; /* Removed as list is now the primary content */
@@ -31,9 +30,15 @@ export const BASE_STYLES = `
       }
       .match-date {
         color: var(--le-text-color-secondary, #666);
+        margin-top: var(--le-padding-m, 1rem);
         margin-bottom: var(--le-padding-xs, 0.2em);
+        font-size: var(--le-font-size-large);
+        font-weight: bold;
+        border-bottom: 1px solid var(--le-border-color-light, #eee);
+        padding-bottom: var(--le-padding-xs, 0.2em);
       }
-      .match-teams { /* This class was present but not used, can be removed if still unused */
+      .match-date:first-child {
+        margin-top: 0;
       }
       .no-matches {
         padding: var(--le-padding-m, 1rem);
@@ -48,14 +53,14 @@ export const BASE_STYLES = `
         margin-top: var(--le-padding-s, 0.5rem);
       }
       .paging-btn {
-        background: var(--lae-background-color-button, #f5f5f5);
-        border: 1px solid var(--lae-border-color-dark, #ccc);
-        border-radius: var(--lae-border-radius-small, 3px);
+        background: var(--swal-background-color-button, #f5f5f5);
+        border: 1px solid var(--swal-border-color-dark, #ccc);
+        border-radius: var(--swal-border-radius-small, 3px);
         padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
         cursor: pointer;
       }
       .paging-btn:disabled {
-        background: var(--lae-background-color-button-disabled, #eee);
+        background: var(--swal-background-color-button-disabled, #eee);
         color: var(--le-text-color-secondary, #aaa);
         cursor: not-allowed;
       }

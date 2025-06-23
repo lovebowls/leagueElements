@@ -1,17 +1,21 @@
 
-// Shared font size base variables and UI element font sizes (used internally)
-const fontSizeVariables = `
-  /* Base font sizes for different contexts */
+const baseFontSizeConstants = `
+
+/* Base font sizes for different contexts */
   --le-font-size-base-desktop: 1em;
-  --le-font-size-base-mobile: 1.3em;
-  
+  --le-font-size-base-mobile: 1.8em;
+  line-height: 1.4;
+`;
+
+// Shared font size base variables and UI element font sizes (used internally)
+const fontSizeElementVariables = `
   /* Specific sizes for common UI elements */
   --le-font-size-button: var(--le-font-size-medium);
   --le-font-size-button-sm: var(--le-font-size-small);
   --le-font-size-label: var(--le-font-size-small);
   --le-font-size-input: var(--le-font-size-medium);
-  --le-font-size-table-header: var(--le-font-size-small);
-  --le-font-size-table-cell: var(--le-font-size-small);
+  --le-font-size-table-header: var(--le-font-size-xlarge);
+  --le-font-size-table-cell: var(--le-font-size-xlarge);
   --le-font-size-paging: var(--le-font-size-xs);
   --le-font-size-dropdown: var(--le-font-size-medium);
 `;
@@ -434,13 +438,12 @@ export const listItemStyles = `
   }
 `;
 
-
 export const mobileStyles = `
+  font-size: 18px;
+
+  ${baseFontSizeConstants}
+
   /* Mobile-specific styling that can be added to host elements */
-  
-  ${fontSizeVariables}
-  
-  /* Standardized font sizes for mobile - these cascade to all sub-components */
   --le-font-size-base: var(--le-font-size-base-mobile);
   --le-font-size-xs: 0.9em;
   --le-font-size-small: 1.0em;
@@ -449,19 +452,16 @@ export const mobileStyles = `
   --le-font-size-xlarge: 1.6em;
   --le-font-size-xxlarge: 1.8em;
   
+   ${fontSizeElementVariables}
+
   /* Adjust padding for better touch targets */
   --le-padding-s: 0.6rem;
   --le-padding-m: 1rem;
   
-  /* Other mobile optimizations */
-  font-size: var(--le-font-size-base);
-  line-height: 1.4;
 `;
 
 export const desktopStyles = `
-  /* Desktop-specific styling that can be added to host elements */
-  
-  ${fontSizeVariables}
+  ${baseFontSizeConstants}
   
   /* Standardized font sizes for desktop - these cascade to all sub-components */
   --le-font-size-base: var(--le-font-size-base-desktop);
@@ -471,10 +471,10 @@ export const desktopStyles = `
   --le-font-size-large: 1.2em;
   --le-font-size-xlarge: 1.4em;
   --le-font-size-xxlarge: 1.6em;
-  
-  /* Desktop optimizations */
-  font-size: var(--le-font-size-base);
-  line-height: 1.4;
+
+
+  ${fontSizeElementVariables}
+
 `;
 
 // SweetAlert2 Mobile-Specific Style Overrides
@@ -634,3 +634,140 @@ export const sweetAlertGlobalStyles = `
     border-color: var(--le-text-color-info, #17a2b8) !important;
   }
 `;
+
+export const tabStyles = `
+  .tab-navigation {
+    display: flex;
+    border-bottom: 2px solid var(--lae-border-color-light);
+    margin-bottom: var(--lae-padding-m);
+    gap: 0;
+  }
+
+  .tab-button {
+    background: var(--lae-background-color-button);
+    border: 1px solid var(--lae-border-color-medium);
+    border-bottom: none;
+    padding: var(--lae-padding-s) var(--lae-padding-m);
+    cursor: pointer;
+    font-size: var(--le-font-size-medium);
+    font-weight: 500;
+    color: var(--le-text-color-secondary);
+    border-radius: var(--lae-border-radius-standard) var(--lae-border-radius-standard) 0 0;
+    position: relative;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    text-align: center;
+    user-select: none;
+  }
+
+  .tab-button:hover {
+    background: var(--lae-background-color-button-hover);
+    color: var(--le-text-color-primary);
+  }
+
+  .tab-button.active {
+    background: var(--lae-background-color-panel);
+    color: var(--le-text-color-primary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--lae-background-color-panel);
+    margin-bottom: -2px;
+    z-index: 1;
+  }
+
+  .tab-button:not(:last-child) {
+    border-right: none;
+  }
+
+  .tab-content-container {
+    flex: 1;
+    min-height: 300px;
+  }
+
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.2s ease-in;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Enhanced fieldset styling for tabs */
+  .tab-content fieldset {
+    margin-bottom: var(--lae-padding-m);
+    border: 1px solid var(--lae-border-color-medium);
+    border-radius: var(--lae-border-radius-standard);
+    padding: var(--lae-padding-m);
+    background: var(--lae-background-color-header);
+  }
+
+  .tab-content fieldset legend {
+    font-weight: 600;
+    color: var(--le-text-color-primary);
+    padding: 0 var(--lae-padding-s);
+    font-size: var(--le-font-size-medium);
+  }
+
+  .tab-content fieldset:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Enhanced form styling within tabs */
+  .tab-content .form-group {
+    margin-bottom: var(--lae-padding-m);
+  }
+
+  .tab-content .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .tab-content .form-group label {
+    display: block;
+    margin-bottom: var(--lae-padding-xs);
+    font-weight: 500;
+    color: var(--le-text-color-primary);
+  }
+
+  .tab-content .form-group input[type="text"],
+  .tab-content .form-group input[type="number"],
+  .tab-content .form-group select {
+    width: 100%;
+    padding: var(--lae-padding-s);
+    border: 1px solid var(--lae-border-color-dark);
+    border-radius: var(--lae-border-radius-standard);
+    box-sizing: border-box;
+    font-size: var(--le-font-size-medium);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .tab-content .form-group input[type="text"]:focus,
+  .tab-content .form-group input[type="number"]:focus,
+  .tab-content .form-group select:focus {
+    outline: none;
+    border-color: var(--le-text-color-accent);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+  }
+
+  .tab-content .form-group input[type="checkbox"] {
+    margin-right: var(--lae-padding-s);
+    transform: scale(1.1);
+  }
+
+  /* Enhanced rink points settings */
+  .tab-content .rink-points-settings {
+    border: 1px dashed var(--lae-border-color-rink-settings);
+    padding: var(--lae-padding-m);
+    margin-top: var(--lae-padding-s);
+    background-color: var(--lae-background-color-rink-settings);
+    border-radius: var(--lae-border-radius-standard);
+    transition: opacity 0.3s ease;
+  }
+
+  .tab-content .rink-points-settings.disabled {
+    opacity: 0.6;
+  }`
