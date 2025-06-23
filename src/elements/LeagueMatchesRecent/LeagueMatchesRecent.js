@@ -9,12 +9,7 @@ class LeagueMatchesRecentEvent extends CustomEvent {
   }
 }
 
-import {
-    BASE_STYLES,
-    MOBILE_STYLES,
-    DESKTOP_STYLES,
-    TEMPLATE
-} from './LeagueMatchesRecent-styles.js';
+import {BASE_STYLES, MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE} from './LeagueMatchesRecent-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
 
 class LeagueMatchesRecent extends HTMLElement {
@@ -282,7 +277,7 @@ class LeagueMatchesRecent extends HTMLElement {
   }
 
   render() {
-    const isMobile = this.hasAttribute('is-mobile') === 'true';
+    const isMobile = this.getAttribute('is-mobile') === 'true';
     this.shadow.innerHTML = `
       <style>${isMobile ? MOBILE_STYLES : DESKTOP_STYLES}</style>
       ${this._fillTemplate(TEMPLATE)}

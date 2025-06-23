@@ -10,18 +10,22 @@ export const BASE_STYLES = `
         font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
         box-sizing: border-box;
         color: var(--le-text-color-primary, #333);
-        font-size: var(--le-font-size-base, 1em);
       }
       .matches-container {
         max-height: 300px;
         overflow-y: auto;
       }
-      .match-item {
-      }
       .match-date {
         color: var(--le-text-color-secondary, #666);
-        font-size: var(--le-font-size-small, 0.9em);
+        margin-top: var(--le-padding-m, 1rem);
         margin-bottom: var(--le-padding-xs, 0.2em);
+        font-size: var(--le-font-size-large);
+        font-weight: bold;
+        border-bottom: 1px solid var(--le-border-color-light, #eee);
+        padding-bottom: var(--le-padding-xs, 0.2em);
+      }
+      .match-date:first-child {
+        margin-top: 0;
       }
       .match-details {
         display: flex;
@@ -72,9 +76,6 @@ export const MOBILE_STYLES = `
       :host {
         ${mobileStyles}
       }
-      .match-item {
-        font-size: var(--le-font-size-base, 1.5em);
-      }
     `;
 
 // Desktop-specific styles
@@ -82,9 +83,6 @@ export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
         ${desktopStyles}
-      }
-      .match-item {
-        font-size: var(--le-font-size-base, 1em);
       }
     `;
 

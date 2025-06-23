@@ -807,11 +807,11 @@ class LeagueTeams extends HTMLElement {
   }
 
   _getSwalCustomClasses() {
-    const mobilePopup = this._isMobile ? 'lae-swal-popup-mobile' : '';
-    const mobileTitle = this._isMobile ? 'lae-swal-title-mobile' : '';
-    const mobileHtmlContainer = this._isMobile ? 'lae-swal-html-container-mobile' : '';
-    const mobileActions = this._isMobile ? 'lae-swal-actions-mobile' : '';
-    const mobileStyled = this._isMobile ? 'lae-swal-styled-mobile' : '';
+    const mobilePopup = this._isMobile ? 'swal-popup-mobile' : '';
+    const mobileTitle = this._isMobile ? 'swal-title-mobile' : '';
+    const mobileHtmlContainer = this._isMobile ? 'swal-html-container-mobile' : '';
+    const mobileActions = this._isMobile ? 'swal-actions-mobile' : '';
+    const mobileStyled = this._isMobile ? 'swal-styled-mobile' : '';
 
     return {
       popup: mobilePopup,

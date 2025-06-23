@@ -12,7 +12,7 @@ export const BASE_STYLES = `
         /* font-size removed - will be set by mobile/desktop styles */
       }
       .match-item {
-        padding: var(--lae-padding-xs, 0.2rem) 0;
+        padding: var(--swal-padding-xs, 0.2rem) 0;
         display: flex;
         align-items: center;
         gap: var(--le-padding-xs, 0.25em);
@@ -31,7 +31,7 @@ export const BASE_STYLES = `
         color: var(--le-text-color-error, #ff0000);
         padding: var(--le-padding-s, 0.5rem);
         background-color: var(--le-background-color-error, #fff0f0);
-        border-radius: var(--lae-border-radius-standard, 4px);
+        border-radius: var(--swal-border-radius-standard, 4px);
       }
       .warning-icon-future-result { color: var(--le-color-status-warning, #f39c12); }
       .warning-icon-conflict { color: var(--le-color-status-conflict, #e67e22); }
@@ -55,7 +55,7 @@ export const MOBILE_STYLES = `
       .paging-btn {
       }
       .match-item {
-        padding: var(--lae-padding-xs, 0.2rem) 0;
+        padding: var(--swal-padding-xs, 0.2rem) 0;
       }
     `;
 
@@ -65,7 +65,7 @@ export const DESKTOP_STYLES = `
         ${desktopStyles}
       }
       .match-item {
-        padding: var(--lae-padding-xs, 0.2rem) 0;
+        padding: var(--swal-padding-xs, 0.2rem) 0;
       }
     `;
 

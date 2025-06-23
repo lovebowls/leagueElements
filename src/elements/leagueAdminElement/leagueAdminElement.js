@@ -493,7 +493,7 @@ class LeagueAdminElement extends HTMLElement {
       caretSpan.textContent = '▶ '; // Unicode right-pointing triangle
       caretSpan.style.marginRight = '0.5em';
       caretSpan.style.fontSize = '0.8em';
-      caretSpan.style.color = 'var(--lae-text-color-secondary, #666)';
+      caretSpan.style.color = 'var(--swal-text-color-secondary, #666)';
       li.appendChild(caretSpan);
       
       const nameSpan = document.createElement('span');
@@ -1139,7 +1139,7 @@ class LeagueAdminElement extends HTMLElement {
 
     modalBody.innerHTML = `
       <!-- Error banner for the modal -->
-      <div id="team-modal-error" class="form-error-shared" style="display: none; margin-bottom: var(--lae-padding-s); color: var(--lae-text-color-error); background-color: var(--lae-background-color-error); padding: var(--lae-padding-s); border: 1px solid var(--lae-border-color-error); border-radius: var(--lae-border-radius-standard);"></div>
+      <div id="team-modal-error" class="form-error-shared" style="display: none; margin-bottom: var(--swal-padding-s); color: var(--swal-text-color-error); background-color: var(--swal-background-color-error); padding: var(--swal-padding-s); border: 1px solid var(--swal-border-color-error); border-radius: var(--swal-border-radius-standard);"></div>
       
       <div class="form-group-shared">
         <label for="useExistingTeamCheckbox" class="form-label-shared" id="useExistingTeamLabel">
@@ -1154,10 +1154,10 @@ class LeagueAdminElement extends HTMLElement {
           <option value="">-- Select a Team --</option>
           ${optionsHtml}
         </select>
-        ${filteredTeams.length === 0 ? '<div style="color: var(--lae-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
+        ${filteredTeams.length === 0 ? '<div style="color: var(--swal-text-color-error); margin-top: 0.5em;">All lovebowls teams are already in this league</div>' : ''}
 
         <!-- ADDED: Info message for no available teams -->
-        <div id="noAvailableTeamsMessage" style="display: none; color: var(--lae-text-color-error); margin-top: 0.5em;">
+        <div id="noAvailableTeamsMessage" style="display: none; color: var(--swal-text-color-error); margin-top: 0.5em;">
           No available teams to select. Please add a new team.
         </div>
       </div>
@@ -1746,11 +1746,11 @@ class LeagueAdminElement extends HTMLElement {
 
   // Helper method to get custom classes for Swal
   _getSwalCustomClasses() {
-    const mobilePopup = this._isMobile ? 'lae-swal-popup-mobile' : '';
-    const mobileTitle = this._isMobile ? 'lae-swal-title-mobile' : '';
-    const mobileHtmlContainer = this._isMobile ? 'lae-swal-html-container-mobile' : '';
-    const mobileActions = this._isMobile ? 'lae-swal-actions-mobile' : '';
-    const mobileStyled = this._isMobile ? 'lae-swal-styled-mobile' : '';
+    const mobilePopup = this._isMobile ? 'swal-popup-mobile' : '';
+    const mobileTitle = this._isMobile ? 'swal-title-mobile' : '';
+    const mobileHtmlContainer = this._isMobile ? 'swal-html-container-mobile' : '';
+    const mobileActions = this._isMobile ? 'swal-actions-mobile' : '';
+    const mobileStyled = this._isMobile ? 'swal-styled-mobile' : '';
 
     return {
       popup: mobilePopup,

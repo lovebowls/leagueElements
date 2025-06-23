@@ -43,6 +43,8 @@ export const BASE_STYLES = `
         --le-background-color-promotion: rgb(102, 212, 128);
         --le-background-color-relegation: #f8d7da;
         --le-background-color-default-pos: #f0f0f0;
+        --le-background-color-button: #f0f0f0;
+        --le-background-color-button-hover: #e0e0e0;
         
         --le-border-color-light: #eee;
         --le-border-color-medium: #ddd;

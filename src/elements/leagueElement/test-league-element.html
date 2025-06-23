@@ -287,10 +287,6 @@
       const windowIsNarrow_resize = window.innerWidth <= 768;
       const calculatedIsMobile_resize = userAgentIsMobile_resize || windowIsNarrow_resize;
 
-      console.log('[Test Harness - league-element] Resize - window.innerWidth:', window.innerWidth);
-      console.log('[Test Harness - league-element] Resize - windowIsNarrow:', windowIsNarrow_resize);
-      console.log('[Test Harness - league-element] Resize - Calculated isMobile for attribute logic:', calculatedIsMobile_resize);
-
       if (calculatedIsMobile_resize) {
         if (el.getAttribute('is-mobile') !== 'true') {
           el.setAttribute('is-mobile', 'true');
@@ -302,7 +298,6 @@
           console.log('[Test Harness - league-element] Resize - el.removeAttribute("is-mobile")');
         }
       }
-      console.log('[Test Harness - league-element] Resize - el.hasAttribute("is-mobile") after resize logic:', el.hasAttribute('is-mobile'));
       console.log('[Test Harness - league-element] Resize - el.getAttribute("is-mobile") after resize logic:', el.getAttribute('is-mobile'));
     });
   </script>

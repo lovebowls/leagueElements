@@ -243,11 +243,9 @@ class LeagueElement extends HTMLElement {
       if (recentMatchesElement) {
         recentMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
         recentMatchesElement.setAttribute('can-edit', this._canEdit.toString());
-        recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
-        
-        // Add team mapping data for display name resolution
         recentMatchesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
-        
+        recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
+                
         if (this.activeCalendarFilterDate) {
             // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
             recentMatchesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
@@ -297,8 +295,6 @@ class LeagueElement extends HTMLElement {
       if (upcomingFixturesElement) {
         upcomingFixturesElement.setAttribute('is-mobile', this._isMobile.toString());
         upcomingFixturesElement.setAttribute('can-edit', this._canEdit.toString());
-        
-        // Add team mapping data for display name resolution
         upcomingFixturesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
         
         if (this.data && this.data.matches) {

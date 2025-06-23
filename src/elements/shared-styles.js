@@ -1,4 +1,3 @@
-
 const baseFontSizeConstants = `
 
 /* Base font sizes for different contexts */
@@ -483,39 +482,39 @@ export const desktopStyles = `
 // They should be injected globally by elements that use SweetAlert2.
 export const sweetAlertMobileOverrides = `
       /* Injected SweetAlert2 Mobile Styles - Production v1 */
-      .swal2-popup.lae-swal-popup-mobile {
+      .swal2-popup.swal-popup-mobile {
         width: 90vw !important;
         max-width: 480px !important;
         padding: var(--le-padding-m, 1rem) !important; /* Increased padding for better touch spacing */
         font-size: var(--le-font-size-base, 1.5em) !important; /* Use mobile base font size */
       }
 
-      .lae-swal-popup-mobile .swal2-title,
-      .lae-swal-title-mobile {
+      .swal-popup-mobile .swal2-title,
+      .swal-title-mobile {
         font-size: var(--le-font-size-large, 1.4em) !important; /* Readable title size for mobile */
         padding: 0.5rem 0.5rem 0.75rem !important; /* Adjusted padding */
         margin-bottom: 0 !important; /* Remove default bottom margin if any, handled by container */
         line-height: 1.3 !important;
       }
 
-      .lae-swal-popup-mobile .swal2-html-container,
-      .lae-swal-html-container-mobile {
+      .swal-popup-mobile .swal2-html-container,
+      .swal-html-container-mobile {
         font-size: var(--le-font-size-small, 1.0em) !important; /* Use shared variable instead of hardcoded rem */
         margin: 0.75rem 0.5rem !important; /* Vertical and horizontal margin */
         line-height: 1.5 !important;
         text-align: center !important;
       }
 
-      .lae-swal-popup-mobile .swal2-actions,
-      .lae-swal-actions-mobile {
+      .swal-popup-mobile .swal2-actions,
+      .swal-actions-mobile {
         width: 100% !important;
         margin-top: 1rem !important;
         gap: 0.65rem !important; /* Space between stacked buttons */
         flex-direction: column-reverse !important; /* Stack buttons, confirm on top */
       }
 
-      .lae-swal-popup-mobile .swal2-styled,
-      .lae-swal-styled-mobile {
+      .swal-popup-mobile .swal2-styled,
+      .swal-styled-mobile {
         width: 100% !important; /* Full width buttons */
         padding: 0.85rem !important; /* Generous padding for touch targets */
         font-size: var(--le-font-size-medium, 1.2em) !important;
@@ -524,10 +523,10 @@ export const sweetAlertMobileOverrides = `
       }
 
       /* Optional: If you want to ensure default button colors are explicitly set or overridden for mobile */
-      /* .lae-swal-popup-mobile .swal2-confirm.lae-swal-styled-mobile {
+      /* .swal-popup-mobile .swal2-confirm.swal-styled-mobile {
         background-color: #3085d6 !important; /* Example: Default confirm blue */
       /* }
-      .lae-swal-popup-mobile .swal2-cancel.lae-swal-styled-mobile {
+      .swal-popup-mobile .swal2-cancel.swal-styled-mobile {
         background-color: #d33 !important; /* Example: Default cancel red */
       /* } */
 `;
@@ -636,23 +635,30 @@ export const sweetAlertGlobalStyles = `
 `;
 
 export const tabStyles = `
+  /* Tab System Styles */
+  .modal-tabs-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+    
   .tab-navigation {
     display: flex;
-    border-bottom: 2px solid var(--lae-border-color-light);
-    margin-bottom: var(--lae-padding-m);
+    border-bottom: 2px solid var(--le-border-color-light);
+    margin-bottom: var(--le-padding-m);
     gap: 0;
   }
 
   .tab-button {
-    background: var(--lae-background-color-button);
-    border: 1px solid var(--lae-border-color-medium);
+    background: var(--le-background-color-button);
+    border: 1px solid var(--le-border-color-medium);
     border-bottom: none;
-    padding: var(--lae-padding-s) var(--lae-padding-m);
+    padding: var(--le-padding-s) var(--le-padding-m);
     cursor: pointer;
     font-size: var(--le-font-size-medium);
     font-weight: 500;
     color: var(--le-text-color-secondary);
-    border-radius: var(--lae-border-radius-standard) var(--lae-border-radius-standard) 0 0;
+    border-radius: var(--le-border-radius-standard) var(--le-border-radius-standard) 0 0;
     position: relative;
     transition: all 0.2s ease;
     min-width: 120px;
@@ -661,15 +667,15 @@ export const tabStyles = `
   }
 
   .tab-button:hover {
-    background: var(--lae-background-color-button-hover);
+    background: var(--le-background-color-button-hover);
     color: var(--le-text-color-primary);
   }
 
   .tab-button.active {
-    background: var(--lae-background-color-panel);
+    background: var(--le-background-color-panel);
     color: var(--le-text-color-primary);
     font-weight: 600;
-    border-bottom: 2px solid var(--lae-background-color-panel);
+    border-bottom: 2px solid var(--le-background-color-panel);
     margin-bottom: -2px;
     z-index: 1;
   }
@@ -699,17 +705,17 @@ export const tabStyles = `
 
   /* Enhanced fieldset styling for tabs */
   .tab-content fieldset {
-    margin-bottom: var(--lae-padding-m);
-    border: 1px solid var(--lae-border-color-medium);
-    border-radius: var(--lae-border-radius-standard);
-    padding: var(--lae-padding-m);
-    background: var(--lae-background-color-header);
+    margin-bottom: var(--le-padding-m);
+    border: 1px solid var(--le-border-color-medium);
+    border-radius: var(--le-border-radius-standard);
+    padding: var(--le-padding-m);
+    background: var(--le-background-color-header);
   }
 
   .tab-content fieldset legend {
     font-weight: 600;
     color: var(--le-text-color-primary);
-    padding: 0 var(--lae-padding-s);
+    padding: 0 var(--le-padding-s);
     font-size: var(--le-font-size-medium);
   }
 
@@ -719,7 +725,7 @@ export const tabStyles = `
 
   /* Enhanced form styling within tabs */
   .tab-content .form-group {
-    margin-bottom: var(--lae-padding-m);
+    margin-bottom: var(--le-padding-m);
   }
 
   .tab-content .form-group:last-child {
@@ -728,7 +734,7 @@ export const tabStyles = `
 
   .tab-content .form-group label {
     display: block;
-    margin-bottom: var(--lae-padding-xs);
+    margin-bottom: var(--le-padding-xs);
     font-weight: 500;
     color: var(--le-text-color-primary);
   }
@@ -737,9 +743,9 @@ export const tabStyles = `
   .tab-content .form-group input[type="number"],
   .tab-content .form-group select {
     width: 100%;
-    padding: var(--lae-padding-s);
-    border: 1px solid var(--lae-border-color-dark);
-    border-radius: var(--lae-border-radius-standard);
+    padding: var(--le-padding-s);
+    border: 1px solid var(--le-border-color-dark);
+    border-radius: var(--le-border-radius-standard);
     box-sizing: border-box;
     font-size: var(--le-font-size-medium);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -754,20 +760,39 @@ export const tabStyles = `
   }
 
   .tab-content .form-group input[type="checkbox"] {
-    margin-right: var(--lae-padding-s);
+    margin-right: var(--le-padding-s);
     transform: scale(1.1);
   }
 
   /* Enhanced rink points settings */
   .tab-content .rink-points-settings {
-    border: 1px dashed var(--lae-border-color-rink-settings);
-    padding: var(--lae-padding-m);
-    margin-top: var(--lae-padding-s);
-    background-color: var(--lae-background-color-rink-settings);
-    border-radius: var(--lae-border-radius-standard);
+    border: 1px dashed var(--le-border-color-dark);
+    padding: var(--le-padding-m);
+    margin-top: var(--le-padding-s);
+    background-color: var(--le-background-color-header);
+    border-radius: var(--le-border-radius-standard);
     transition: opacity 0.3s ease;
   }
 
   .tab-content .rink-points-settings.disabled {
     opacity: 0.6;
-  }`
+  }
+
+  /* Responsive adjustments for tabs */
+  @media (max-width: 600px) {
+    .tab-button {
+      padding: var(--le-padding-xs) var(--le-padding-s);
+      min-width: 100px;
+      font-size: var(--le-font-size-small);
+    }
+
+    .form-group-grid {
+      grid-template-columns: 1fr;
+      gap: var(--le-padding-s);
+    }
+
+    .tab-content fieldset {
+      padding: var(--le-padding-s);
+    }
+  }
+`

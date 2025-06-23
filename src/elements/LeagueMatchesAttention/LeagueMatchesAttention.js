@@ -204,7 +204,7 @@ class LeagueMatchesAttention extends HTMLElement {
         const matchDate = new Date(match.date);
         matchDate.setHours(0, 0, 0, 0);
         if (matchDate > today) {
-          tooltipText = "Result entered for a future match date";
+          tooltipText = "Result entered for a future match date.";
           warningSymbol = '&#9888;';
           warningClass = 'warning-icon-future-result';
         }
