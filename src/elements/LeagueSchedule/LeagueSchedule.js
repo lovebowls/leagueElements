@@ -213,6 +213,38 @@ class LeagueSchedule extends HTMLElement {
   }
 
   /**
+   * Determines winner styling classes for home and away teams
+   * @param {Object} match - Match object
+   * @returns {Object} Object with homeTeamClass and awayTeamClass properties
+   */
+  getWinnerClasses(match) {
+    let homeTeamClass = '';
+    let awayTeamClass = '';
+    
+    // Check if there's an actual result to show
+    const hasResult = match.result && 
+      typeof match.result.homeScore === 'number' && 
+      typeof match.result.awayScore === 'number';
+    
+    if (hasResult && match.result) {
+      const homeScore = match.result.homeScore;
+      const awayScore = match.result.awayScore;
+      
+      if (homeScore > awayScore) {
+        homeTeamClass = 'winner';
+      } else if (awayScore > homeScore) {
+        awayTeamClass = 'winner';
+      } else {
+        // Draw - both teams get winner styling
+        homeTeamClass = 'winner';
+        awayTeamClass = 'winner';
+      }
+    }
+    
+    return { homeTeamClass, awayTeamClass };
+  }
+
+  /**
    * Gets comprehensive match information including attention status
    * @param {Object} match - Match object
    * @returns {Object} Match info with state, attention status, and reason
@@ -582,8 +614,6 @@ class LeagueSchedule extends HTMLElement {
    * @param {Object} match - Match to edit
    */
   handleEditMatch = (e, match) => {
-
-    
     e.stopPropagation(); // Prevent row click
     
     if (!match || !this._canEdit) return;
@@ -592,7 +622,6 @@ class LeagueSchedule extends HTMLElement {
     this.selectedMatchId = match._id;
     
     // Dispatch edit event
-
     this.dispatchEvent(new LeagueScheduleEvent({
       type: 'matchEdit',
       match
@@ -601,11 +630,6 @@ class LeagueSchedule extends HTMLElement {
     // Re-render without resetting filters
     this.renderWithoutReset();
   }
-
-  /**
-   * Toggles the export menu
-   */
-
 
   /**
    * Exports the data in the specified format
@@ -656,7 +680,7 @@ class LeagueSchedule extends HTMLElement {
           return;
       }
       
-      console.log(`Successfully exported ${filteredMatches.length} matches in ${format} format`);
+      // Export completed successfully
       
       // Dispatch event for tracking/analytics
       this.dispatchEvent(new LeagueScheduleEvent({
@@ -690,10 +714,203 @@ class LeagueSchedule extends HTMLElement {
   }
 
   /**
-   * Internal render method
+   * Internal render method - routes to mobile or desktop renderer
    * @param {boolean} resetFilters - Whether to reset filter form values
    */
   _render(resetFilters = true) {
+    const isMobile = this.getAttribute('is-mobile') === 'true';
+    
+    if (isMobile) {
+      this._renderMobile(resetFilters);
+    } else {
+      this._renderDesktop(resetFilters);
+    }
+  }
+
+  /**
+   * Mobile-specific render method
+   * @param {boolean} resetFilters - Whether to reset filter form values
+   */
+  _renderMobile(resetFilters = true) {
+    const { league, selectedTeamId, currentPage, itemsPerPage } = this;
+    
+    // Calculate matches to display based on filters and pagination
+    const filteredMatches = this.getFilteredMatches();
+    const totalMatches = filteredMatches.length;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalMatches);
+    const currentMatches = filteredMatches.slice(startIndex, endIndex);
+    
+    const html = (strings, ...values) => {
+      return String.raw({ raw: strings }, ...values);
+    };
+    
+    const editable = this._canEdit;
+    
+    const content = html`
+      <div class="schedule-container">
+        ${this.error ? `<div class="error">${this.error}</div>` : ''}
+        
+        <div class="filter-panel">
+          <div class="filter-controls">
+            <div class="dropdown-shared">
+              <select class="dropdown-select-shared" id="team-filter">
+                <option value="">All Teams</option>
+                ${league?.teams?.map(team => `
+                  <option value="${team._id}" ${team._id === selectedTeamId ? 'selected' : ''}>
+                    ${team.name}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+            ${selectedTeamId || this.filterDate ? `
+              <button class="clear-filters" id="clear-filters">Clear</button>
+            ` : ''}
+          </div>
+          
+          <div class="dropdown-shared">
+            <select id="export-select" class="dropdown-select-shared">
+              <option value="">Export...</option>
+              <option value="excel">Excel</option>
+              <option value="word">Word</option>
+              <option value="pdf">PDF</option>
+              <option value="json">JSON</option>
+              <option value="csv">CSV</option>
+            </select>
+          </div>
+        </div>
+        
+        ${totalMatches > 0 ? `
+          <div class="schedule-cards">
+            ${currentMatches.map(match => {
+              const isSelected = this.selectedMatchId === match._id;
+              const matchInfo = this.getMatchInfo(match);
+              const cssClasses = [
+                'match-card',
+                matchInfo.state,
+                matchInfo.needsAttention ? 'needs-attention' : '',
+                matchInfo.conflicted ? 'conflicted' : '',
+                isSelected ? 'selected' : ''
+              ].filter(Boolean).join(' ');
+              
+              const titleAttr = matchInfo.attentionReason ? 
+                ` title="${matchInfo.attentionReason.replace(/"/g, '&quot;')}"` : '';
+              
+              // Check if there's an actual result to show
+              const hasResult = match.result && 
+                typeof match.result.homeScore === 'number' && 
+                typeof match.result.awayScore === 'number';
+              
+              const dateContent = `
+                <div class="date-rink-container">
+                  <div class="date-section">
+                    ${editable ? 
+                      `<span class="date-link" data-match-id="${match._id}" title="Edit Match">${this.formatMatchDate(match.date)}</span>` :
+                      this.formatMatchDate(match.date)}
+                  </div>
+                  ${this._shouldShowRinkColumn ? 
+                    `<div class="rink-section">${this.formatMatchRink(match)}</div>` : ''}
+                </div>`;
+              
+              // Determine winner styling
+              const { homeTeamClass, awayTeamClass } = this.getWinnerClasses(match);
+              
+              return `
+                <div 
+                  class="${cssClasses}" 
+                  data-match-id="${match._id}"${titleAttr}
+                >
+                  <div class="card-row">
+                    <span class="card-value">${dateContent}</span>
+                  </div>
+                  <div class="card-row teams-result-row">
+                    <span class="home-label">H</span>
+                    <span class="team-name-home${homeTeamClass ? ` ${homeTeamClass}` : ''}">${this.getTeamName(match.homeTeam._id)}</span>
+                    <span class="result-score">${hasResult ? this.formatMatchResult(match) : ' vs '}</span>
+                    <span class="team-name-away${awayTeamClass ? ` ${awayTeamClass}` : ''}">${this.getTeamName(match.awayTeam._id)}</span>
+                    <span class="away-label">A</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          
+          <div class="paging-controls">
+            <div class="paging-info">
+              Showing ${startIndex + 1}-${endIndex} of ${totalMatches} matches
+            </div>
+            <div class="paging-settings">
+              <label for="items-per-page-input">Items per page:</label>
+              <input 
+                type="number" 
+                id="items-per-page-input" 
+                min="10" 
+                max="1000" 
+                step="1" 
+                value="${this.itemsPerPage}"
+                title="Number of matches to show per page (10-1000)"
+              />
+            </div>
+            <div class="paging-buttons">
+              <button 
+                class="btn btn-secondary" 
+                id="first-page"
+                ${currentPage === 1 ? 'disabled' : ''}
+              >
+                &laquo;
+              </button>
+              <button 
+                class="btn btn-secondary" 
+                id="prev-page"
+                ${currentPage === 1 ? 'disabled' : ''}
+              >
+                &lsaquo;
+              </button>
+              <button 
+                class="btn btn-secondary" 
+                id="next-page"
+                ${currentPage === this.getTotalPages() ? 'disabled' : ''}
+              >
+                &rsaquo;
+              </button>
+              <button 
+                class="btn btn-secondary" 
+                id="last-page"
+                ${currentPage === this.getTotalPages() ? 'disabled' : ''}
+              >
+                &raquo;
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="no-matches">
+            No matches found. ${selectedTeamId ? `<button id="clear-filters">Clear</button>` : ''}
+          </div>
+        `}
+      </div>
+    `;
+    
+    this.shadow.innerHTML = `
+      <style>${MOBILE_STYLES}</style>
+      ${content}
+    `;
+    
+    this.setupEventListeners();
+    
+    // Preserve team filter value if not resetting
+    if (!resetFilters) {
+      const teamFilter = this.shadow.querySelector('#team-filter');
+      if (teamFilter && this.selectedTeamId) {
+        teamFilter.value = this.selectedTeamId;
+      }
+    }
+  }
+
+  /**
+   * Desktop-specific render method
+   * @param {boolean} resetFilters - Whether to reset filter form values
+   */
+  _renderDesktop(resetFilters = true) {
     const { league, selectedTeamId, currentPage, itemsPerPage } = this;
     
     // Calculate matches to display based on filters and pagination
@@ -748,9 +965,9 @@ class LeagueSchedule extends HTMLElement {
               <tr>
                 <th class="date-col">Date</th>
                 ${this._shouldShowRinkColumn ? `<th class="rink-col">Rink</th>` : ''}
-                <th class="team-col">Home</th>
+                <th class="team-col home-col">Home</th>
+                <th class="result-col center-align">Result</th>
                 <th class="team-col">Away</th>
-                <th class="result-col">Result</th>
               </tr>
             </thead>
             <tbody>
@@ -782,6 +999,11 @@ class LeagueSchedule extends HTMLElement {
                   `<span class="date-link" data-match-id="${match._id}" title="Edit Match">${this.formatMatchDate(match.date)}</span>` :
                   this.formatMatchDate(match.date);
                 
+                // Determine winner styling and combine with desktop-specific classes
+                const { homeTeamClass: winnerHomeClass, awayTeamClass: winnerAwayClass } = this.getWinnerClasses(match);
+                const homeTeamClass = `home-col${winnerHomeClass ? ` ${winnerHomeClass}` : ''}`;
+                const awayTeamClass = winnerAwayClass;
+                
                 return `
                   <tr 
                     class="${cssClasses}" 
@@ -789,9 +1011,9 @@ class LeagueSchedule extends HTMLElement {
                   >
                     <td data-label="Date">${dateContent}</td>
                     ${this._shouldShowRinkColumn ? `<td data-label="Rink">${this.formatMatchRink(match)}</td>` : ''}
-                    <td data-label="Home">${this.getTeamName(match.homeTeam._id)}</td>
-                    <td data-label="Away">${this.getTeamName(match.awayTeam._id)}</td>
-                    ${resultCell}
+                    <td data-label="H" class="${homeTeamClass}">${this.getTeamName(match.homeTeam._id)}</td>
+                    ${resultCell.replace('data-label="Result"', 'data-label="Result" class="center-align"')}
+                    <td data-label="A"${awayTeamClass ? ` class="${awayTeamClass}"` : ''}>${this.getTeamName(match.awayTeam._id)}</td>
                   </tr>
                 `;
               }).join('')}
@@ -853,9 +1075,8 @@ class LeagueSchedule extends HTMLElement {
       </div>
     `;
     
-    const isMobile = this.getAttribute('is-mobile') === 'true';
     this.shadow.innerHTML = `
-      <style>${isMobile ? MOBILE_STYLES : DESKTOP_STYLES}</style>
+      <style>${DESKTOP_STYLES}</style>
       ${content}
     `;
     
@@ -928,16 +1149,16 @@ class LeagueSchedule extends HTMLElement {
       lastPageBtn.addEventListener('click', () => this.handlePageChange(this.getTotalPages()));
     }
     
-    // Match row click
-    const matchRows = this.shadow.querySelectorAll('.match-row');
-    matchRows.forEach(row => {
-      row.addEventListener('click', (e) => {
+    // Match card click (for mobile) and match row click (for desktop)
+    const matchElements = this.shadow.querySelectorAll('.match-card, .match-row');
+    matchElements.forEach(element => {
+      element.addEventListener('click', (e) => {
         // Don't trigger if clicking on a date link (edit functionality)
         if (e.target.classList.contains('date-link')) {
           return;
         }
         
-        const matchId = row.getAttribute('data-match-id');
+        const matchId = element.getAttribute('data-match-id');
         const match = this.matches.find(m => m._id === matchId);
         if (match) {
           this.handleMatchSelect(match);

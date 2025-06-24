@@ -152,7 +152,7 @@ const BASE_STYLES = `
   }
   
   .team-col {
-    width: 25%;
+    width: 30%;
   }
   
   .result-col {
@@ -164,10 +164,7 @@ const BASE_STYLES = `
     text-align: center;
   }
   
-  .actions-col {
-    width: 10%;
-  }
-  
+   
   .paging-controls {
     /* Layout properties moved to mobile/desktop sections */
     margin-top: var(--le-padding-s, 0.5rem);
@@ -339,26 +336,13 @@ export const MOBILE_STYLES = `
     width: 100%;
   }
   
-  /* Export dropdown - make it smaller */
-  .export-select {
-    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-s, 0.5rem); /* Reduce padding */
-  }
-  
-  .schedule-table {
+  .schedule-cards {
     display: block;
   }
   
-  .schedule-table thead {
-    display: none;
-  }
-  
-  .schedule-table tbody, 
-  .schedule-table tr {
+  .match-card {
     display: block;
     width: 100%;
-  }
-  
-  .schedule-table tr {
     margin-bottom: 1rem;
     border: none;
     border-radius: 12px;
@@ -368,59 +352,56 @@ export const MOBILE_STYLES = `
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
     border-left: 4px solid #e9ecef;
     transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    font-size: var(--le-font-size-medium, 1.2em);
   }
   
-  .schedule-table tr:hover {
+  .match-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
   }
   
   /* Enhanced mobile match state styles */
-  .match-row.past-no-result {
+  .match-card.past-no-result {
     border-left: 4px solid #ff6b6b;
     background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15), 0 1px 3px rgba(255, 107, 107, 0.1);
   }
   
-  .match-row.past-with-result {
+  .match-card.past-with-result {
     border-left: 4px solid #28a745;
     background: linear-gradient(135deg, #f8fff9 0%, #e6f7e6 100%);
     opacity: 0.85;
   }
   
-  .match-row.today {
+  .match-card.today {
     border-left: 4px solid #ffc107;
     background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
     box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2), 0 1px 3px rgba(255, 193, 7, 0.1);
   }
   
-  .match-row.future {
+  .match-card.future {
     border-left: 4px solid #007bff;
     background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
   }
   
-  .match-row.needs-attention {
+  .match-card.needs-attention {
     border-left: 4px solid #ff9800;
     background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
     box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15), 0 1px 3px rgba(255, 152, 0, 0.1);
   }
   
-  .schedule-table td {
+  .card-row {
     display: flex;
     align-items: center;
     padding: 0.4rem 0;
-    border: none;
-    text-align: left;
     min-height: 2.2rem;
-    font-weight: 500;
-    color: var(--le-text-color-primary, #333);
     line-height: 1.4;
   }
   
-  .schedule-table td::before {
-    content: attr(data-label);
+  .card-label {
     font-weight: 600;
-    width: 15%;
+    width: 5%;
     margin-right: 0.75rem;
     color: var(--le-text-color-secondary, #6c757d);
     text-transform: uppercase;
@@ -428,69 +409,132 @@ export const MOBILE_STYLES = `
     flex-shrink: 0;
   }
   
-  .schedule-table td:after {
-    content: '';
+  .card-value {
     flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, transparent 100%);
-    margin-left: auto;
-    margin-right: 0.5rem;
+    font-weight: 500;
+    color: var(--le-text-color-primary, #333);
+    position: relative;
   }
   
-  /* Remove the line for the last cell */
-  .schedule-table td:last-child:after {
+  .card-row:after {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: calc(100% - 15% - 0.75rem);
+    height: 1px;
+    background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, transparent 100%);
+    z-index: 0;
+  }
+  
+  /* Remove the line for the last row */
+  .card-row:last-child:after {
     display: none;
   }
   
-  /* Special styling for result cells with attention indicators */
-  .schedule-table .match-row.past-no-result td[data-label="Result"],
-  .schedule-table .match-row.needs-attention td[data-label="Result"] {
-    font-weight: 700;
-    color: #d63031;
+  .card-row:not(:last-child) {
+    margin-bottom: 0.2rem;
   }
   
-  /* Team name styling - make them stand out more */
-  .schedule-table td[data-label="Home"],
-  .schedule-table td[data-label="Away"] {
-    font-weight: 700;
-    color: var(--le-text-color-primary, #2c3e50);
-  }
-  
-  /* Date styling - make it more prominent */
-  .schedule-table td[data-label="Date"] {
+  /* Date styling */
+  .card-row:first-child .card-value {
     font-weight: 700;
     color: var(--le-color-primary, #007bff);
   }
   
-  /* Rink styling */
-  .schedule-table td[data-label="Rink"] {
-    font-weight: 600;
-    color: var(--le-text-color-secondary, #6c757d);
-    font-style: italic;
-  }
-  
-  /* Result styling for completed matches */
-  .schedule-table .match-row.past-with-result td[data-label="Result"] {
-    font-weight: 700;
-    color: #28a745;
-  }
-  
-  /* Today's match special styling */
-  .schedule-table .match-row.today td[data-label="Date"] {
+  .match-card.today .card-row:first-child .card-value {
     color: #e67e22;
     text-shadow: 0 1px 2px rgba(230, 126, 34, 0.3);
   }
   
-  /* Add some breathing room between content sections */
-  .schedule-table td:not(:last-child) {
-    margin-bottom: 0.2rem;
+  /* Date and rink container styling */
+  .date-rink-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
   }
   
-  /* Enhance the visual hierarchy with better spacing */
-  .schedule-table td::before {
-    line-height: 1.2;
-    display: flex;
+  .date-section {
+    text-align: left;
+    flex: 1;
+  }
+  
+  .rink-section {
+    text-align: right;
+    font-size: 0.9em;
+    color: var(--le-text-color-secondary, #666);
+    font-weight: 500;
+    margin-left: 0.5rem;
+  }
+  
+  /* Teams and result grid layout */
+  .teams-result-row {
+    display: grid;
+    grid-template-columns: auto 1fr 1rem auto 1rem 1fr auto;
     align-items: center;
+    width: 100%;
+    gap: 0;
+  }
+  
+  .home-label {
+    font-weight: 600;
+    color: var(--le-text-color-secondary, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    grid-column: 1;
+    margin-right: 0.25rem;
+  }
+  
+  .team-name-home {
+    font-weight: 500;
+    color: var(--le-text-color-primary, #2c3e50);
+    text-align: right;
+    grid-column: 2;
+  }
+  
+  .result-score {
+    font-weight: 700;
+    color: var(--le-color-primary, #007bff);
+    background: none !important;
+    white-space: nowrap;
+    grid-column: 4;
+    justify-self: center;
+  }
+  
+  .team-name-away {
+    font-weight: 500;
+    color: var(--le-text-color-primary, #2c3e50);
+    text-align: left;
+    grid-column: 6;
+  }
+  
+  .away-label {
+    font-weight: 600;
+    color: var(--le-text-color-secondary, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    grid-column: 7;
+    margin-left: 0.25rem;
+  }
+  
+  /* Winner team styling */
+  .team-name-home.winner,
+  .team-name-away.winner {
+    font-weight: 700;
+  }
+  
+  /* Result styling for different match states */
+  .match-card.past-no-result .result-score,
+  .match-card.needs-attention .result-score {
+    background-color: rgba(214, 48, 49, 0.1);
+    color: #d63031;
+  }
+  
+  .match-card.past-with-result .result-score {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
   }
   
   .paging-info {
@@ -501,7 +545,6 @@ export const MOBILE_STYLES = `
 export const DESKTOP_STYLES = `
   ${BASE_STYLES}
   
-  /* Desktop-specific overrides - following the same pattern as other components */
   :host {
     ${desktopStyles}
   }
@@ -543,8 +586,71 @@ export const DESKTOP_STYLES = `
     display: flex;
   }
   
+  /* Desktop table layout */
   .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: var(--le-padding-s, 0.5rem);
     display: table;
+  }
+  
+  .schedule-table tr {
+    display: table-row;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .schedule-table td,
+  .schedule-table th {
+    display: table-cell;
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.4;
+  }
+  
+  .schedule-table th {
+    background-color: var(--le-background-color-header, #f5f5f5);
+    color: var(--le-text-color-primary, #333);
+    font-weight: 600;
+    text-align: center;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 2px solid var(--le-border-color-medium, #ddd);
+    display: table-cell;
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+  
+  .schedule-table th:first-child,
+  .schedule-table th:nth-child(3),
+  .schedule-table th:nth-child(4) {
+    text-align: left;
+  }
+  
+  .schedule-table td {
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle;
+    line-height: 1.4;
+    margin: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+  
+  .schedule-table td:first-child,
+  .schedule-table td:nth-child(3),
+  .schedule-table td:nth-child(4) {
+    text-align: left;
+  }
+  
+  .schedule-table tr:hover {
+    background-color: var(--le-background-color-row-hover, #f9f9f9);
   }
   
   .schedule-table thead {
@@ -563,24 +669,111 @@ export const DESKTOP_STYLES = `
     padding: 0;
   }
   
-  .schedule-table td {
-    display: table-cell;
-    padding: 0.25rem 0.5rem;
-    border-bottom: 1px solid var(--le-border-color-light, #eee);
-    text-align: center;
-  }
-  
-  .schedule-table td:first-child,
-  .schedule-table td:nth-child(3),
-  .schedule-table td:nth-child(4) {
-    text-align: left;
-  }
-  
   .schedule-table td::before {
     content: none;
   }
   
-  /* Desktop dropdowns - consistent sizing */
+  /* Desktop column widths */
+  .date-col {
+    width: 15%;
+  }
+  
+  .team-col {
+    width: 30%;
+  }
+  
+  .result-col {
+    width: 15%;
+  }
+  
+  .rink-col {
+    width: 10%;
+    text-align: center;
+  }
+  
+  /* Desktop match row styles */
+  .match-row {
+    cursor: pointer;
+    display: table-row;
+    line-height: 1.4;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+  }
+  
+  .match-row.selected {
+    background-color: var(--le-background-color-selected, #e6f7ff);
+  }
+  
+  .match-row.past-with-result {
+    opacity: 0.6;
+    color: var(--le-text-color-secondary, #666);
+  }
+  
+  .match-row.past-with-result td {
+    color: var(--le-text-color-secondary, #666);
+  }
+  
+  .match-row.past-with-result:hover {
+    background-color: rgba(249, 249, 249, 0.8);
+  }
+  
+  .match-row.past-no-result {
+    background-color: #fff5f5;
+    border-left: 4px solid #ff6b6b;
+  }
+  
+  .match-row.past-no-result:hover {
+    background-color: #ffebeb;
+  }
+  
+  .match-row.past-no-result td {
+    color: #d63031;
+    font-weight: 500;
+  }
+  
+  .match-row.past-no-result .result-col {
+    font-style: normal;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .match-row.needs-attention {
+    background-color: #fff8e1;
+    border-left: 4px solid #ff9800;
+  }
+
+  .match-row.needs-attention:hover {
+    background-color: #ffecb3;
+  }
+
+  .match-row.needs-attention td {
+    color: #e65100;
+    font-weight: 500;
+  }
+
+  .match-row.needs-attention .result-col {
+    font-style: normal;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  /* Desktop-specific column alignments */
+  .home-col {
+    text-align: right !important;
+  }
+  
+  .center-align {
+    text-align: center !important;
+  }
+  
+  /* Desktop winner styling */
+  .winner {
+    font-weight: 700 !important;
+  }
+  
+  /* Desktop dropdowns */
   .filter-panel .dropdown-shared {
     width: auto;
     min-width: 200px;
