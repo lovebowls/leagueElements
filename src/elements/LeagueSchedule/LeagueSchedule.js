@@ -9,15 +9,9 @@ class LeagueScheduleEvent extends CustomEvent {
   }
 }
 
-import { MOBILE_STYLES, DESKTOP_STYLES, TEMPLATE, TABLE_TEMPLATE, NO_MATCHES_TEMPLATE } from './LeagueSchedule-styles.js';
+import { MOBILE_STYLES, DESKTOP_STYLES } from './LeagueSchedule-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
-import {
-  exportMatchesToCSV,
-  exportMatchesToExcel,
-  exportMatchesToWord,
-  exportMatchesToPDF,
-  exportMatchesToJSON
-} from '../../utils/data.js';
+import { exportMatchesToCSV, exportMatchesToExcel, exportMatchesToWord, exportMatchesToPDF, exportMatchesToJSON } from '../../utils/data.js';
 import { League } from '@lovebowls/leaguejs';
 
 /**
@@ -757,7 +751,6 @@ class LeagueSchedule extends HTMLElement {
                 <th class="team-col">Home</th>
                 <th class="team-col">Away</th>
                 <th class="result-col">Result</th>
-                ${editable ? `<th class="actions-col">Actions</th>` : ''}
               </tr>
             </thead>
             <tbody>
@@ -785,29 +778,20 @@ class LeagueSchedule extends HTMLElement {
                 const resultCell = (isMobile && !hasResult) ? '' : 
                   `<td data-label="Result">${this.formatMatchResult(match)}</td>`;
                 
+                const dateContent = editable ? 
+                  `<span class="date-link" data-match-id="${match._id}" title="Edit Match">${this.formatMatchDate(match.date)}</span>` :
+                  this.formatMatchDate(match.date);
+                
                 return `
                   <tr 
                     class="${cssClasses}" 
                     data-match-id="${match._id}"${titleAttr}
                   >
-                    <td data-label="Date">${this.formatMatchDate(match.date)}</td>
+                    <td data-label="Date">${dateContent}</td>
                     ${this._shouldShowRinkColumn ? `<td data-label="Rink">${this.formatMatchRink(match)}</td>` : ''}
                     <td data-label="Home">${this.getTeamName(match.homeTeam._id)}</td>
                     <td data-label="Away">${this.getTeamName(match.awayTeam._id)}</td>
                     ${resultCell}
-                    ${editable ? `
-                      <td>
-                        <div class="match-actions">
-                          <button 
-                            class="btn btn-icon edit-match-btn" 
-                            title="Edit Match"
-                            data-match-id="${match._id}"
-                          >
-                            ✏️
-                          </button>
-                        </div>
-                      </td>
-                    ` : ''}
                   </tr>
                 `;
               }).join('')}
@@ -948,8 +932,8 @@ class LeagueSchedule extends HTMLElement {
     const matchRows = this.shadow.querySelectorAll('.match-row');
     matchRows.forEach(row => {
       row.addEventListener('click', (e) => {
-        // Don't trigger if clicking on a button
-        if (e.target.tagName === 'BUTTON') {
+        // Don't trigger if clicking on a date link (edit functionality)
+        if (e.target.classList.contains('date-link')) {
           return;
         }
         
@@ -961,11 +945,12 @@ class LeagueSchedule extends HTMLElement {
       });
     });
     
-    // Edit match buttons
-    const editButtons = this.shadow.querySelectorAll('.edit-match-btn');
-    editButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
-        const matchId = button.getAttribute('data-match-id');
+    // Date link clicks for editing
+    const dateLinks = this.shadow.querySelectorAll('.date-link');
+    dateLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent row click
+        const matchId = link.getAttribute('data-match-id');
         const match = this.matches.find(m => m._id === matchId);
         if (match) {
           this.handleEditMatch(e, match);
