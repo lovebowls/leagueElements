@@ -215,12 +215,6 @@ const BASE_STYLES = `
     font-size: var(--le-font-size-button-sm, 0.85em);
   }
   
-  .clear-filters {
-    margin-left: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    font-size: var(--le-font-size-button-sm, 0.85em);
-  }
-  
   .no-matches {
     padding: var(--le-padding-m, 1rem);
     text-align: center;
@@ -354,6 +348,7 @@ export const MOBILE_STYLES = `
     transition: all 0.2s ease-in-out;
     cursor: pointer;
     font-size: var(--le-font-size-medium, 1.2em);
+    box-sizing: border-box;
   }
   
   .match-card:hover {

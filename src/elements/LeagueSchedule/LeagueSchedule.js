@@ -763,9 +763,6 @@ class LeagueSchedule extends HTMLElement {
                 `).join('')}
               </select>
             </div>
-            ${selectedTeamId || this.filterDate ? `
-              <button class="clear-filters" id="clear-filters">Clear</button>
-            ` : ''}
           </div>
           
           <div class="dropdown-shared">
@@ -884,7 +881,7 @@ class LeagueSchedule extends HTMLElement {
           </div>
         ` : `
           <div class="no-matches">
-            No matches found. ${selectedTeamId ? `<button id="clear-filters">Clear</button>` : ''}
+            No matches found.
           </div>
         `}
       </div>
@@ -942,9 +939,6 @@ class LeagueSchedule extends HTMLElement {
                 `).join('')}
               </select>
             </div>
-            ${selectedTeamId || this.filterDate ? `
-              <button class="clear-filters" id="clear-filters">Clear</button>
-            ` : ''}
           </div>
           
           <div class="dropdown-shared">
@@ -1069,7 +1063,7 @@ class LeagueSchedule extends HTMLElement {
           </div>
         ` : `
           <div class="no-matches">
-            No matches found. ${selectedTeamId ? `<button id="clear-filters">Clear</button>` : ''}
+            No matches found.
           </div>
         `}
       </div>
@@ -1099,12 +1093,6 @@ class LeagueSchedule extends HTMLElement {
     const teamFilter = this.shadow.querySelector('#team-filter');
     if (teamFilter) {
       teamFilter.addEventListener('change', this.handleTeamFilter);
-    }
-    
-    // Clear filters button
-    const clearFiltersBtn = this.shadow.querySelector('#clear-filters');
-    if (clearFiltersBtn) {
-      clearFiltersBtn.addEventListener('click', this.clearFilters);
     }
     
     // Export dropdown
