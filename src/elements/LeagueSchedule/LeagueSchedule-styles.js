@@ -530,7 +530,6 @@ export const MOBILE_STYLES = `
   
   .rink-section {
     text-align: right;
-    font-size: 0.9em;
     color: var(--le-text-color-secondary, #666);
     font-weight: 500;
     margin-left: 0.5rem;

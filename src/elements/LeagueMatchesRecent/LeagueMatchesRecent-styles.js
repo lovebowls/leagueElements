@@ -45,7 +45,6 @@ const BASE_STYLES = `
         padding: var(--le-padding-xs, 0.1em) var(--le-padding-s, 0.3em);
         border-radius: var(--le-border-radius-small, 3px);
         color: var(--le-text-color-on-primary, #fff);
-        font-size: var(--le-font-size-xs, 0.75em);
         font-weight: bold;
         margin-left: var(--le-padding-s, 0.5rem);
       }
