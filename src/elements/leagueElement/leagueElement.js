@@ -390,9 +390,6 @@ class LeagueElement extends HTMLElement {
         }));
       };
     });
-    
-    // Upcoming Fixtures paging is now handled by LeagueMatchesUpcoming.js
-    // Attention Matches Paging is now handled by LeagueMatchesAttention.js
 
     // Match links from sub-components will be handled by them dispatching events
     // if LeagueElement needs to act (e.g. open a modal from a central place)

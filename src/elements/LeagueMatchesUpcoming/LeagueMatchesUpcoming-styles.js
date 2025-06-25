@@ -30,7 +30,7 @@ const BASE_STYLES = `
         color: var(--le-text-color-secondary, #666);
         margin-top: var(--le-padding-m, 1rem);
         margin-bottom: var(--le-padding-xs, 0.2em);
-        font-size: var(--le-font-size-large);
+        font-size: var(--le-font-size-medium);
         font-weight: bold;
         border-bottom: 1px solid var(--le-border-color-light, #eee);
         padding-bottom: var(--le-padding-xs, 0.2em);

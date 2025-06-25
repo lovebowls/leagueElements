@@ -155,7 +155,7 @@ const BASE_STYLES = `
       }
       .match-date {
         color: var(--le-text-color-secondary); 
-        font-size: var(--le-font-size-small); /* MODIFIED - Relative to parent */
+        font-size: var(--le-font-size-medium);
         margin-bottom: var(--le-padding-xs); 
       }      
 
@@ -278,6 +278,52 @@ const BASE_STYLES = `
         gap: var(--le-padding-s, 0.5rem);
         margin-bottom: var(--le-padding-s, 0.5rem);
       }
+      
+      /* Enhanced dropdown styling for trends controls button-like appearance */
+      .trends-controls .dropdown-shared {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .trends-controls .dropdown-select-shared {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: var(--le-background-color-button, #f0f0f0);
+        border: 1px solid var(--le-border-color-medium, #ddd);
+        border-radius: var(--le-border-radius-standard, 4px);
+        padding: var(--le-padding-s, 0.5rem) calc(var(--le-padding-m, 1rem) * 2) var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
+        font-size: var(--le-font-size-dropdown, var(--le-font-size-medium, 1em));
+        color: var(--le-text-color-primary, #333);
+        cursor: pointer;
+        line-height: 1.4;
+        min-width: 160px;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1rem;
+        transition: all 0.2s ease;
+        font-weight: 500;
+      }
+      
+      .trends-controls .dropdown-select-shared:hover {
+        background-color: var(--le-background-color-button-hover, #e0e0e0);
+        border-color: var(--le-border-color-dark, #ccc);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .trends-controls .dropdown-select-shared:focus {
+        outline: none;
+        border-color: var(--le-text-color-accent, #2196f3);
+        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        background-color: var(--le-background-color-panel, #fff);
+      }
+      
+      .trends-controls .dropdown-select-shared:active {
+        background-color: var(--le-background-color-button-hover, #e0e0e0);
+        transform: translateY(1px);
+      }
+      
       .trends-content-area {
         gap: var(--le-padding-m); 
         min-height: 0; 
@@ -720,6 +766,39 @@ const BASE_STYLES = `
         font-size: var(--le-font-size-xs);
       }
 
+      /* Mobile-specific trends controls dropdown styling */
+      .trends-controls .dropdown-shared {
+        width: 100%;
+      }
+      
+      .trends-controls .dropdown-select-shared {
+        width: 100%;
+        padding: var(--le-padding-s, 0.75rem) calc(var(--le-padding-m, 1rem) * 2.5) var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
+        font-size: var(--le-font-size-medium, 1.2em);
+        min-height: 44px; /* Minimum touch target size */
+        background-size: 1.2rem;
+        background-position: right 1rem center;
+        border-width: 2px;
+      }
+      
+      .trends-controls .dropdown-select-shared:focus {
+        border-width: 2px;
+      }
+
+      /* Hide SF and SA columns on mobile screens */
+      @media (max-width: 1000px) {
+        /* Hide SF (Shots For) - 8th column */
+        th:nth-child(8),
+        td:nth-child(8) {
+          display: none;
+        }
+        
+        /* Hide SA (Shots Against) - 9th column */
+        th:nth-child(9),
+        td:nth-child(9) {
+          display: none;
+        }
+      }
     `;
 
   // Desktop-specific styles
@@ -895,6 +974,23 @@ const BASE_STYLES = `
         margin-bottom: var(--le-padding-xs);
         break-inside: avoid; /* Prevent breaking legend items across columns */
       }
+
+      /* Desktop-specific trends controls dropdown styling */
+      .trends-controls .dropdown-shared {
+        min-width: 160px;
+        width: auto;
+      }
+      
+      .trends-controls .dropdown-select-shared {
+        min-width: 160px;
+        width: auto;
+      }
+      
+      .trends-content-area {
+        flex: 1; 
+        display: flex;
+        flex-direction: column; 
+      }
     `;
 
   // Table header template
@@ -968,7 +1064,7 @@ const BASE_STYLES = `
           <league-calendar id="mobile-calendar"></league-calendar> 
         </div>
         <div class="panel">
-          <div class="panel-header panel-header-shared">Upcoming Fixtures</div>
+          <div class="panel-header panel-header-shared">Upcoming Matches</div>
           <league-matches-upcoming id="mobile-upcoming-fixtures" is-mobile="true"></league-matches-upcoming>
         </div>
         <div class="panel">
@@ -1033,7 +1129,7 @@ const BASE_STYLES = `
             <league-calendar id="desktop-calendar"></league-calendar>
           </div>
           <div class="panel">
-            <div class="panel-header panel-header-shared">Upcoming Fixtures</div>
+            <div class="panel-header panel-header-shared">Upcoming Matches</div>
             <league-matches-upcoming id="desktop-upcoming-fixtures"></league-matches-upcoming>
           </div>
           <div class="panel">

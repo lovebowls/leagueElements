@@ -29,6 +29,51 @@ const BASE_STYLES = `
     gap: var(--le-padding-s, 0.5rem);
   }
   
+  /* Enhanced dropdown styling for button-like appearance */
+  .filter-panel .dropdown-shared {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .filter-panel .dropdown-select-shared {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: var(--le-background-color-button, #f0f0f0);
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    padding: var(--le-padding-s, 0.5rem) calc(var(--le-padding-m, 1rem) * 2) var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
+    font-size: var(--le-font-size-dropdown, var(--le-font-size-medium, 1em));
+    color: var(--le-text-color-primary, #333);
+    cursor: pointer;
+    line-height: 1.4;
+    min-width: 120px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+  
+  .filter-panel .dropdown-select-shared:hover {
+    background-color: var(--le-background-color-button-hover, #e0e0e0);
+    border-color: var(--le-border-color-dark, #ccc);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .filter-panel .dropdown-select-shared:focus {
+    outline: none;
+    border-color: var(--le-text-color-accent, #2196f3);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    background-color: var(--le-background-color-panel, #fff);
+  }
+  
+  .filter-panel .dropdown-select-shared:active {
+    background-color: var(--le-background-color-button-hover, #e0e0e0);
+    transform: translateY(1px);
+  }
+  
   .schedule-table {
     width: 100%;
     border-collapse: collapse;
@@ -213,6 +258,24 @@ const BASE_STYLES = `
   .paging-buttons button {
     padding: 0.25rem 0.5rem;
     font-size: var(--le-font-size-button-sm, 0.85em);
+    background-color: var(--le-background-color-button, #f0f0f0);
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    color: var(--le-text-color-primary, #333);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .paging-buttons button:hover:not(:disabled) {
+    background-color: var(--le-background-color-button-hover, #e0e0e0);
+    border-color: var(--le-border-color-dark, #ccc);
+  }
+  
+  .paging-buttons button:disabled {
+    background-color: var(--le-background-color-button-disabled, #f5f5f5);
+    color: var(--le-text-color-secondary, #999);
+    cursor: not-allowed;
+    opacity: 0.6;
   }
   
   .no-matches {
@@ -302,7 +365,24 @@ export const MOBILE_STYLES = `
     width: 100%;
   }
   
-
+  /* Mobile-specific dropdown styling */
+  .filter-panel .dropdown-shared {
+    width: 100%;
+  }
+  
+  .filter-panel .dropdown-shared .dropdown-select-shared {
+    width: 100%;
+    padding: var(--le-padding-s, 0.75rem) calc(var(--le-padding-m, 1rem) * 2.5) var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
+    font-size: var(--le-font-size-medium, 1.2em);
+    min-height: 44px; /* Minimum touch target size */
+    background-size: 1.2rem;
+    background-position: right 1rem center;
+    border-width: 2px;
+  }
+  
+  .filter-panel .dropdown-select-shared:focus {
+    border-width: 2px;
+  }
   
   .paging-controls {
     display: flex;
@@ -319,14 +399,6 @@ export const MOBILE_STYLES = `
   .paging-buttons {
     display: flex;
     justify-content: center;
-    width: 100%;
-  }
-  
-  .filter-panel .dropdown-shared {
-    width: 100%;
-  }
-  
-  .filter-panel .dropdown-shared .dropdown-select-shared {
     width: 100%;
   }
   
@@ -561,9 +633,15 @@ export const DESKTOP_STYLES = `
     align-items: center;
   }
   
+  /* Desktop-specific dropdown styling */
   .filter-controls .dropdown-shared {
     width: auto;
     min-width: 200px;
+  }
+  
+  .filter-panel .dropdown-shared .dropdown-select-shared {
+    min-width: 160px;
+    width: auto;
   }
   
   .paging-controls {
@@ -768,13 +846,9 @@ export const DESKTOP_STYLES = `
     font-weight: 700 !important;
   }
   
-  /* Desktop dropdowns */
+  /* Desktop dropdowns - ensure consistency */
   .filter-panel .dropdown-shared {
     width: auto;
-    min-width: 200px;
-  }
-  
-  .filter-panel .dropdown-shared .dropdown-select-shared {
-    width: 100%;
+    min-width: 160px;
   }
 `;

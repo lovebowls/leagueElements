@@ -138,7 +138,6 @@ export const BASE_STYLES = `
         
         .rink-input {
           padding: 0.3rem 0.25rem !important;
-          font-size: 0.9rem !important;
         }
         .rink-results-container {
           padding: 0.5rem;
@@ -162,11 +161,9 @@ export const BASE_STYLES = `
           width: 90% !important; /* Override any fixed width from shared styles */
           max-width: 90% !important;
           margin: 10px auto;
-          font-size: 16px !important; /* Base font size increase */
         }
         .modal-shared-header {
           padding: 15px;
-          font-size: 18px !important;
         }
         .modal-shared-body {
           padding: 15px;
@@ -175,17 +172,14 @@ export const BASE_STYLES = `
           padding: 15px;
         }
         .form-label-shared {
-          font-size: 16px !important;
           margin-bottom: 8px;
         }
         .form-input-shared, 
         .form-select-shared {
-          font-size: 16px !important;
           padding: 10px !important;
           height: auto !important;
         }
         .form-checkbox-label-shared {
-          font-size: 16px !important;
         }
         .score-inputs {
           gap: 10px;
@@ -193,31 +187,25 @@ export const BASE_STYLES = `
         .score-inputs input[type="number"] {
           width: 90px; /* Wider on mobile for touch targets */
           min-width: 90px;
-          font-size: 16px !important;
           padding: 10px !important;
         }
         .score-inputs span {
-          font-size: 18px;
           font-weight: bold;
         }
         #rinkNumber {
           width: 100% !important;
           max-width: 100% !important;
-          font-size: 16px !important;
           padding: 10px !important;
         }
         .button-shared {
-          font-size: 16px !important;
           padding: 10px 15px !important;
           min-height: 44px; /* Better touch target */
           margin: 5px;
         }
         #error-message-match-modal {
-          font-size: 14px !important;
           padding: 10px;
         }
         .attention-banner {
-          font-size: 14px !important;
           padding: 10px;
         }
       }
@@ -228,12 +216,10 @@ export const BASE_STYLES = `
         max-width: 90% !important;
         min-width: 280px !important;
         margin: 10px auto;
-        font-size: 16px !important; /* Base font size increase */
         transform: scale(1.05);
       }
       .mobile-view .modal-shared-header {
         padding: 15px;
-        font-size: 20px !important;
       }
       .mobile-view .modal-shared-body {
         padding: 15px;
@@ -242,18 +228,15 @@ export const BASE_STYLES = `
         padding: 15px;
       }
       .mobile-view .form-label-shared {
-        font-size: 16px !important;
         margin-bottom: 10px;
       }
       .mobile-view .form-input-shared, 
       .mobile-view .form-select-shared {
-        font-size: 16px !important;
         padding: 12px !important;
         height: auto !important;
         border-radius: 6px !important;
       }
       .mobile-view .form-checkbox-label-shared {
-        font-size: 16px !important;
         margin: 5px 0;
       }
       .mobile-view .score-inputs {
@@ -263,27 +246,22 @@ export const BASE_STYLES = `
       .mobile-view .score-inputs input[type="number"] {
         width: 100px; /* Wider on mobile for touch targets */
         min-width: 100px;
-        font-size: 18px !important;
         padding: 12px !important;
         border-radius: 6px !important;
       }
       .mobile-view .score-inputs span {
-        font-size: 20px;
         font-weight: bold;
       }
       .mobile-view .button-shared {
-        font-size: 18px !important;
         padding: 12px 20px !important;
         min-height: 50px; /* Better touch target */
         margin: 5px;
         border-radius: 6px !important;
       }
       .mobile-view #error-message-match-modal {
-        font-size: 16px !important;
         padding: 12px;
       }
       .mobile-view .attention-banner {
-        font-size: 16px !important;
         padding: 12px;
       }
       #error-message-match-modal {
@@ -293,7 +271,6 @@ export const BASE_STYLES = `
         border: 1px solid var(--le-border-color-error, #D8000C);
         border-radius: var(--le-border-radius-standard);
         margin-bottom: var(--le-padding-m); 
-        font-size: var(--le-font-size-small);
       }
       .attention-banner {
         background-color: var(--le-color-status-warning, #f39c12);
@@ -301,7 +278,6 @@ export const BASE_STYLES = `
         padding: var(--le-padding-s, 0.5em);
         border-bottom: 1px solid var(--le-border-color-dark, #ccc);
         text-align: center;
-        font-size: var(--le-font-size-small, 0.85em);
         border-top-left-radius: var(--le-border-radius-standard);
         border-top-right-radius: var(--le-border-radius-standard);
       }
