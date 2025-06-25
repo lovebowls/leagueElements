@@ -18,8 +18,6 @@ const BASE_STYLES = `
         list-style: none;
         padding: 0;
         margin: 0;
-        max-height: 300px; /* Consider making this configurable or dynamic */
-        overflow-y: auto;
       }
       .match-item {
         padding: var(--le-padding-s, 0.5rem) 0;
@@ -83,12 +81,22 @@ export const MOBILE_STYLES = `
       .paging-btn {
         padding: 0.2rem 0.7rem;
       }
+      /* Mobile: Remove height constraints and scrollbars for dynamic content-based height */
+      .matches-list {
+        max-height: none;
+        overflow-y: visible;
+      }
     `;
 
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
         ${desktopStyles}
+      }
+      /* Desktop: Keep max-height and scrollbars for space management */
+      .matches-list {
+        max-height: 300px;
+        overflow-y: auto;
       }
     `;
 

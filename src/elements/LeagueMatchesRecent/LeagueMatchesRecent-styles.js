@@ -12,8 +12,7 @@ const BASE_STYLES = `
         color: var(--le-text-color-primary, #333);
       }
       .matches-container {
-        max-height: 300px;
-        overflow-y: auto;
+        /* Height will be overridden by mobile/desktop specific styles */
       }
       .match-date {
         color: var(--le-text-color-secondary, #666);
@@ -68,6 +67,24 @@ const BASE_STYLES = `
         color: var(--le-text-color-error, #ff0000);
         padding: var(--le-padding-s, 0.5rem);
       }
+      .paging-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--le-padding-s, 0.5rem);
+        margin-top: var(--le-padding-s, 0.5rem);
+      }
+      .paging-btn {
+        background: var(--swal-background-color-button, #f5f5f5);
+        border: 1px solid var(--swal-border-color-dark, #ccc);
+        border-radius: var(--swal-border-radius-small, 3px);
+        padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
+        cursor: pointer;
+      }
+      .paging-btn:disabled {
+        background: var(--swal-background-color-button-disabled, #eee);
+        color: var(--le-text-color-secondary, #aaa);
+        cursor: not-allowed;
+      }
     `;
 
 // Mobile-specific styles
@@ -76,6 +93,14 @@ export const MOBILE_STYLES = `
       :host {
         ${mobileStyles}
       }
+      .paging-btn {
+        padding: 0.2rem 0.7rem;
+      }
+      /* Mobile: Remove height constraints and scrollbars for dynamic content-based height */
+      .matches-container {
+        max-height: none;
+        overflow-y: visible;
+      }
     `;
 
 // Desktop-specific styles
@@ -83,6 +108,11 @@ export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
         ${desktopStyles}
+      }
+      /* Desktop: Keep max-height and scrollbars for space management */
+      .matches-container {
+        max-height: 300px;
+        overflow-y: auto;
       }
     `;
 

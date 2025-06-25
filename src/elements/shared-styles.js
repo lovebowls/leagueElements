@@ -439,6 +439,148 @@ export const formStyles = `
   .form-option-item-shared {
      /* Styles for each checkbox/radio item within a group */
   }
+
+  /* Enhanced checkbox styles for better mobile usability */
+  .checkbox-enhanced-shared {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    margin-right: var(--le-padding-s, 0.75em);
+  }
+
+  .checkbox-enhanced-shared input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+
+  .checkbox-enhanced-shared .checkmark-shared {
+    position: relative;
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    background-color: var(--le-background-color-panel, #fff);
+    border: 2px solid var(--le-border-color-dark, #ccc);
+    border-radius: var(--le-border-radius-small, 3px);
+    transition: all 0.2s ease;
+    vertical-align: middle;
+    margin-right: var(--le-padding-xs, 0.25em);
+  }
+
+  /* Mobile-specific larger checkboxes */
+  @media (max-width: 768px) {
+    .checkbox-enhanced-shared .checkmark-shared {
+      width: 2em;
+      height: 2em;
+      border-width: 2px;
+    }
+  }
+
+  /* Hover state */
+  .checkbox-enhanced-shared:hover input[type="checkbox"] ~ .checkmark-shared {
+    border-color: var(--le-text-color-accent, #2196f3);
+    background-color: var(--le-background-color-row-hover, #f9f9f9);
+  }
+
+  /* Focus state */
+  .checkbox-enhanced-shared input[type="checkbox"]:focus ~ .checkmark-shared {
+    border-color: var(--le-text-color-accent, #2196f3);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  }
+
+  /* Checked state */
+  .checkbox-enhanced-shared input[type="checkbox"]:checked ~ .checkmark-shared {
+    background-color: var(--le-text-color-accent, #2196f3);
+    border-color: var(--le-text-color-accent, #2196f3);
+  }
+
+  /* Checkmark icon */
+  .checkbox-enhanced-shared .checkmark-shared:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 0.4em;
+    height: 0.8em;
+    border: solid var(--le-text-color-on-primary, #fff);
+    border-width: 0 0.15em 0.15em 0;
+  }
+
+  /* Mobile-specific larger checkmark */
+  @media (max-width: 768px) {
+    .checkbox-enhanced-shared .checkmark-shared:after {
+      width: 0.5em;
+      height: 1em;
+      border-width: 0 0.2em 0.2em 0;
+    }
+  }
+
+  /* Show checkmark when checked */
+  .checkbox-enhanced-shared input[type="checkbox"]:checked ~ .checkmark-shared:after {
+    display: block;
+  }
+
+  /* Disabled state */
+  .checkbox-enhanced-shared input[type="checkbox"]:disabled ~ .checkmark-shared {
+    background-color: var(--le-background-color-button-disabled, #eee);
+    border-color: var(--le-border-color-medium, #ddd);
+    cursor: not-allowed;
+  }
+
+  .checkbox-enhanced-shared input[type="checkbox"]:disabled ~ .checkmark-shared:after {
+    border-color: var(--le-text-color-secondary, #aaa);
+  }
+
+  /* Legend/checkbox list styles for responsive layouts */
+  .checkbox-list-responsive-shared {
+    display: grid;
+    gap: var(--le-padding-s, 0.75em);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  /* Mobile-specific responsive checkbox list */
+  @media (max-width: 768px) {
+    .checkbox-list-responsive-shared {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--le-padding-m, 1em);
+    }
+  }
+
+  /* Extra small screens - force 2 columns */
+  @media (max-width: 480px) {
+    .checkbox-list-responsive-shared {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--le-padding-s, 0.75em);
+    }
+  }
+
+  /* Legend item styling for checkbox lists */
+  .legend-item-shared {
+    display: flex;
+    align-items: center;
+    font-size: var(--le-font-size-small, 0.9em);
+    padding: var(--le-padding-xs, 0.25em);
+    border-radius: var(--le-border-radius-small, 3px);
+    transition: background-color 0.2s ease;
+  }
+
+  .legend-item-shared:hover {
+    background-color: var(--le-background-color-row-hover, #f9f9f9);
+  }
+
+  /* Mobile-specific legend item styling */
+  @media (max-width: 768px) {
+    .legend-item-shared {
+      font-size: var(--le-font-size-medium, 1.2em);
+      padding: var(--le-padding-s, 0.75em) var(--le-padding-xs, 0.25em);
+      min-height: 3em;
+    }
+  }
 `;
 
 export const listItemStyles = `

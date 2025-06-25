@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles, tabStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles, tabStyles, formStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -6,6 +6,7 @@ const BASE_STYLES = `
       ${buttonStyles}  /* ADDED SHARED STYLE */
       ${dropdownStyles} /* ADDED SHARED STYLE */
       ${tabStyles}
+      ${formStyles}    /* ADDED SHARED FORM STYLES INCLUDING ENHANCED CHECKBOXES */
       :host {
         display: block;
         border: 1px solid var(--le-border-color-medium, #ccc); 
@@ -355,16 +356,16 @@ const BASE_STYLES = `
         min-width: 30px; 
         max-width: 30px; 
         position: relative; 
-        padding-right: 15px; 
+        padding-right: 5px; 
       }
       .position-cell .rank-up,
       .position-cell .rank-down {
         display: inline-block;
         position: absolute; 
-        right: 3px; 
+        right: 5px; 
         top: 50%; 
         transform: translateY(-50%); 
-        margin-left: 0; 
+        margin-left: var(--le-padding-xs, 0.25rem); 
         font-size: var(--le-font-size-xs); 
         line-height: 1; 
       }
@@ -423,22 +424,62 @@ const BASE_STYLES = `
         display: flex;
         flex-direction: column;
         gap: var(--le-padding-m); 
+        height: 100vh; /* Use full viewport height for mobile */
+        max-height: calc(100vh - 200px); /* Account for other UI elements */
       }
       .trends-controls {
         display: flex;
         align-items: center;
+        flex-shrink: 0; /* Prevent controls from shrinking */
       }
       .trends-content-area {
         flex: 1; 
         display: flex;
         flex-direction: column; 
+        min-height: 400px; /* Minimum height for readability */
       }
       .trends-graph-area {
-        flex: 1; 
+        flex: 2; /* Give graph more space relative to legend */
+        min-height: 250px; /* Minimum height for graph readability */
       }
+      
+      /* Mobile-specific responsive legend layout */
+      .trends-graph-legend {
+        flex-shrink: 0; /* Prevent legend from shrinking too much */
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2 columns for mobile as requested */
+        gap: var(--le-padding-xs);
+        column-gap: var(--le-padding-s);
+      }
+      
       .trends-graph-legend .legend-item {
         display: flex;
         align-items: center;
+        margin-bottom: var(--le-padding-s); /* Increased spacing for touch */
+        padding: var(--le-padding-xs);
+        border-radius: var(--le-border-radius-small);
+        transition: background-color 0.2s ease;
+      }
+      
+      .trends-graph-legend .legend-item:hover {
+        background-color: var(--le-background-color-row-hover, #f9f9f9);
+      }
+      
+      /* Enhanced checkbox styling for mobile trends legend */
+      .trends-graph-legend .legend-item input[type="checkbox"] {
+        width: 1.5em;
+        height: 1.5em;
+        margin-right: var(--le-padding-s);
+        cursor: pointer;
+        transform: scale(1.2); /* Make checkboxes larger for mobile */
+      }
+      
+      .trends-graph-legend .legend-color-box {
+        width: 1em;
+        height: 1em;
+        margin-right: var(--le-padding-xs);
+        border: 1px solid var(--le-border-color-dark);
+        flex-shrink: 0; /* Prevent color box from shrinking */
       }
       .title-with-filter {
         display: flex;
@@ -664,6 +705,19 @@ const BASE_STYLES = `
         width: 8px; /* Increased size */
         height: 16px; /* Increased size */
         margin: 0 2px 0 2px; /* Increased margin */
+      }
+
+      /* Mobile-specific position cell adjustments */
+      td.position-cell {
+        width: 50px; /* Slightly wider on mobile for touch targets */
+        min-width: 50px; 
+        max-width: 50px; 
+        padding-right: 22px; 
+      }
+      .position-cell .rank-up,
+      .position-cell .rank-down {
+        right: 6px; 
+        font-size: var(--le-font-size-xs);
       }
 
     `;

@@ -57,6 +57,11 @@ export const  MOBILE_STYLES = `
       .match-item {
         padding: var(--swal-padding-xs, 0.2rem) 0;
       }
+      /* Mobile: Ensure no height constraints for dynamic content-based height */
+      .attention-matches {
+        max-height: none;
+        overflow-y: visible;
+      }
     `;
 
 export const DESKTOP_STYLES = `
@@ -66,6 +71,11 @@ export const DESKTOP_STYLES = `
       }
       .match-item {
         padding: var(--swal-padding-xs, 0.2rem) 0;
+      }
+      /* Desktop: Add height constraints if needed for space management */
+      .attention-matches {
+        max-height: 300px;
+        overflow-y: auto;
       }
     `;
 
