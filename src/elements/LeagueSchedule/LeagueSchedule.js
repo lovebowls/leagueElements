@@ -566,6 +566,15 @@ class LeagueSchedule extends HTMLElement {
     this.currentPage = page;
     this.saveFilterState();
     this.renderWithoutReset();
+    
+    // Scroll to top of schedule container after page change
+    const scheduleContainer = this.shadow.querySelector('.schedule-container');
+    if (scheduleContainer) {
+      scheduleContainer.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
   }
 
   /**

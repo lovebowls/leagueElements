@@ -7,18 +7,28 @@ const baseFontSizeConstants = `
 `;
 
 // Shared font size base variables and UI element font sizes (used internally)
-const fontSizeElementVariables = `
+const fontSizeElementVariablesDesktop = `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: var(--le-font-size-medium);
-  --le-font-size-button-sm: var(--le-font-size-small);
-  --le-font-size-label: var(--le-font-size-small);
-  --le-font-size-input: var(--le-font-size-medium);
-  --le-font-size-table-header: var(--le-font-size-small);
-  --le-font-size-table-cell: var(--le-font-size-small);
-  --le-font-size-paging: var(--le-font-size-small);
-  --le-font-size-dropdown: var(--le-font-size-medium);
+  --le-font-size-button: 16px;
+  --le-font-size-button-sm: 14px;
+  --le-font-size-label: 16px;
+  --le-font-size-input: 16px;
+  --le-font-size-table-header: 16px;
+  --le-font-size-table-cell: 16px;
+  --le-font-size-paging: 16px;
+  --le-font-size-dropdown: 16px;
 `;
-
+const fontSizeElementVariablesMobile = `
+  /* Specific sizes for common UI elements */
+  --le-font-size-button: 24px;
+  --le-font-size-button-sm: 20px;
+  --le-font-size-label: 20px;
+  --le-font-size-input: 20px;
+  --le-font-size-table-header: 20px;
+  --le-font-size-table-cell: 20px;
+  --le-font-size-paging: 20px;
+  --le-font-size-dropdown: 28px;
+`;
 
 export const mobileStyles = `
   font-size: var(--le-font-size-base-mobile);
@@ -34,7 +44,7 @@ export const mobileStyles = `
   --le-font-size-xlarge: 2.4em;
   --le-font-size-xxlarge: 2.8em;
   
-   ${fontSizeElementVariables}
+   ${fontSizeElementVariablesMobile}
 
   /* Adjust padding for better touch targets */
   --le-padding-s: 0.6rem;
@@ -55,7 +65,7 @@ export const desktopStyles = `
   --le-font-size-xlarge: 1.4em;
   --le-font-size-xxlarge: 1.6em;
 
-  ${fontSizeElementVariables}
+  ${fontSizeElementVariablesDesktop}
 
 `;
 
@@ -63,9 +73,7 @@ export const desktopStyles = `
 // Shared base styles for dropdown elements
 export const dropdownStyles = `
   /* Shared base styles for dropdown elements */
-  .dropdown-base-shared,
-  .dropdown-select-shared,
-  .dropdown-menu-button-shared {
+  .dropdown-select-shared {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -86,15 +94,11 @@ export const dropdownStyles = `
     background-size: 1em;
   }
   
-  .dropdown-base-shared:hover,
-  .dropdown-select-shared:hover,
-  .dropdown-menu-button-shared:hover {
+  .dropdown-select-shared:hover {
     border-color: var(--le-border-color-dark, #ccc);
   }
   
-  .dropdown-base-shared:focus,
-  .dropdown-select-shared:focus,
-  .dropdown-menu-button-shared:focus {
+  .dropdown-select-shared:focus {
     outline: none;
     border-color: var(--le-text-color-accent, #2196f3);
     box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
@@ -105,91 +109,11 @@ export const dropdownStyles = `
     display: inline-block;
   }
   
-  /* For dropdown containers that need to be right-aligned */
-  .dropdown-container-right {
-    display: flex;
-    justify-content: flex-end;
-  }
-  
   /* For dropdowns within flexbox layouts */
   .dropdown-container-flex {
     display: flex;
     align-items: center;
     gap: var(--le-padding-s, 0.5rem);
-  }
-
-  /* Dropdown Menu Styles (for button-triggered dropdowns like export menu) */
-  .dropdown-menu-shared {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .dropdown-menu-button-shared {
-    min-width: auto;
-  }
-  
-  .dropdown-menu-button-shared:hover {
-    background-color: var(--le-background-color-hover, #f1f1f1);
-  }
-  
-  .dropdown-menu-list-shared {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background-color: var(--le-background-color-panel, #fff);
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1000;
-    border-radius: var(--le-border-radius-small, 3px);
-    border: 1px solid var(--le-border-color-medium, #ddd);
-    overflow: hidden;
-  }
-  
-  .dropdown-menu-list-shared.show {
-    display: block;
-  }
-  
-  .dropdown-menu-item-shared {
-    color: var(--le-text-color-primary, #333);
-    padding: var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
-    text-decoration: none;
-    display: block;
-    text-align: left;
-    width: 100%;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: var(--le-font-size-base, 1em);
-    box-sizing: border-box;
-    margin: 0;
-    min-height: 2.5em;
-    line-height: 1.5;
-  }
-  
-  .dropdown-menu-item-shared:hover {
-    background-color: var(--le-background-color-hover, #f1f1f1);
-  }
-  
-  .dropdown-menu-item-shared:active {
-    background-color: var(--le-background-color-active, #e1e1e1);
-  }
-
-  /* Mobile-specific adjustments for dropdown menus */
-  @media (max-width: 480px) {
-    .dropdown-menu-button-shared {
-      font-size: var(--le-font-size-medium, 1.2em);
-      padding: 0.3rem 2rem 0.3rem 0.5rem;
-      background-size: 0.8em;
-    }
-    
-    .dropdown-menu-shared.mobile-full-width {
-      width: 100%;
-    }
-    
-    .dropdown-menu-shared.mobile-full-width .dropdown-menu-button-shared {
-      width: 100%;
-    }
   }
 `;
 
@@ -203,6 +127,7 @@ export const panelStyles = `
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: var(--le-font-size-large, 1.4em);
   }
 
   .panel-content-shared {

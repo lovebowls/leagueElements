@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, mobileStyles, desktopStyles, tabStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, mobileStyles, desktopStyles, tabStyles, dropdownStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -8,6 +8,7 @@ const BASE_STYLES = `
       ${formStyles}    /* ADDED SHARED FORM STYLE */
       ${listItemStyles} /* ADDED SHARED LIST ITEM STYLE */
       ${tabStyles}
+      ${dropdownStyles} /* ADDED SHARED DROPDOWN STYLE */
       :host {
         display: block;
         border: 1px solid var(--swal-border-color-medium, #ccc); 
@@ -91,7 +92,7 @@ const BASE_STYLES = `
         /* --- End Mappings --- */
 
       }
-      .header { /* Main header for "League Administration" title. May not use panel-header-shared directly if it has very unique structure */
+      .header {
         font-weight: bold;
         background: var(--swal-background-color-header);
         padding: var(--swal-padding-s);
@@ -152,16 +153,13 @@ const BASE_STYLES = `
       .league-action-button:hover {
         background-color: var(--swal-background-color-button-hover);
       }
-      .league-action-dropdown .dropdown-content {
-         min-width: 120px; 
-      }
+
       .action-buttons { /* Container for main action buttons */
         display: flex;
         gap: var(--swal-padding-s); 
         flex-wrap: wrap; 
         margin-bottom: var(--swal-padding-m);
       }
-      /* .action-buttons button styles are covered by .button-shared class in template */
       .modal {
         display: none; 
         position: fixed; 
@@ -183,14 +181,12 @@ const BASE_STYLES = `
         border-radius: var(--swal-border-radius-large);
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
       }
-      .modal-header { /* Uses .panel-header-shared in template but has overrides */
-        /* padding, border-bottom, font-weight potentially from .panel-header-shared */
+      .modal-header {
         background-color: var(--swal-background-color-modal-header);
         display: flex;
         justify-content: space-between;
         align-items: center;
         font-size: var(--le-font-size-large);
-         /* Ensure shared padding is applied if not overridden by specificity */
         padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
         border-bottom: 1px solid var(--le-border-color-medium, #eee);
         font-weight: bold;
@@ -203,7 +199,7 @@ const BASE_STYLES = `
         text-align: right;
         border-top: 1px solid var(--swal-border-color-medium);
       }
-      .modal-footer button { /* Buttons inside use .button-shared from template */
+      .modal-footer button {
          margin-left: var(--swal-padding-s); /* Keep specific margin */
       }
 
@@ -292,14 +288,11 @@ const BASE_STYLES = `
         border: 1px solid var(--swal-border-color-light);
         border-radius: var(--swal-border-radius-standard);
       }
-      .panel .panel-header { /* Styles for panel headers that have .panel-header-shared in template */
-         /* Shared properties from .panel-header-shared apply */
-         /* Overrides or additional styles for these specific panel headers: */
-         font-size: var(--le-font-size-medium); 
-         display: flex; /* Ensure these are flex for button alignment */
+      .panel .panel-header {
+        display: flex;
         justify-content: space-between;
         align-items: center;
-         background-color: var(--swal-background-color-header); /* Ensure admin context bg */
+        background-color: var(--swal-background-color-header); /* Ensure admin context bg */
       }
       /* .panel .panel-content is covered by .panel-content-shared in template */
 
@@ -330,48 +323,12 @@ const BASE_STYLES = `
       .hidden {
         display: none !important;
       }
-      .dropdown {
-        position: relative;
-        display: inline-block;
-        z-index: 2;
-      }
-      .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: var(--swal-background-color-panel, #f9f9f9);
-        /* min-width: 160px; REMOVED */
-        min-width: auto;
-        width: fit-content;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 100;
-        border-radius: var(--swal-border-radius-standard);
-        border: 1px solid var(--swal-border-color-medium);
-        top: 100%;
-        right: 0;
-      }
-      .dropdown-content button { /* Assuming these are also to be styled as shared buttons or a variant */
-        color: var(--swal-text-color-primary, black);
-        padding: var(--swal-padding-s) var(--swal-padding-m);
-        text-decoration: none;
-        display: block;
-        width: 100%;
-        text-align: left;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: var(--le-font-size-small);
-      }
-      .dropdown-content button:hover {
-        background-color: var(--swal-background-color-button-hover, #f1f1f1);
-      }
-      .dropdown.show .dropdown-content {
-        display: block;
-      }
+
       #admin-matches-attention-container league-matches-attention {
           font-size: var(--le-font-size-small); /* Adjust font size for attention component within admin panel */
       }
       #main-title {
-        font-size: var(--le-font-size-xlarge);
+        font-size: var(--le-font-size-large);
       }
       .header-actions {
         /* Styles for the container of header actions if needed */
@@ -487,11 +444,9 @@ const BASE_STYLES = `
         align-items: center;
         justify-content: center;
       }
-      .league-action-dropdown .dropdown-content {
-        min-width: 140px;
-      }
+
       .header { /* "League Administration" title in mobile */
-        font-size: var(--le-font-size-xlarge); /* Use larger size for mobile title */
+        font-size: var(--le-font-size-large); /* Use larger size for mobile title */
         font-weight: bold;
         padding: var(--swal-padding-s) var(--swal-padding-xs);
         background: none;
@@ -504,7 +459,6 @@ const BASE_STYLES = `
       }
       .action-buttons button { /* New, Copy etc. buttons */
         min-height: 44px;
-        font-size: var(--le-font-size-medium); /* Use consistent font size variable */
         padding: var(--swal-padding-s) var(--swal-padding-m);
         border-radius: var(--swal-border-radius-standard);
         margin-bottom: var(--swal-padding-xs);
@@ -528,7 +482,6 @@ const BASE_STYLES = `
         flex-direction: row; /* Align items in a row */
         justify-content: space-between; /* Space between title and button */
         align-items: center; /* Vertically align items */
-        font-size: var(--le-font-size-medium); /* Relative to host */
         font-weight: bold;
         margin-bottom: var(--swal-padding-s);
         background: none; /* Keep transparent background */
@@ -540,7 +493,6 @@ const BASE_STYLES = `
           margin-right: auto; /* Push button to the right if h4 is used */
       }
       .panel-header button { /* Add Team button */
-        font-size: var(--le-font-size-medium); /* Use consistent font size variable */
         padding: var(--swal-padding-s) var(--swal-padding-m); /* Keep existing padding */
         margin-top: 0; /* Remove top margin */
         margin-left: var(--swal-padding-s); /* Add some left margin if needed, or rely on space-between */
@@ -618,7 +570,6 @@ const BASE_STYLES = `
          background-color: var(--swal-background-color-host-desktop);
       }
       .panel-header { 
-        font-size: var(--le-font-size-large); /* Larger for desktop panel titles */
         flex-direction: row; 
         align-items: center; 
         background: var(--swal-background-color-header); 
@@ -629,7 +580,6 @@ const BASE_STYLES = `
           margin-bottom: 0;
       }
       .panel-header button { /* Add Team/Match on Desktop */
-        font-size: var(--le-font-size-small); /* Smaller than main action buttons */
         padding: var(--swal-padding-xs) var(--swal-padding-s);
         margin-left: auto; /* Push to the right */
       }
@@ -656,7 +606,6 @@ const BASE_STYLES = `
         flex-shrink: 0; 
         min-height: 32px; /* Reserve space for buttons */
       }
-      /* .team-actions button styles are covered by .button-shared.button-sm */
       
       /* Desktop-specific league list layout */
       .league-list-item {
@@ -716,7 +665,7 @@ const BASE_STYLES = `
   // Base HTML template (placeholders will be filled by render logic)
   export const TEMPLATE_CONTENT = `
     <div class="header">
-      <div id="main-title">League Administration</div>
+      <div id="main-title">League Admin</div>
       <div class="header-actions">
       </div>
     </div>
@@ -789,10 +738,7 @@ const BASE_STYLES = `
       </div>
           </div>
       
-    <!-- Global League Actions Menu -->
-    <div id="league-actions-global-menu" class="dropdown-content" style="display: none; position: fixed; z-index: 1001;">
-        <!-- Content will be populated by JS -->
-      </div>
+
       
     <!-- Modal for New/Edit League -->
     <div id="league-modal" class="modal-shared-overlay">

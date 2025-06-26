@@ -353,21 +353,26 @@ export const MOBILE_STYLES = `
   
   .filter-panel {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     gap: var(--le-padding-s, 0.5rem);
-    margin-bottom: var(--le-padding-s, 0.5rem);
+    margin-bottom: var(--le-padding-m, 1rem);
   }
   
   .filter-controls {
     display: flex;
     align-items: center;
-    width: 100%;
+    width: 50%;
   }
   
   /* Mobile-specific dropdown styling */
-  .filter-panel .dropdown-shared {
+  .filter-panel .filter-controls .dropdown-shared {
     width: 100%;
+  }
+  
+  /* Make the direct child dropdown-shared also 50% width */
+  .filter-panel > .dropdown-shared {
+    width: 50%;
   }
   
   .filter-panel .dropdown-shared .dropdown-select-shared {

@@ -60,7 +60,7 @@ class LeagueAdminElement extends HTMLElement {
     this._pendingNewLeagueData = null; // Store league data for post-creation confirmation
     this._isWaitingForNewLeagueConfirmation = false;
 
-    this._boundHandleDocumentClickForGlobalMenu = null; // For global menu closing
+
   }
 
   get _isMobile() {
@@ -125,11 +125,7 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   disconnectedCallback() {
-    // Ensure global menu handler is cleaned up if active
-    if (this._boundHandleDocumentClickForGlobalMenu) {
-        document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
-        this._boundHandleDocumentClickForGlobalMenu = null;
-    }
+    // Cleanup if needed
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -167,9 +163,8 @@ class LeagueAdminElement extends HTMLElement {
     // Store the current selection state before any changes
     const previouslySelectedLeagueId = this._selectedLeagueId;
     
-    // Reset team selection and menu, but NOT the league selection yet
+    // Reset team selection, but NOT the league selection yet
     this._selectedTeamId = null;
-    this._hideGlobalLeagueMenu();
     
     // Defensive check - if no data, clear leagues and return
     if (!this._data) {
@@ -608,16 +603,68 @@ class LeagueAdminElement extends HTMLElement {
   _createAndAppendLeagueActions(container, leagueId) {
     container.innerHTML = ''; // Clear any previous content
 
-    // Only the "..." trigger button remains here
-    const btnActions = document.createElement('button');
-    btnActions.classList.add('league-action-button', 'actions-dropdown-button'); // Keep styling classes
-    btnActions.textContent = '…'; 
-    btnActions.title = 'More actions';
-    btnActions.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this._handleOpenGlobalLeagueMenu(leagueId, e.currentTarget); // Call new handler
+    // Create dropdown container
+    const dropdownContainer = document.createElement('div');
+    dropdownContainer.classList.add('dropdown-shared');
+
+    // Create select element like LeagueSchedule
+    const selectActions = document.createElement('select');
+    selectActions.classList.add('dropdown-select-shared');
+    selectActions.title = 'More actions';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '...';
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    selectActions.appendChild(defaultOption);
+
+    // Add action options
+    const actions = [
+      { value: 'view', label: 'View..' },
+      { value: 'edit', label: 'Edit..' },
+      { value: 'delete', label: 'Delete..' },
+      { value: 'reset', label: 'Reset..' },
+    ];
+
+    actions.forEach(action => {
+      const option = document.createElement('option');
+      option.value = action.value;
+      option.textContent = action.label;
+      selectActions.appendChild(option);
     });
-    container.appendChild(btnActions);
+
+    // Handle selection
+    selectActions.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const selectedValue = e.target.value;
+      
+      // Store the league ID for the action handlers
+      this._currentLeagueIdForMenu = leagueId;
+      
+      // Handle the selected action
+      switch (selectedValue) {
+        case 'view':
+          this._handleViewLeagueTable();
+          break;
+        case 'edit':
+          this._handleEditLeagueRules();
+          break;
+        case 'delete':
+          this._handleDeleteLeague();
+          break;
+        case 'reset':
+          this._handleResetLeague();
+          break;
+      }
+      
+      // Reset select to default
+      e.target.value = '';
+    });
+    
+    dropdownContainer.appendChild(selectActions);
+    container.appendChild(dropdownContainer);
   }
 
   _showLeagueSpecificPanels() {
@@ -2435,103 +2482,7 @@ class LeagueAdminElement extends HTMLElement {
     actionsContainer.appendChild(removeBtn);
   }
 
-  // --- Global League Actions Menu Logic ---
-  _handleOpenGlobalLeagueMenu(leagueId, triggerButton) {
-    const globalMenu = this.shadow.querySelector('#league-actions-global-menu');
-    if (!globalMenu) return;
 
-    this._currentLeagueIdForMenu = leagueId; // Store for action handlers
-
-    // Populate menu
-    globalMenu.innerHTML = ''; // Clear previous items
-
-    const actions = [
-      { label: 'View..', handler: () => this._handleViewLeagueTable() },
-      { label: 'Edit..', handler: () => this._handleEditLeagueRules() },
-      { label: 'Delete..', handler: () => this._handleDeleteLeague() },
-      { label: 'Reset..', handler: () => this._handleResetLeague() },
-    ];
-
-    actions.forEach(action => {
-      const button = document.createElement('button');
-      button.textContent = action.label;
-      button.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        action.handler(); 
-      });
-      globalMenu.appendChild(button);
-    });
-
-    // Position menu
-    const rect = triggerButton.getBoundingClientRect();
-
-    // Temporarily display menu to get its dimensions, then hide before final positioning
-    globalMenu.style.visibility = 'hidden';
-    globalMenu.style.display = 'block';
-    const menuWidth = globalMenu.offsetWidth;
-    const menuHeight = globalMenu.offsetHeight; // Get height for potential vertical adjustment
-    globalMenu.style.display = 'none'; // Hide again before final placement
-    globalMenu.style.visibility = 'visible';
-
-    let top = rect.bottom;
-    let left = rect.left; // Default for desktop LTR alignment
-
-    if (this._isMobile) {
-      left = rect.right - menuWidth; // Align right edges on mobile
-    }
-    
-    // Basic boundary detection (ensure it doesn't go off viewport edges)
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    if (left < 0) {
-        left = 0; // Prevent moving too far left
-    }
-    if (left + menuWidth > viewportWidth) {
-        left = viewportWidth - menuWidth; // Prevent moving too far right
-    }
-    if (top + menuHeight > viewportHeight) {
-        top = rect.top - menuHeight; // Try to open upwards if it overflows bottom
-        if (top < 0) { // If opening upwards also overflows top, reset to bottom (or center)
-            top = rect.bottom; // Or a more sophisticated centering logic
-        }
-    }
-    if (top < 0) {
-        top = 0; // Prevent moving too far up
-    }
-
-    globalMenu.style.top = `${top}px`;
-    globalMenu.style.left = `${left}px`;
-    globalMenu.style.display = 'block';
-
-    // Add document click listener to close menu
-    // Remove any existing listener first
-    if (this._boundHandleDocumentClickForGlobalMenu) {
-        document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
-    }
-    this._boundHandleDocumentClickForGlobalMenu = (event) => {
-      const target = event.composedPath && event.composedPath()[0] ? event.composedPath()[0] : event.target;
-      if (!globalMenu.contains(target) && target !== triggerButton) {
-        this._hideGlobalLeagueMenu();
-      }
-    };
-    // Use setTimeout to allow the current click event to propagate before attaching the listener
-    setTimeout(() => {
-        document.addEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
-    }, 0);
-  }
-
-  _hideGlobalLeagueMenu() {
-    const globalMenu = this.shadow.querySelector('#league-actions-global-menu');
-    if (globalMenu) {
-      globalMenu.style.display = 'none';
-    }
-    if (this._boundHandleDocumentClickForGlobalMenu) {
-      document.removeEventListener('click', this._boundHandleDocumentClickForGlobalMenu);
-      this._boundHandleDocumentClickForGlobalMenu = null;
-    }
-    this._currentLeagueIdForMenu = null;
-  }
 
   setupMatrixEventListeners() {
     const matrixCells = this.shadow.querySelectorAll('.matrix-grid .matrix-cell:not(.matrix-header-cell)');
