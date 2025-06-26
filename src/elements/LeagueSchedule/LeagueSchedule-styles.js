@@ -43,7 +43,7 @@ const BASE_STYLES = `
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-standard, 4px);
     padding: var(--le-padding-s, 0.5rem) calc(var(--le-padding-m, 1rem) * 2) var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
-    font-size: var(--le-font-size-dropdown, var(--le-font-size-medium, 1em));
+    font-size: var(--le-font-size-dropdown, 1em));
     color: var(--le-text-color-primary, #333);
     cursor: pointer;
     line-height: 1.4;
@@ -220,14 +220,12 @@ const BASE_STYLES = `
   }
   
   .paging-info {
-    font-size: var(--le-font-size-paging, 0.9em);
     color: var(--le-text-color-secondary, #666);
   }
   
   .paging-settings {
     /* Layout properties moved to mobile/desktop sections */
     gap: var(--le-padding-xs, 0.25rem);
-    font-size: var(--le-font-size-paging, 0.9em);
   }
   
   .paging-settings label {
@@ -240,7 +238,6 @@ const BASE_STYLES = `
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-small, 3px);
-    font-size: var(--le-font-size-paging, 0.9em);
     text-align: center;
   }
   
@@ -257,7 +254,6 @@ const BASE_STYLES = `
   
   .paging-buttons button {
     padding: 0.25rem 0.5rem;
-    font-size: var(--le-font-size-button-sm, 0.85em);
     background-color: var(--le-background-color-button, #f0f0f0);
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-standard, 4px);
@@ -378,7 +374,6 @@ export const MOBILE_STYLES = `
   .filter-panel .dropdown-shared .dropdown-select-shared {
     width: 100%;
     padding: var(--le-padding-s, 0.75rem) calc(var(--le-padding-m, 1rem) * 2.5) var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
-    font-size: var(--le-font-size-medium, 1.2em);
     min-height: 44px; /* Minimum touch target size */
     background-size: 1.2rem;
     background-position: right 1rem center;
@@ -424,7 +419,6 @@ export const MOBILE_STYLES = `
     border-left: 4px solid #e9ecef;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
-    font-size: var(--le-font-size-medium, 1.2em);
     box-sizing: border-box;
   }
   

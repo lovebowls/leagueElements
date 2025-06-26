@@ -67,7 +67,6 @@ export const BASE_STYLES = `
     font-weight: normal;
     margin: 0;
     padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 1rem);
-    font-size: var(--le-font-size-xs, 0.75em);
     line-height: 1.2;
     display: block;
     width: 100%;
@@ -115,7 +114,6 @@ export const BASE_STYLES = `
 
   .footer-error {
     color: var(--le-color-status-error, #e74c3c);
-    font-size: var(--le-font-size-small, 0.9em);
     margin: 0;
     text-align: left;
     flex: 1;
@@ -170,7 +168,6 @@ export const BASE_STYLES = `
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: var(--le-font-size-small, 0.9em);
     cursor: pointer;
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--le-border-color-light, #e0e0e0);
@@ -198,7 +195,6 @@ export const BASE_STYLES = `
 
   .preview-section h4 {
     margin: 0 0 var(--le-padding-s, 0.5rem) 0;
-    font-size: var(--le-font-size-medium, 1.2em);
     color: var(--le-text-color-primary, #333);
   }
 
@@ -211,7 +207,6 @@ export const BASE_STYLES = `
   .modal-close-button {
     background: none;
     border: none;
-    font-size: var(--le-font-size-large, 1.4em);
     cursor: pointer;
     color: var(--le-text-color-secondary, #666);
     padding: 0;
@@ -235,12 +230,10 @@ export const BASE_STYLES = `
       width: 95% !important;
       max-width: 95% !important;
       margin: 5% auto;
-      font-size: 16px !important;
     }
     
     .modal-shared-header {
       padding: 15px;
-      font-size: 18px !important;
     }
     
     .modal-shared-body {
@@ -252,19 +245,17 @@ export const BASE_STYLES = `
     }
     
     .form-label-shared {
-      font-size: 16px !important;
       margin-bottom: 8px;
     }
     
     .form-input-shared, 
     .form-select-shared {
-      font-size: 16px !important;
       padding: 10px !important;
       height: auto !important;
     }
     
     .form-checkbox-label-shared {
-      font-size: 16px !important;
+
     }
 
     /* Stack form row vertically on mobile */
@@ -289,7 +280,6 @@ export const BASE_STYLES = `
     }
     
     .day-checkbox-label {
-      font-size: 16px !important;
       padding: 8px 12px;
       min-height: 44px;
       align-items: center;
@@ -297,7 +287,6 @@ export const BASE_STYLES = `
     }
     
     .button-shared {
-      font-size: 16px !important;
       padding: 10px 15px !important;
       min-height: 44px;
     }

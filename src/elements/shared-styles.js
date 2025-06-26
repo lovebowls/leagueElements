@@ -10,7 +10,6 @@ const baseFontSizeConstants = `
 const fontSizeElementVariablesDesktop = `
   /* Specific sizes for common UI elements */
   --le-font-size-button: 16px;
-  --le-font-size-button-sm: 14px;
   --le-font-size-label: 16px;
   --le-font-size-input: 16px;
   --le-font-size-table-header: 16px;
@@ -20,13 +19,12 @@ const fontSizeElementVariablesDesktop = `
 `;
 const fontSizeElementVariablesMobile = `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: 24px;
-  --le-font-size-button-sm: 20px;
+  --le-font-size-button: 30px;
   --le-font-size-label: 20px;
   --le-font-size-input: 20px;
   --le-font-size-table-header: 20px;
   --le-font-size-table-cell: 20px;
-  --le-font-size-paging: 20px;
+  --le-font-size-paging: 38px;
   --le-font-size-dropdown: 28px;
 `;
 
@@ -176,14 +174,6 @@ export const buttonStyles = `
     border-color: var(--le-border-color-medium, #ccc); /* Use medium border for disabled state */
     cursor: not-allowed;
     opacity: 0.7; /* Visually indicate disabled state */
-  }
-
-  /* Small button variant */
-  .button-shared.button-sm {
-    padding: var(--le-padding-xs, 0.4rem) var(--le-padding-s, 0.75rem); /* Increased padding */
-    font-size: var(--le-font-size-button-sm, var(--le-font-size-small, 1em)); /* Use variable with fallback */
-    /* line-height can be tighter if needed for small buttons */
-    /* line-height: 1.2; */
   }
 
   /* Variations */
@@ -863,4 +853,38 @@ export const tabStyles = `
       padding: var(--le-padding-s);
     }
   }
-`
+`;
+
+export const pagingStyles = `
+  /* Paging Controls Styles */
+  .paging-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--le-padding-s, 0.5rem);
+    margin-top: var(--le-padding-s, 0.5rem);
+  }
+
+  .paging-btn {
+    background: var(--le-background-color-button, #f5f5f5);
+    border: 1px solid var(--le-border-color-dark, #ccc);
+    border-radius: var(--le-border-radius-small, 3px);
+    padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
+    cursor: pointer;
+    font-size: var(--le-font-size-paging, var(--le-font-size-medium, 1em));
+    color: var(--le-text-color-primary, #333);
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    user-select: none;
+  }
+
+  .paging-btn:hover:not(:disabled) {
+    background: var(--le-background-color-button-hover, #e0e0e0);
+    border-color: var(--le-border-color-dark, #bbb);
+  }
+
+  .paging-btn:disabled {
+    background: var(--le-background-color-button-disabled, #eee);
+    color: var(--le-text-color-secondary, #aaa);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+`;

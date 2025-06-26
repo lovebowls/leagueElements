@@ -859,28 +859,28 @@ class LeagueSchedule extends HTMLElement {
             </div>
             <div class="paging-buttons">
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="first-page"
                 ${currentPage === 1 ? 'disabled' : ''}
               >
                 &laquo;
               </button>
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="prev-page"
                 ${currentPage === 1 ? 'disabled' : ''}
               >
                 &lsaquo;
               </button>
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="next-page"
                 ${currentPage === this.getTotalPages() ? 'disabled' : ''}
               >
                 &rsaquo;
               </button>
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="last-page"
                 ${currentPage === this.getTotalPages() ? 'disabled' : ''}
               >
@@ -1041,28 +1041,28 @@ class LeagueSchedule extends HTMLElement {
             </div>
             <div class="paging-buttons">
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="first-page"
                 ${currentPage === 1 ? 'disabled' : ''}
               >
                 &laquo;
               </button>
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="prev-page"
                 ${currentPage === 1 ? 'disabled' : ''}
               >
                 &lsaquo;
               </button>
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="next-page"
                 ${currentPage === this.getTotalPages() ? 'disabled' : ''}
               >
                 &rsaquo;
               </button>
               <button 
-                class="button-shared button-sm" 
+                class="button-shared" 
                 id="last-page"
                 ${currentPage === this.getTotalPages() ? 'disabled' : ''}
               >

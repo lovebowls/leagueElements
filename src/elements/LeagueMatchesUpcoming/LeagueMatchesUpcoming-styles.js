@@ -1,9 +1,10 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles, pagingStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
       ${panelStyles}
       ${buttonStyles}
       ${listItemStyles}
+      ${pagingStyles}
       :host {
         display: block;
         font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
@@ -42,25 +43,6 @@ const BASE_STYLES = `
         padding: var(--le-padding-m, 1rem);
         text-align: center;
         color: var(--le-text-color-secondary, #666);
-      }
-      /* CALENDAR STYLES ARE REMOVED FROM HERE */
-      .paging-controls {
-        display: flex;
-        justify-content: flex-end;
-        gap: var(--le-padding-s, 0.5rem);
-        margin-top: var(--le-padding-s, 0.5rem);
-      }
-      .paging-btn {
-        background: var(--swal-background-color-button, #f5f5f5);
-        border: 1px solid var(--swal-border-color-dark, #ccc);
-        border-radius: var(--swal-border-radius-small, 3px);
-        padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
-        cursor: pointer;
-      }
-      .paging-btn:disabled {
-        background: var(--swal-background-color-button-disabled, #eee);
-        color: var(--le-text-color-secondary, #aaa);
-        cursor: not-allowed;
       }
       .filter-indicator { /* This style is now managed by LeagueCalendar or parent */
         /* Removed */
@@ -108,7 +90,7 @@ export const TEMPLATE = `
         </div>
       </div>
       <div class="paging-controls" id="upcoming-paging" {{showPaging}}>
-        <button class="paging-btn button-shared button-sm" id="upcoming-prev" {{prevDisabled}}>&lt; Prev</button>
-        <button class="paging-btn button-shared button-sm" id="upcoming-next" {{nextDisabled}}>Next &gt;</button>
+        <button class="paging-btn button-shared button" id="upcoming-prev" {{prevDisabled}}>&lt; Prev</button>
+        <button class="paging-btn button-shared button" id="upcoming-next" {{nextDisabled}}>Next &gt;</button>
       </div>
     `; 

@@ -2465,7 +2465,7 @@ class LeagueAdminElement extends HTMLElement {
 
     const editBtn = document.createElement('button');
     editBtn.textContent = 'Edit';
-    editBtn.classList.add('button-shared', 'button-sm');
+    editBtn.classList.add('button-shared');
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent li click handler
       this._handleEditTeam(team);
@@ -2474,7 +2474,7 @@ class LeagueAdminElement extends HTMLElement {
 
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
-    removeBtn.classList.add('button-shared', 'button-sm');
+    removeBtn.classList.add('button-shared');
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent li click handler
       this._handleRemoveTeam(team);

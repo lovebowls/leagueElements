@@ -1,9 +1,10 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles, pagingStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
       ${panelStyles}
       ${buttonStyles}
       ${listItemStyles}
+      ${pagingStyles}
       :host {
         display: block;
         font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
@@ -19,12 +20,6 @@ const BASE_STYLES = `
       .match-date {
         color: var(--le-text-color-secondary, #666);
         margin-bottom: var(--le-padding-xs, 0.2em);
-      }
-      .paging-controls {
-        display: flex;
-        justify-content: flex-end;
-        gap: var(--le-padding-s, 0.5rem);
-        margin-top: var(--le-padding-s, 0.5rem);
       }
       .error {
         color: var(--le-text-color-error, #ff0000);
@@ -50,8 +45,6 @@ export const  MOBILE_STYLES = `
       ${BASE_STYLES}
       :host {
         ${mobileStyles}
-      }
-      .paging-btn {
       }
       .match-item {
         padding: var(--swal-padding-xs, 0.2rem) 0;
@@ -83,7 +76,7 @@ export const TEMPLATE = `
         {{attentionMatches}}
       </div>
       <div class="paging-controls" id="attention-paging" {{showPaging}}>
-        <button class="paging-btn button-shared button-sm" id="attention-prev" {{prevDisabled}}>&lt; Prev</button>
-        <button class="paging-btn button-shared button-sm" id="attention-next" {{nextDisabled}}>Next &gt;</button>
+        <button class="paging-btn button-shared button" id="attention-prev" {{prevDisabled}}>&lt; Prev</button>
+        <button class="paging-btn button-shared button" id="attention-next" {{nextDisabled}}>Next &gt;</button>
       </div>
     `; 

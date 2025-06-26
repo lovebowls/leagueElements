@@ -311,8 +311,8 @@ class LeagueTeams extends HTMLElement {
             </div>
             ${this._selectedTeamId === team._id && !this._showEditor ? `
               <div class="team-actions">
-                <button type="button" class="button-shared button-sm" data-action="edit" data-team-id="${team._id}">Edit</button>
-                <button type="button" class="button-shared button-sm button-danger" data-action="remove" data-team-id="${team._id}">Remove</button>
+                <button type="button" class="button-shared" data-action="edit" data-team-id="${team._id}">Edit</button>
+                <button type="button" class="button-shared" data-action="remove" data-team-id="${team._id}">Remove</button>
               </div>
             ` : ''}
           </li>

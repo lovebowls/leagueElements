@@ -511,9 +511,5 @@ export const BASE_STYLES = `
       min-height: 44px;
     }
 
-    .button-sm {
-      padding: 8px 12px !important;
-      min-height: 36px;
-    }
   }
 `; 
