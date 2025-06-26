@@ -891,6 +891,23 @@ class LeagueAdminElement extends HTMLElement {
     // Ensure _leagues is an array before trying to find
     return Array.isArray(this._leagues) ? this._leagues.find(l => l._id === this._selectedLeagueId) : null;
   }
+
+  /**
+   * Hides/resets all league action dropdown menus to their default state
+   * This function finds all dropdown-select-shared elements and resets them to the default "..." option
+   */
+  _hideGlobalLeagueMenu() {
+    // Find all league action dropdown selects in the shadow DOM
+    const dropdownSelects = this.shadow.querySelectorAll('.dropdown-select-shared');
+    
+    dropdownSelects.forEach(select => {
+      // Reset each select to its default value (empty string, which corresponds to the "..." option)
+      select.value = '';
+    });
+    
+    // Clear the current league ID for menu context
+    this._currentLeagueIdForMenu = null;
+  }
   
   _handleResetLeague() {
     this.clearError(); // Good practice to clear any existing errors
