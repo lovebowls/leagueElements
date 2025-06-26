@@ -100,7 +100,6 @@ const BASE_STYLES = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: var(--le-font-size-large); /* Use shared variable */
       }
       .content-area {
         padding: var(--swal-padding-s) var(--swal-padding-xs);
@@ -126,7 +125,6 @@ const BASE_STYLES = `
         border-bottom: none;
       }
       .league-name-text {
-        font-size: var(--le-font-size-medium); /* Use shared variable */
         pointer-events: none;
         /* Layout-specific properties moved to desktop/mobile sections */
       }
@@ -148,7 +146,6 @@ const BASE_STYLES = `
         background-color: var(--swal-background-color-button);
         cursor: pointer;
         border-radius: var(--swal-border-radius-standard);
-        font-size: var(--le-font-size-small); /* Use shared variable */
       }
       .league-action-button:hover {
         background-color: var(--swal-background-color-button-hover);
@@ -186,7 +183,6 @@ const BASE_STYLES = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: var(--le-font-size-large);
         padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
         border-bottom: 1px solid var(--le-border-color-medium, #eee);
         font-weight: bold;
@@ -237,7 +233,6 @@ const BASE_STYLES = `
         border: 1px solid var(--swal-border-color-dark);
         border-radius: var(--swal-border-radius-standard);
         box-sizing: border-box;
-        font-size: var(--le-font-size-medium);
       }
       .form-group input[type="checkbox"] {
         margin-right: var(--swal-padding-s);
@@ -311,7 +306,6 @@ const BASE_STYLES = `
       .close-button {
         color: var(--swal-text-color-secondary, #aaa);
         float: right;
-        font-size: var(--le-font-size-large, 1.5em); 
         font-weight: bold;
         cursor: pointer;
       }
@@ -325,10 +319,10 @@ const BASE_STYLES = `
       }
 
       #admin-matches-attention-container league-matches-attention {
-          font-size: var(--le-font-size-small); /* Adjust font size for attention component within admin panel */
+
       }
       #main-title {
-        font-size: var(--le-font-size-large);
+
       }
       .header-actions {
         /* Styles for the container of header actions if needed */
@@ -349,7 +343,6 @@ const BASE_STYLES = `
 
       /* SweetAlert2 Custom Theming */
       .swal2-popup {
-        font-size: var(--le-font-size-base, 1em);
       }
       
       .swal2-confirm {
@@ -422,7 +415,6 @@ const BASE_STYLES = `
         min-height: 60px; /* Ensure consistent row height */
       }
       .league-name-text {
-        font-size: var(--le-font-size-medium); /* Relative to host (now 2em based) */
         display: flex;
         align-items: center; /* Center text vertically */
         flex-grow: 1; /* Allow name to take available space */
@@ -438,7 +430,6 @@ const BASE_STYLES = `
       }
       .league-action-button { /* Smaller buttons in league list items */
         padding: var(--swal-padding-xs) var(--swal-padding-s);
-        font-size: var(--le-font-size-small); /* Relative to host */
         min-height: 44px; /* Increased height for better touch target */
         display: flex;
         align-items: center;
@@ -446,7 +437,6 @@ const BASE_STYLES = `
       }
 
       .header { /* "League Administration" title in mobile */
-        font-size: var(--le-font-size-large); /* Use larger size for mobile title */
         font-weight: bold;
         padding: var(--swal-padding-s) var(--swal-padding-xs);
         background: none;
@@ -529,28 +519,21 @@ const BASE_STYLES = `
       /* End of Mobile-specific team list layout */
 
       .team-name { /* General .team-name, may be overridden by more specific above */
-        font-size: var(--le-font-size-medium); /* Relative to host */
       }
       .team-actions button { /* General .team-actions button, may be overridden */
-        font-size: var(--le-font-size-small); /* Relative to host */
       }
 
       .match-item { /* For items within Matches panel in mobile */
-        font-size: var(--le-font-size-medium); /* Relative to host */
         padding: var(--swal-padding-s) var(--swal-padding-xs);
       }
       .match-date {
-        font-size: var(--le-font-size-small); /* Relative to host */
       }
       .match-team { 
-        font-size: var(--le-font-size-medium);   /* Relative to host */
       }
       .match-score {
-        font-size: var(--le-font-size-medium);   /* Relative to host */
         padding: 0 var(--swal-padding-xs);
       }
       .match-status {
-        font-size: var(--le-font-size-small); /* Relative to host */
         align-self: center; 
       }
       .team-item.selected-team { /* ADDED for mobile selection highlight */
@@ -641,7 +624,6 @@ const BASE_STYLES = `
         min-height: 32px; /* Reserve space for buttons */
       }
       .league-action-button { /* View Table, Actions buttons in league list for desktop */
-        font-size: var(--le-font-size-small); /* Uses base style, already small */
         padding: var(--swal-padding-xs) var(--swal-padding-s);
       }
       /* REMOVED: Override for desktop dropdown to open upwards */
