@@ -2,30 +2,30 @@ const baseFontSizeConstants = `
 
 /* Base font sizes for different contexts */
   --le-font-size-base-desktop: 16px;
-  --le-font-size-base-mobile: 24px;
+  --le-font-size-base-mobile: 20px;
   line-height: 1.4;
 `;
 
 // Shared font size base variables and UI element font sizes (used internally)
 const fontSizeElementVariablesDesktop = `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: 16px;
-  --le-font-size-label: 16px;
-  --le-font-size-input: 16px;
-  --le-font-size-table-header: 16px;
-  --le-font-size-table-cell: 16px;
-  --le-font-size-paging: 16px;
-  --le-font-size-dropdown: 16px;
+  --le-font-size-button: --le-font-size-base-desktop;
+  --le-font-size-label: --le-font-size-base-desktop;
+  --le-font-size-input: --le-font-size-base-desktop;
+  --le-font-size-table-header: --le-font-size-base-desktop;
+  --le-font-size-table-cell: --le-font-size-base-desktop;
+  --le-font-size-paging: --le-font-size-base-desktop;
+  --le-font-size-dropdown: --le-font-size-base-desktop;
 `;
 const fontSizeElementVariablesMobile = `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: 30px;
-  --le-font-size-label: 20px;
-  --le-font-size-input: 20px;
-  --le-font-size-table-header: 20px;
-  --le-font-size-table-cell: 20px;
-  --le-font-size-paging: 38px;
-  --le-font-size-dropdown: 28px;
+  --le-font-size-button: --le-font-size-base-mobile;
+  --le-font-size-label: --le-font-size-base-mobile;
+  --le-font-size-input: --le-font-size-base-mobile;
+  --le-font-size-table-header: --le-font-size-base-mobile;
+  --le-font-size-table-cell: --le-font-size-base-mobile;
+  --le-font-size-paging: --le-font-size-base-mobile;
+  --le-font-size-dropdown: --le-font-size-base-mobile;
 `;
 
 export const mobileStyles = `
@@ -35,12 +35,12 @@ export const mobileStyles = `
 
   /* Mobile-specific styling that can be added to host elements */
   --le-font-size-base: 1em;
-  --le-font-size-xs: 1.2em;
-  --le-font-size-small: 1.4em;
-  --le-font-size-medium: 1.6em;
-  --le-font-size-large: 2em;
-  --le-font-size-xlarge: 2.4em;
-  --le-font-size-xxlarge: 2.8em;
+  --le-font-size-xs: 0.75em;
+  --le-font-size-small: 0.9em;
+  --le-font-size-medium: 1.0em;
+  --le-font-size-large: 1.2em;
+  --le-font-size-xlarge: 1.4em;
+  --le-font-size-xxlarge: 1.6em;
   
    ${fontSizeElementVariablesMobile}
 
