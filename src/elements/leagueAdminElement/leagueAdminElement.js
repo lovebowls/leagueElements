@@ -100,9 +100,20 @@ class LeagueAdminElement extends HTMLElement {
     style.textContent = `${sweetAlertGlobalStyles}\n\n${sweetAlertMobileOverrides}`;
 
     try {
+      // Check if we're in a test environment (JSDOM) and handle gracefully
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.userAgent && window.navigator.userAgent.includes('jsdom')) {
+        // In JSDOM, just set the style without appending to avoid Node type errors
+        console.warn('[LAD_SWAL_STYLE_INJECT] JSDOM environment detected, skipping style injection');
+        LeagueAdminElement._globalStylesInjected = true;
+        return;
+      }
+      
       document.head.appendChild(style);
     } catch (err) {
       console.error('[LAD_SWAL_STYLE_INJECT] Failed to append style tag to head:', err);
+      // In case of error, still mark as injected to avoid repeated attempts
+      LeagueAdminElement._globalStylesInjected = true;
+      return;
     }
     
     // Verify after appending

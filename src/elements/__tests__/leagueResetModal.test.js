@@ -186,6 +186,33 @@ describe('LeagueResetModal', () => {
       selectedDays: []
     };
 
+    // Mock the shadow DOM querySelector to return mock form elements
+    const mockStartDateInput = { value: element._formData.startDate };
+    const mockMaxMatchesInput = { value: element._formData.maxMatchesPerDay };
+    const mockIntervalPatternRadio = { checked: true };
+    const mockDayOfWeekPatternRadio = { checked: false };
+    const mockIntervalNumberInput = { value: element._formData.intervalNumber.toString() };
+    const mockIntervalUnitSelect = { value: element._formData.intervalUnit };
+    
+    element.shadow.querySelector = jest.fn((selector) => {
+      switch (selector) {
+        case '#startDate': return mockStartDateInput;
+        case '#maxMatchesPerDay': return mockMaxMatchesInput;
+        case '#intervalPattern': return mockIntervalPatternRadio;
+        case '#dayOfWeekPattern': return mockDayOfWeekPatternRadio;
+        case '#intervalNumber': return mockIntervalNumberInput;
+        case '#intervalUnit': return mockIntervalUnitSelect;
+        default: return null;
+      }
+    });
+    
+    element.shadow.querySelectorAll = jest.fn((selector) => {
+      if (selector === '#dayCheckboxes input[type="checkbox"]') {
+        return []; // Empty array for day checkboxes
+      }
+      return [];
+    });
+
     element._onOk();
 
     expect(eventData).toBeTruthy();

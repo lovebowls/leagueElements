@@ -111,6 +111,9 @@ describe('LeagueElement', () => {
 
     // Create element
     element = new LeagueElement();
+    
+    // Set the can-edit attribute to enable editing functionality
+    element.setAttribute('can-edit', 'true');
 
     // Mock the constructor's event listener setup
     // This directly sets the listener that would be added in the constructor
@@ -121,6 +124,7 @@ describe('LeagueElement', () => {
       innerHTML: '',
       querySelector: jest.fn(),
       querySelectorAll: jest.fn().mockReturnValue([]),
+      appendChild: jest.fn(),
       host: { addEventListener: jest.fn() }
     };
     
@@ -546,28 +550,34 @@ describe('LeagueElement', () => {
       const matchData = { _id: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } };
       const teams = ['Team A', 'Team B', 'Team C', 'Team D'];
       
+      // Mock _renderMatchModal since that's what openMatchModal actually calls
+      element._renderMatchModal = jest.fn();
+      
       element.openMatchModal(matchData, teams, 'edit');
       
       expect(element.matchModalOpen).toBe(true);
       expect(element.matchModalData).toEqual(matchData);
       expect(element.matchModalTeams).toEqual(teams);
       expect(element.matchModalMode).toBe('edit');
-      expect(element.render).toHaveBeenCalled();
+      expect(element._renderMatchModal).toHaveBeenCalled();
     });
     
-    it('should close match modal correctly', () => {
+        it('should close match modal correctly', () => {
       element.matchModalOpen = true;
       element.matchModalData = { _id: 'match1' };
       element.matchModalTeams = ['Team A', 'Team B'];
       element.matchModalMode = 'edit';
-      
+
+      // Mock _renderMatchModal since that's what closeMatchModal actually calls
+      element._renderMatchModal = jest.fn();
+
       element.closeMatchModal();
-      
+
       expect(element.matchModalOpen).toBe(false);
       expect(element.matchModalData).toBeNull();
       expect(element.matchModalTeams).toEqual([]);
       expect(element.matchModalMode).toBe('new');
-      expect(element.render).toHaveBeenCalled();
+      expect(element._renderMatchModal).toHaveBeenCalled();
     });
   });
   

@@ -410,7 +410,9 @@ describe('LeagueAdminElement - Match Management', () => {
           type: 'matchClick',
           match: mockMatch,
           attentionReason: 'needsScores'
-        }
+        },
+        stopPropagation: jest.fn(),
+        preventDefault: jest.fn()
       };
       
       // Call the event handler directly
