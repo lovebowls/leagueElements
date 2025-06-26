@@ -945,8 +945,38 @@ class LeagueElement extends HTMLElement {
           } else {
             this.selectedTeamsForGraph.delete(teamId);
           }
+          // Update "Select All" checkbox state
+          this._updateSelectAllCheckboxState();
+          
           // Redraw the appropriate graph based on active type
           // No need to call render() here, just redraw the SVG content.
+          if (this.activeTrendGraphType === 'shotsForVsAgainst') {
+            this.drawShotsForVsAgainstSVG();
+          } else if (this.activeTrendGraphType === 'formOverTime') {
+            this.drawFormOverTimeSVG();
+          } else {
+            this.drawPointsOverTimeSVG();
+          }
+        } else if (event.target.matches('.trends-select-all-cb')) {
+          // Handle "Select All" checkbox
+          const isChecked = event.target.checked;
+          const allTeamCheckboxes = this.shadow.querySelectorAll('.trends-team-toggle-cb');
+          
+          if (isChecked) {
+            // Select all teams
+            allTeamCheckboxes.forEach(checkbox => {
+              checkbox.checked = true;
+              this.selectedTeamsForGraph.add(checkbox.value);
+            });
+          } else {
+            // Deselect all teams
+            allTeamCheckboxes.forEach(checkbox => {
+              checkbox.checked = false;
+              this.selectedTeamsForGraph.delete(checkbox.value);
+            });
+          }
+          
+          // Redraw the appropriate graph based on active type
           if (this.activeTrendGraphType === 'shotsForVsAgainst') {
             this.drawShotsForVsAgainstSVG();
           } else if (this.activeTrendGraphType === 'formOverTime') {
@@ -1352,6 +1382,12 @@ class LeagueElement extends HTMLElement {
 
     // Always populate the legend first, so controls are available
     if (allTeamNames && allTeamNames.length > 0) {
+        // Add "Select All" checkbox if there are at least 2 teams
+        const selectAllElement = this._createSelectAllCheckbox(allTeamNames);
+        if (selectAllElement) {
+            legendDiv.appendChild(selectAllElement);
+        }
+
         allTeamNames.forEach(teamId => {
             const color = this.teamColors[teamId] || '#ccc';
             const isChecked = this.selectedTeamsForGraph.has(teamId);
@@ -1379,6 +1415,9 @@ class LeagueElement extends HTMLElement {
             legendItemLabel.appendChild(nameSpan);
             legendDiv.appendChild(legendItemLabel);
         });
+
+        // Update "Select All" checkbox state after adding all team checkboxes
+        this._updateSelectAllCheckboxState();
     } else {
         legendDiv.innerHTML = '<p>No teams available for legend.</p>';
         // If no teams at all, SVG also can reflect this, though earlier checks might catch it.
@@ -1542,6 +1581,13 @@ class LeagueElement extends HTMLElement {
     const { teams, averageShotsFor, averageShotsAgainst, maxShotsFor, maxShotsAgainst } = this.shotsForVsAgainstData;
 
     // Populate the legend with all teams
+    // Add "Select All" checkbox if there are at least 2 teams
+    const allTeamIds = teams.map(team => team.teamId);
+    const selectAllElement = this._createSelectAllCheckbox(allTeamIds);
+    if (selectAllElement) {
+        legendDiv.appendChild(selectAllElement);
+    }
+
     teams.forEach(team => {
       const color = this.teamColors[team.teamId] || '#ccc';
       const isChecked = this.selectedTeamsForGraph.has(team.teamId);
@@ -1568,6 +1614,9 @@ class LeagueElement extends HTMLElement {
       legendItemLabel.appendChild(nameSpan);
       legendDiv.appendChild(legendItemLabel);
     });
+
+    // Update "Select All" checkbox state after adding all team checkboxes
+    this._updateSelectAllCheckboxState();
 
     // Filter teams based on selection
     const selectedTeams = teams.filter(team => this.selectedTeamsForGraph.has(team.teamId));
@@ -1693,17 +1742,47 @@ class LeagueElement extends HTMLElement {
         e.target.setAttribute('r', 8);
         e.target.style.cursor = 'pointer';
         
+        // Smart tooltip positioning to keep it within bounds
+        const tooltipText = `${team.teamName}: ${team.shotsFor} for, ${team.shotsAgainst} against`;
+        
+        // Calculate tooltip dimensions (approximate)
+        const charWidth = 7; // Approximate character width for 12px font
+        const tooltipWidth = tooltipText.length * charWidth;
+        const tooltipHeight = 20; // Approximate height including padding
+        
+        // Determine optimal position
+        let tooltipX = x;
+        let tooltipY = y - 15;
+        let textAnchor = 'middle';
+        
+        // Adjust horizontal position if tooltip would extend beyond bounds
+        if (x - tooltipWidth/2 < 0) {
+          // Too far left, anchor to start
+          tooltipX = Math.max(5, x - 6); // Small offset from circle
+          textAnchor = 'start';
+        } else if (x + tooltipWidth/2 > width) {
+          // Too far right, anchor to end
+          tooltipX = Math.min(width - 5, x + 6); // Small offset from circle
+          textAnchor = 'end';
+        }
+        
+        // Adjust vertical position if tooltip would extend beyond top
+        if (y - 15 < tooltipHeight) {
+          // Too close to top, show below the point
+          tooltipY = y + 25;
+        }
+        
         // Create tooltip
         const tooltip = createSVGElement('text', {
-          x: x,
-          y: y - 15,
-          'text-anchor': 'middle',
+          x: tooltipX,
+          y: tooltipY,
+          'text-anchor': textAnchor,
           class: 'scatter-tooltip',
           fill: '#333',
           'font-size': '12px',
           'font-weight': 'bold'
         });
-        tooltip.textContent = `${team.teamName}: ${team.shotsFor} for, ${team.shotsAgainst} against`;
+        tooltip.textContent = tooltipText;
         mainGroup.appendChild(tooltip);
       });
 
@@ -1781,6 +1860,12 @@ class LeagueElement extends HTMLElement {
 
     // Always populate the legend first, so controls are available
     if (allTeamNames && allTeamNames.length > 0) {
+        // Add "Select All" checkbox if there are at least 2 teams
+        const selectAllElement = this._createSelectAllCheckbox(allTeamNames);
+        if (selectAllElement) {
+            legendDiv.appendChild(selectAllElement);
+        }
+
         allTeamNames.forEach(teamId => {
             const color = this.teamColors[teamId] || '#ccc';
             const isChecked = this.selectedTeamsForGraph.has(teamId);
@@ -1808,6 +1893,9 @@ class LeagueElement extends HTMLElement {
             legendItemLabel.appendChild(nameSpan);
             legendDiv.appendChild(legendItemLabel);
         });
+
+        // Update "Select All" checkbox state after adding all team checkboxes
+        this._updateSelectAllCheckboxState();
     } else {
         legendDiv.innerHTML = '<p>No teams available for legend.</p>';
         svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams available in data.</text>';
@@ -3073,6 +3161,59 @@ class LeagueElement extends HTMLElement {
     }
   }
   // END - Matrix View Methods
+
+  // Helper method to create "Select All" checkbox for trends legend
+  _createSelectAllCheckbox(allTeams) {
+    // Only show "Select All" if there are at least 2 teams
+    if (!allTeams || allTeams.length < 2) {
+      return null;
+    }
+
+    const selectAllLabel = document.createElement('label');
+    selectAllLabel.className = 'legend-item legend-item-select-all';
+    selectAllLabel.title = 'Select or deselect all teams';
+
+    const selectAllCheckbox = document.createElement('input');
+    selectAllCheckbox.type = 'checkbox';
+    selectAllCheckbox.className = 'trends-select-all-cb';
+    selectAllCheckbox.value = 'select-all';
+    
+    // Determine initial state: checked if all teams are selected
+    const allTeamsSelected = allTeams.every(teamId => this.selectedTeamsForGraph.has(teamId));
+    selectAllCheckbox.checked = allTeamsSelected;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = 'Select All';
+    nameSpan.style.fontWeight = 'bold';
+
+    selectAllLabel.appendChild(selectAllCheckbox);
+    selectAllLabel.appendChild(nameSpan);
+
+    return selectAllLabel;
+  }
+
+  // Helper method to update "Select All" checkbox state
+  _updateSelectAllCheckboxState() {
+    const selectAllCheckbox = this.shadow.querySelector('.trends-select-all-cb');
+    if (!selectAllCheckbox) return;
+
+    const allTeamCheckboxes = this.shadow.querySelectorAll('.trends-team-toggle-cb');
+    const checkedTeamCheckboxes = this.shadow.querySelectorAll('.trends-team-toggle-cb:checked');
+    
+    if (checkedTeamCheckboxes.length === 0) {
+      // No teams selected
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    } else if (checkedTeamCheckboxes.length === allTeamCheckboxes.length) {
+      // All teams selected
+      selectAllCheckbox.checked = true;
+      selectAllCheckbox.indeterminate = false;
+    } else {
+      // Some teams selected
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = true;
+    }
+  }
 }
 
 import { safeDefine } from '../../utils/elementRegistry.js';

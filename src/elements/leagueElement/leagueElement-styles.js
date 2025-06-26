@@ -388,6 +388,11 @@ const BASE_STYLES = `
         font-size: calc(var(--le-font-size-small) * 0.9);
         fill: var(--le-text-color-primary);
         text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        paint-order: stroke fill;
+        stroke: rgba(255,255,255,0.8);
+        stroke-width: 3px;
+        stroke-linejoin: round;
+        stroke-linecap: round;
       }
       .trends-graph-area .axis-label {
         font-size: var(--le-font-size-small);
@@ -991,6 +996,18 @@ const BASE_STYLES = `
         display: flex;
         flex-direction: column; 
       }
+
+      /* Special styling for "Select All" checkbox in desktop view */
+      .trends-graph-legend .legend-item-select-all {
+        font-weight: bold;
+        background-color: transparent;
+        border-radius: var(--le-border-radius-small);
+        padding: var(--le-padding-s) var(--le-padding-s) var(--le-padding-s) 0;
+        margin-bottom: var(--le-padding-s);
+        grid-column: 1 / -1; /* Span across all columns */
+      }
+
+
     `;
 
   // Table header template
