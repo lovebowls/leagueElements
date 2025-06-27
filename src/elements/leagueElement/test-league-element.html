@@ -146,7 +146,6 @@
       teamMap[team._id] = team.name;
     });
     el.setAttribute('team-map', JSON.stringify(teamMap));
-    el.setAttribute('font-scale', '1.5');
     // Initialize with saved or default data - AFTER setting lovebowls-teams
     try {
       const initialData = loadLeagueData();

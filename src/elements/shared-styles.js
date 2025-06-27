@@ -2,7 +2,7 @@ const baseFontSizeConstants = (fontScale = 1.0) => `
 /* Base font sizes for different contexts */
   --le-font-size-base-desktop: ${16 * fontScale}px;
   --le-font-size-base-mobile: ${20 * fontScale}px;
-  line-height: 1.4;
+  line-height: 1.2;
 `;
 
 // Shared font size base variables and UI element font sizes (used internally)
@@ -128,7 +128,7 @@ export const panelStyles = `
     font-size: var(--le-font-size-large, 1.4em);
   }
 
-  .panel-content-shared {
+  .panel-content {
     padding: var(--le-padding-m, 1.25em);
     background-color: var(--le-background-color-panel, #fff);
     /* Common border for content area if needed
@@ -498,23 +498,51 @@ export const formStyles = `
   }
 `;
 
-export const listItemStyles = `
-  .list-item-shared {
-    padding: var(--le-padding-s, 0.75em) var(--le-padding-xs, 0.4em); /* Increased padding */
+export const listStyles = `
+  .list-container {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .list-panel {
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    background: var(--le-background-color-panel, #fff);
+  }
+  .list-panel h4 {
+    margin: 0;
+    padding: var(--le-padding-m, 1rem);
+    background: var(--le-background-color-header, #f8f9fa);
     border-bottom: 1px solid var(--le-border-color-light, #eee);
+    color: var(--le-text-color-primary, #333);
+  }
+  .list-panel.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .list-panel.disabled .list-item {
+    cursor: not-allowed;
+  }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .list-item{
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-between; /* Common for items with actions on the right */
-    gap: var(--le-padding-s, 0.75em); /* Increased gap */
-    min-height: 44px; /* Ensure consistent height for touch targets */
+    padding: var(--le-padding-m, 1rem);
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
   }
 
-  .list-item-shared:last-child {
+  .list-item:last-child {
     border-bottom: none;
   }
 
   /* Example of a text part within a list item that should grow */
-  .list-item-shared .list-item-text-primary {
+  .list-item .list-item-text-primary {
     flex-grow: 1;
     font-size: var(--le-font-size-medium, 1.2em);
     text-align: left; /* Ensure text is left-aligned */
@@ -527,10 +555,31 @@ export const listItemStyles = `
   }
 
   /* Example of an actions container part within a list item */
-  .list-item-shared .list-item-actions {
+  .list-item .list-item-actions {
     flex-shrink: 0; /* Prevent actions from shrinking */
     display: flex;
     gap: var(--le-padding-xs, 0.4em); /* Increased gap */
+  }
+
+  .list-item:hover {
+    background-color: var(--le-background-color-hover, #f5f5f5);
+  }
+
+  .list-item.selected {
+    background-color: var(--le-background-color-selected, #e3f2fd);
+    border-left: 3px solid var(--le-border-color-primary, #2196f3);
+    animation: highlightItem 0.6s ease-out;
+  }
+
+  @keyframes highlightItem {
+    0% {
+      background-color: var(--le-background-color-accent, #4caf50);
+      transform: scale(1.02);
+    }
+    100% {
+      background-color: var(--le-background-color-selected, #e3f2fd);
+      transform: scale(1);
+    }
   }
 `;
 

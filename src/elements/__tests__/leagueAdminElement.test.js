@@ -9,7 +9,7 @@ jest.mock('../shared-styles.js', () => ({
   buttonStyles: '',
   modalStyles: '',
   formStyles: '',
-  listItemStyles: ''
+  listStyles: ''
 }));
 
 jest.mock('../LeagueMatchesAttention/LeagueMatchesAttention.js', () => {});

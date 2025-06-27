@@ -224,7 +224,7 @@ class LeagueMatchesAttention extends HTMLElement {
       const warningSpan = warningSymbol ? `<span class="warning-icon ${warningClass}" title="${this.escapeHtml(tooltipText)}">${warningSymbol}</span>` : '';
       
       return `
-        <div class="match-item list-item-shared">
+        <div class="match-item list-item">
           ${warningSpan}
           <a href="#" class="match-link list-item-text-primary" data-match-id="${match._id}"${titleAttr}${dataAttr}>
             ${this.escapeHtml(homeTeamDisplay)} vs ${this.escapeHtml(awayTeamDisplay)}

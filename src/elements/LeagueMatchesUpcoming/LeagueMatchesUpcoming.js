@@ -269,7 +269,7 @@ class LeagueMatchesUpcoming extends HTMLElement {
 
       // Add match item
       htmlParts.push(`
-      <div class="match-item list-item-shared ${editableClass}">
+      <div class="match-item list-item ${editableClass}">
         ${linkElement}
       </div>`);
     });

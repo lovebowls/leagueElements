@@ -266,10 +266,9 @@ class LeagueTeams extends HTMLElement {
               </div>
             `}
              
-            <!-- Teams List Panel -->
-            <div class="teams-list-panel ${this._showEditor ? 'disabled' : ''}">
+            <div class="list-panel ${this._showEditor ? 'disabled' : ''}">
               <h4>Teams in League (${teams.length})</h4>
-              <div class="teams-list-container">
+              <div class="list-container">
                 ${this._renderTeamsList(teams)}
               </div>
             </div>
@@ -302,9 +301,9 @@ class LeagueTeams extends HTMLElement {
     }
 
     return `
-      <ul class="teams-list">
+      <ul class="list">
         ${teams.map(team => `
-          <li class="team-list-item ${this._selectedTeamId === team._id ? 'selected' : ''}" data-team-id="${team._id}">
+          <li class="list-item ${this._selectedTeamId === team._id ? 'selected' : ''}" data-team-id="${team._id}">
             <div class="team-info">
               <span class="team-name">${team.name}</span>
               ${this._isLovebowlsTeam(team._id) ? '<small class="team-source">(LB)</small>' : ''}
@@ -432,7 +431,7 @@ class LeagueTeams extends HTMLElement {
     }
 
     // Team list clicks
-    const teamItems = this.shadow.querySelectorAll('.team-list-item');
+    const teamItems = this.shadow.querySelectorAll('.list-item');
     teamItems.forEach(item => {
       if (!this._showEditor) {
         item.addEventListener('click', (e) => {
@@ -766,7 +765,7 @@ class LeagueTeams extends HTMLElement {
     if (!this._selectedTeamId) return;
     
     const teamListItem = this.shadow.querySelector(`[data-team-id="${this._selectedTeamId}"]`);
-    const teamsListContainer = this.shadow.querySelector('.teams-list-container');
+    const teamsListContainer = this.shadow.querySelector('.list-container');
     
     if (teamListItem && teamsListContainer) {
       // First try the modern scrollIntoView method

@@ -331,7 +331,7 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   render() {
-    console.log(`[LeagueAdmin] render() called fontscale:${this._fontScale}`);
+    console.log(`[LeagueAdmin] render fontscale:${this._fontScale}`);
     let leagueForRender = null;
     const tempLeague = this._getSelectedLeague(); // This can return undefined
 
@@ -346,7 +346,6 @@ class LeagueAdminElement extends HTMLElement {
       </style>
       ${TEMPLATE_CONTENT}
     `;
-    console.log(`[LeagueAdmin] render() scale: ${this._fontScale} -> innerHTML:${this.shadow.innerHTML}`);
     // Setup resizer
     this._setupResizer();
     // Initial UI setup that happens after main template is in place
@@ -356,7 +355,7 @@ class LeagueAdminElement extends HTMLElement {
     
     // If a league was selected, try to re-select it if it still exists
     if (this._selectedLeagueId) {
-        const selectedElement = this.shadow.querySelector(`.league-list-item[data-id="${this._selectedLeagueId}"]`);
+        const selectedElement = this.shadow.querySelector(`.list-item[data-id="${this._selectedLeagueId}"]`);
         if (selectedElement && leagueForRender) { // check leagueForRender exists
             selectedElement.classList.add('selected');
             this._showLeagueSpecificPanels(); // Show the selected league panel (uses _getSelectedLeague() internally)
@@ -376,9 +375,7 @@ class LeagueAdminElement extends HTMLElement {
     
     // Update schedule panel with selected league's data
     if (leagueForRender) {
-      console.log('[LeagueAdmin] About to call _updateSchedulePanel from render()');
       this._updateSchedulePanel(leagueForRender);
-      console.log('[LeagueAdmin] Finished _updateSchedulePanel from render()');
     }
 
     // Render match modal separately to avoid full component re-renders
@@ -477,7 +474,7 @@ class LeagueAdminElement extends HTMLElement {
   }
   
   _renderLeagueList() {
-    const listElement = this.shadow.querySelector('#league-list-ul');
+    const listElement = this.shadow.querySelector('#league-list');
     if (!listElement) return;
 
     listElement.innerHTML = ''; // Clear existing items
@@ -504,23 +501,14 @@ class LeagueAdminElement extends HTMLElement {
       }
 
       const li = document.createElement('li');
-      li.classList.add('league-list-item', 'list-item-shared');
-      
-      // Add caret icon before the league name
-      const caretSpan = document.createElement('span');
-      caretSpan.textContent = '▶ '; // Unicode right-pointing triangle
-      caretSpan.style.marginRight = '0.5em';
-      caretSpan.style.fontSize = '0.8em';
-      caretSpan.style.color = 'var(--swal-text-color-secondary, #666)';
-      li.appendChild(caretSpan);
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('league-name-text', 'list-item-text-primary');
+      nameSpan.classList.add('list-item list-item-text-primary');
       nameSpan.textContent = league.name || 'Unnamed League';
       li.appendChild(nameSpan);
 
       const actionsContainer = document.createElement('div');
-      actionsContainer.classList.add('league-item-actions-container', 'list-item-actions');
+      actionsContainer.classList.add('list-item-actions');
       li.appendChild(actionsContainer);
       
       const leagueId = league._id;
@@ -555,7 +543,6 @@ class LeagueAdminElement extends HTMLElement {
     this.clearError();
 
     const previouslySelectedId = this._selectedLeagueId;
-    const previouslySelectedElement = this.shadow.querySelector('.league-list-item.selected');
 
     // If the clicked league is the same as the currently selected one, do nothing
     if (leagueId === this._selectedLeagueId) {
@@ -566,7 +553,7 @@ class LeagueAdminElement extends HTMLElement {
     const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
     if (scheduleElement) {
       scheduleElement.selectedTeamId = null;
-      scheduleElement.removeAttribute('selected-team');
+      scheduleElement.removeAttribute('selected');
       if (typeof scheduleElement.clearFilterState === 'function') {
         scheduleElement.clearFilterState();
       }
@@ -586,11 +573,11 @@ class LeagueAdminElement extends HTMLElement {
 
       // Update the UI to show the selected league
       // First, remove selected class from all league items
-      const allLeagueItems = this.shadow.querySelectorAll('.league-list-item');
+      const allLeagueItems = this.shadow.querySelectorAll('.list-item');
       allLeagueItems.forEach(item => item.classList.remove('selected'));
       
       // Find and select the clicked league item
-      const newSelectedElement = this.shadow.querySelector(`.league-list-item[data-id="${effectiveId}"]`);
+      const newSelectedElement = this.shadow.querySelector(`.list-item[data-id="${effectiveId}"]`);
       if (newSelectedElement) {
         newSelectedElement.classList.add('selected');
         // Only call scrollIntoView if supported (e.g. avoids errors in jsdom tests)
@@ -798,18 +785,18 @@ class LeagueAdminElement extends HTMLElement {
     
     teams.forEach(team => {
       const li = document.createElement('li');
-      li.classList.add('team-item', 'list-item-shared');
+      li.classList.add('list-item');
       
       // Use team._id as the identifier and team.name for display
       li.dataset.teamId = team._id; // CHANGED: Use _id as the identifier
       
       // Check if this team is the selected one
       if (this._selectedTeamId === team._id) {
-        li.classList.add('selected-team');
+        li.classList.add('selected');
       }
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('team-name', 'list-item-text-primary');
+      nameSpan.classList.add('list-item-text-primary');
       nameSpan.textContent = team.name; // CHANGED: Display the name instead of label
       
       // Add a small indicator if this is a lovebowls team (can use another way to identify)
@@ -2455,7 +2442,7 @@ class LeagueAdminElement extends HTMLElement {
     if (this._selectedTeamId && this._selectedTeamId !== teamId) {
       const prevSelectedLi = this.shadow.querySelector(`.team-item[data-team-id="${this._selectedTeamId}"]`);
       if (prevSelectedLi) {
-        prevSelectedLi.classList.remove('selected-team');
+        prevSelectedLi.classList.remove('selected');
         const prevActionsDiv = prevSelectedLi.querySelector('.team-actions');
         if (prevActionsDiv) {
           prevActionsDiv.innerHTML = ''; // Clear its buttons
@@ -2469,7 +2456,7 @@ class LeagueAdminElement extends HTMLElement {
 
     if (this._selectedTeamId === teamId) {
       // Clicked on already selected team: toggle visibility (hide actions)
-      currentSelectedLi.classList.remove('selected-team');
+      currentSelectedLi.classList.remove('selected');
       const actionsDiv = currentSelectedLi.querySelector('.team-actions');
       if (actionsDiv) {
         actionsDiv.innerHTML = '';
@@ -2477,7 +2464,7 @@ class LeagueAdminElement extends HTMLElement {
       this._selectedTeamId = null;
     } else {
       // Clicked on a new team: show actions
-      currentSelectedLi.classList.add('selected-team');
+      currentSelectedLi.classList.add('selected');
       this._selectedTeamId = teamId;
       const actionsDiv = currentSelectedLi.querySelector('.team-actions');
       if (actionsDiv) {

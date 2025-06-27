@@ -1,10 +1,10 @@
-import { panelStyles, buttonStyles, listItemStyles, pagingStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listStyles, pagingStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
       ${panelStyles}
       ${buttonStyles}
-      ${listItemStyles}
+      ${listStyles}
       ${pagingStyles}
       :host {
         display: block;

@@ -156,76 +156,6 @@ export const BASE_STYLES = `
     opacity: 0.5;
   }
 
-  /* Teams List Panel */
-  .teams-list-panel {
-    border: 1px solid var(--le-border-color-medium, #ddd);
-    border-radius: var(--le-border-radius-standard, 4px);
-    background: var(--le-background-color-panel, #fff);
-  }
-
-  .teams-list-panel h4 {
-    margin: 0;
-    padding: var(--le-padding-m, 1rem);
-    background: var(--le-background-color-header, #f8f9fa);
-    border-bottom: 1px solid var(--le-border-color-light, #eee);
-    color: var(--le-text-color-primary, #333);
-  }
-
-  .teams-list-panel.disabled {
-    pointer-events: none;
-    opacity: 0.6;
-  }
-
-  .teams-list-panel.disabled .team-list-item {
-    cursor: not-allowed;
-  }
-
-  .teams-list-container {
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  .teams-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .team-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--le-padding-m, 1rem);
-    border-bottom: 1px solid var(--le-border-color-light, #eee);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  .team-list-item:hover {
-    background-color: var(--le-background-color-hover, #f5f5f5);
-  }
-
-  .team-list-item.selected {
-    background-color: var(--le-background-color-selected, #e3f2fd);
-    border-left: 3px solid var(--le-border-color-primary, #2196f3);
-    animation: highlightTeam 0.6s ease-out;
-  }
-
-  @keyframes highlightTeam {
-    0% {
-      background-color: var(--le-background-color-accent, #4caf50);
-      transform: scale(1.02);
-    }
-    100% {
-      background-color: var(--le-background-color-selected, #e3f2fd);
-      transform: scale(1);
-    }
-  }
-
-  .team-list-item:last-child {
-    border-bottom: none;
-  }
-
   .team-info {
     display: flex;
     align-items: center;
@@ -300,8 +230,6 @@ export const BASE_STYLES = `
   .team-editor-body {
     padding: var(--le-padding-l, 1.5rem);
   }
-
-
 
   .modal-close-button {
     background: none;
@@ -434,10 +362,6 @@ export const BASE_STYLES = `
     .teams-action-buttons .button-shared {
       width: 100%;
       min-width: auto;
-    }
-
-    .teams-list-container {
-      max-height: 150px;
     }
 
     .team-list-item {

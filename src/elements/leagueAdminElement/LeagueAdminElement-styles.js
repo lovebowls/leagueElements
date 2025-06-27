@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, tabStyles, dropdownStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, modalStyles, formStyles, listStyles, tabStyles, dropdownStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -6,7 +6,7 @@ const BASE_STYLES = `
       ${buttonStyles}  /* ADDED SHARED STYLE */
       ${modalStyles}   /* ADDED SHARED MODAL STYLE */
       ${formStyles}    /* ADDED SHARED FORM STYLE */
-      ${listItemStyles} /* ADDED SHARED LIST ITEM STYLE */
+      ${listStyles} /* ADDED SHARED LIST ITEM STYLE */
       ${tabStyles}
       ${dropdownStyles} /* ADDED SHARED DROPDOWN STYLE */
       :host {
@@ -115,30 +115,6 @@ const BASE_STYLES = `
         justify-content: flex-end; /* Align these buttons to the right */
         gap: var(--swal-padding-s); /* Space between New/Copy */
         margin-left: auto; /* Push this container to the right of "Leagues" text */
-      }
-      .league-list-item {
-        padding: var(--swal-padding-s) var(--swal-padding-xs);
-        border-bottom: 1px solid var(--swal-border-color-light); /* Keep border */
-        /* Layout-specific properties moved to desktop/mobile sections */
-      }
-      .league-list-item:last-child {
-        border-bottom: none;
-      }
-      .league-name-text {
-        pointer-events: none;
-        /* Layout-specific properties moved to desktop/mobile sections */
-      }
-      .league-item-actions-container { /* For View Table/Actions on selected league */
-        gap: var(--swal-padding-s);
-        min-height: 32px; /* Reserve space for buttons */
-        /* Layout-specific properties moved to desktop/mobile sections */
-      }
-      .league-list-item.selected {
-        background-color: var(--swal-background-color-selected-item, #e9eff7);
-        font-weight: bold;
-      }
-      .league-list-item.selected .league-name-text {
-         pointer-events: auto; /* Re-enable pointer events for selected text if needed, though likely not */
       }
       .league-action-button { /* These are small icon-like buttons, potentially keep specific styles or create a new shared variant */
         padding: var(--swal-padding-xs) var(--swal-padding-s); 
@@ -251,8 +227,7 @@ const BASE_STYLES = `
         border-radius: var(--swal-border-radius-standard);
         margin-bottom: var(--swal-padding-m); 
       }
-      /* Original column, resizer, panel styles from previous file state */
-      /* These might need review after shared styles are fully integrated */
+
       .column {
         padding: var(--swal-padding-s);
         box-sizing: border-box;
@@ -289,19 +264,11 @@ const BASE_STYLES = `
         align-items: center;
         background-color: var(--swal-background-color-header); /* Ensure admin context bg */
       }
-      /* .panel .panel-content is covered by .panel-content-shared in template */
 
-      .teams-list, .matches-list { /* These are direct children of panel-content-shared divs */
+      .teams-list, .matches-list { /* These are direct children of panel-content divs */
         list-style: none;
         padding: 0;
         margin: 0;
-      }
-      .teams-list li, .matches-list li {
-        padding: var(--swal-padding-xs);
-        border-bottom: 1px solid var(--swal-border-color-light);
-      }
-      .teams-list li:last-child, .matches-list li:last-child {
-        border-bottom: none;
       }
       .close-button {
         color: var(--swal-text-color-secondary, #aaa);
@@ -377,12 +344,6 @@ const BASE_STYLES = `
         border: none; /* Remove borders specific to desktop layout */
         padding: 0; /* Reset padding, let panels handle their own */
       }
-      .dashboard { /* Mobile dashboard layout - This class seems unused, .columns is the primary */
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        width: 100%;
-      }
       .left-panel,
       .right-panel {
         width: 100%;
@@ -401,38 +362,7 @@ const BASE_STYLES = `
         padding: var(--swal-padding-s) var(--swal-padding-xs);
       }
       .league-list-container {
-          border-radius: var(--swal-border-radius-mobile-panel);
-          box-shadow: var(--swal-shadow-mobile-panel);
-          padding: var(--swal-padding-xs);
-      }
-      /* Mobile-specific league list layout */
-      .league-list-item {
-        display: flex;
-        flex-direction: row; /* Keep items on same row for mobile too */
-        align-items: center; /* Center all content vertically */
-        justify-content: space-between;
-        min-height: 60px; /* Ensure consistent row height */
-      }
-      .league-name-text {
-        display: flex;
-        align-items: center; /* Center text vertically */
-        flex-grow: 1; /* Allow name to take available space */
-        text-align: left; /* Ensure left alignment */
-        margin-right: var(--swal-padding-s); /* Space before buttons */
-      }
-      .league-item-actions-container {
-        display: flex;
-        justify-content: flex-end; 
-        align-items: center; /* Center buttons vertically */
-        flex-shrink: 0; /* Prevent shrinking */
-        height: 100%; /* Take full height of parent */
-      }
-      .league-action-button { /* Smaller buttons in league list items */
-        padding: var(--swal-padding-xs) var(--swal-padding-s);
-        min-height: 44px; /* Increased height for better touch target */
-        display: flex;
-        align-items: center;
-        justify-content: center;
+          padding-inline-start: 5px;
       }
 
       .header { /* "League Administration" title in mobile */
@@ -477,51 +407,12 @@ const BASE_STYLES = `
         border: none; /* Keep no border */
         padding: var(--swal-padding-xs) 0;
       }
-      .panel-header h4 {
-          margin-bottom: 0;
-          margin-right: auto; /* Push button to the right if h4 is used */
-      }
       .panel-header button { /* Add Team button */
         padding: var(--swal-padding-s) var(--swal-padding-m); /* Keep existing padding */
         margin-top: 0; /* Remove top margin */
         margin-left: var(--swal-padding-s); /* Add some left margin if needed, or rely on space-between */
       }
       
-      /* Mobile-specific team list layout */
-      #teams-list li.team-item {
-        list-style-type: none; 
-        display: flex;
-        flex-direction: column; /* Stack name and actions vertically on mobile */
-        padding: var(--swal-padding-s) 0; 
-        border-bottom: 1px solid var(--swal-border-color-light);
-        min-height: 60px; /* Ensure consistent row height */
-        justify-content: center; /* Center content vertically */
-      }
-      #teams-list li.team-item:last-child {
-        border-bottom: none;
-      }
-      #teams-list li.team-item .team-name {
-        margin-bottom: var(--swal-padding-s); 
-        text-align: left; /* Ensure left alignment */
-        display: flex;
-        align-items: center; /* Center text vertically */
-        width: 100%; /* Take full width */
-      }
-      #teams-list li.team-item .team-actions {
-        display: flex;
-        justify-content: flex-end; 
-        gap: var(--swal-padding-s);
-        min-height: 32px; /* Reserve space for buttons */
-        align-items: center; /* Center buttons vertically */
-        width: 100%; /* Take full width */
-      }
-      /* End of Mobile-specific team list layout */
-
-      .team-name { /* General .team-name, may be overridden by more specific above */
-      }
-      .team-actions button { /* General .team-actions button, may be overridden */
-      }
-
       .match-item { /* For items within Matches panel in mobile */
         padding: var(--swal-padding-s) var(--swal-padding-xs);
       }
@@ -535,11 +426,6 @@ const BASE_STYLES = `
       .match-status {
         align-self: center; 
       }
-      .team-item.selected-team { /* ADDED for mobile selection highlight */
-        background-color: var(--swal-background-color-selected-item, #e9eff7); 
-        /* font-weight: bold; */
-      }
-      /* SweetAlert2 mobile styles are now injected globally by leagueAdminElement.js */
     `;
 
   // Desktop-specific styles
@@ -557,89 +443,20 @@ const BASE_STYLES = `
         border-bottom: 1px solid var(--swal-border-color-medium); 
         padding: var(--swal-padding-s); 
       }
-      .panel-header h4 {
-          margin-bottom: 0;
-      }
       .panel-header button { /* Add Team/Match on Desktop */
         padding: var(--swal-padding-xs) var(--swal-padding-s);
         margin-left: auto; /* Push to the right */
       }
-
-      /* Team list item styling for desktop */
-      #teams-list li.team-item {  /* Using ID selector */
-        list-style-type: none; /* Remove bullets */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--swal-padding-xs) 0; /* Vertical padding, horizontal handled by parent */
-        border-bottom: 1px solid var(--swal-border-color-light); /* Add a separator line if desired */
-      }
-      #teams-list li.team-item:last-child { /* Using ID selector */
-        border-bottom: none; /* Remove border for the last item */
-      }
-      #teams-list li.team-item .team-name {  /* Using ID selector */
-        flex-grow: 1; 
-        margin-right: var(--swal-padding-s); 
-      }
-      #teams-list li.team-item .team-actions {  /* Using ID selector */
-        display: flex; /* Ensure buttons inside actions are also in a row */
-        gap: var(--swal-padding-s); 
-        flex-shrink: 0; 
-        min-height: 32px; /* Reserve space for buttons */
-      }
-      
-      /* Desktop-specific league list layout */
-      .league-list-item {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .league-name-text {
-        flex-grow: 1; /* Allow name to take available space */
-        margin-right: var(--swal-padding-s); /* Space before buttons */
-        display: flex;
-        align-items: center;
-        text-align: left;
-      }
-      .league-item-actions-container {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        flex-shrink: 0; /* Prevent button container from shrinking */
-      }
-      
       .league-list-container {
         flex-shrink: 0; 
-        /* REMOVED max-height: 40%; */
-        /* REMOVED overflow-y: auto; */
-      }
-      .league-list-item.selected {
-        background-color: var(--swal-background-color-selected-item); 
-      }
-      .league-item-actions-container {
-        flex-shrink: 0; 
-        min-height: 32px; /* Reserve space for buttons */
       }
       .league-action-button { /* View Table, Actions buttons in league list for desktop */
         padding: var(--swal-padding-xs) var(--swal-padding-s);
       }
-      /* REMOVED: Override for desktop dropdown to open upwards */
-      /* .league-list-item .dropdown-content {
         bottom: 100%; 
         top: auto; 
         right: 0; 
       } */
-      
-      .teams-list-container, .matches-list-container {
-        flex-grow: 1; 
-        overflow-y: auto; 
-        min-height: 100px; 
-      }
-      .team-item.selected-team { /* ADDED for desktop selection highlight */
-        background-color: var(--swal-background-color-selected-item, #e9eff7); 
-        /* font-weight: bold; /* Optionally make text bold */
-      }
     `;
 
   // Base HTML template (placeholders will be filled by render logic)
@@ -653,24 +470,19 @@ const BASE_STYLES = `
     <div class="content-area">
       <div class="columns">
         <div class="column column-leagues">
-          <div class="panel">
+          <div class="list-panel">
             <div class="panel-header panel-header-shared">
               <span>Leagues</span>
               <div class="action-buttons"> 
                 <button id="new-league-button" class="button-shared">New</button>
                 <button id="copy-league-button" class="button-shared" disabled>Copy</button>
+              </div>
+            </div>
+            <div class="list-container">
+              <ul class="list" id="league-list"></ul>
             </div>
           </div>
-            <div class="league-list-container panel-content panel-content-shared">
-              <ul class="league-list" id="league-list-ul"></ul>
-            </div>
-          </div>
-          <div class="action-buttons"> 
-             <!-- REMOVED update-league-button -->
-             <!-- REMOVED delete-league-button -->
-             <!-- REMOVED view-table-button -->
-            </div>
-            </div>
+        </div>
 
         <div class="resizer" id="resizer"></div>
 
@@ -680,15 +492,15 @@ const BASE_STYLES = `
               <span>Teams</span>
               <button id="add-team-button" class="button-shared">Manage</button>
           </div>
-            <div id="teams-list" class="panel-content panel-content-shared"></div> 
+            <div id="teams-list" class="panel-content"></div> 
               </div>
 
           <!-- LeagueMatchesAttention moved here, directly under Teams panel -->
           <div id="admin-matches-attention-container" class="panel" style="margin-bottom: var(--swal-padding-m);">
               <div class="panel-header panel-header-shared">
-                <span>Requiring Attention</span>
+                <span>Requiring Attention</span> 
               </div>
-              <div class="panel-content panel-content-shared">
+              <div class="panel-content">
                 <league-matches-attention id="admin-attention-matches" data-league-id=""></league-matches-attention>
               </div>
           </div>
@@ -698,7 +510,7 @@ const BASE_STYLES = `
               <div class="panel-header panel-header-shared">
                 <span>Schedule</span>
               </div>
-              <div class="panel-content panel-content-shared">
+              <div class="panel-content">
                 <league-schedule id="admin-league-schedule"></league-schedule>
               </div>
           </div>
@@ -710,7 +522,7 @@ const BASE_STYLES = `
               <span>Matches</span>
               <button id="add-match-button" class="button-shared">Add Match</button>
             </div>
-            <div id="matches-list" class="panel-content panel-content-shared"></div> 
+            <div id="matches-list" class="panel-content"></div> 
           </div>
           -->
 

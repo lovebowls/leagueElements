@@ -252,7 +252,7 @@ class LeagueMatchesRecent extends HTMLElement {
 
       html += `
         ${dateDisplayHtml}
-        <div class="match-item list-item-shared ${editableClass}" data-match-id="${match._id}">
+        <div class="match-item list-item ${editableClass}" data-match-id="${match._id}">
           ${linkElement}
           <div class="list-item-actions match-score-container">
             <span class="match-score ${homeScoreClass}">${homeScore}</span>

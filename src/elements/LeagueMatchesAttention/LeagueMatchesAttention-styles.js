@@ -1,9 +1,9 @@
-import { panelStyles, buttonStyles, listItemStyles, pagingStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listStyles, pagingStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
       ${panelStyles}
       ${buttonStyles}
-      ${listItemStyles}
+      ${listStyles}
       ${pagingStyles}
       :host {
         display: block;
