@@ -1,72 +1,72 @@
-const baseFontSizeConstants = `
-
+const baseFontSizeConstants = (fontScale = 1.0) => `
 /* Base font sizes for different contexts */
-  --le-font-size-base-desktop: 16px;
-  --le-font-size-base-mobile: 20px;
+  --le-font-size-base-desktop: ${16 * fontScale}px;
+  --le-font-size-base-mobile: ${20 * fontScale}px;
   line-height: 1.4;
 `;
 
 // Shared font size base variables and UI element font sizes (used internally)
 const fontSizeElementVariablesDesktop = `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: --le-font-size-base-desktop;
-  --le-font-size-label: --le-font-size-base-desktop;
-  --le-font-size-input: --le-font-size-base-desktop;
-  --le-font-size-table-header: --le-font-size-base-desktop;
-  --le-font-size-table-cell: --le-font-size-base-desktop;
-  --le-font-size-paging: --le-font-size-base-desktop;
-  --le-font-size-dropdown: --le-font-size-base-desktop;
+  --le-font-size-button: var(--le-font-size-base-desktop);
+  --le-font-size-label: var(--le-font-size-base-desktop);
+  --le-font-size-input: var(--le-font-size-base-desktop);
+  --le-font-size-table-header: var(--le-font-size-base-desktop);
+  --le-font-size-table-cell: var(--le-font-size-base-desktop);
+  --le-font-size-paging: var(--le-font-size-base-desktop);
+  --le-font-size-dropdown: var(--le-font-size-base-desktop);
 `;
 const fontSizeElementVariablesMobile = `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: --le-font-size-base-mobile;
-  --le-font-size-label: --le-font-size-base-mobile;
-  --le-font-size-input: --le-font-size-base-mobile;
-  --le-font-size-table-header: --le-font-size-base-mobile;
-  --le-font-size-table-cell: --le-font-size-base-mobile;
-  --le-font-size-paging: --le-font-size-base-mobile;
-  --le-font-size-dropdown: --le-font-size-base-mobile;
+  --le-font-size-button: var(--le-font-size-base-mobile);
+  --le-font-size-label: var(--le-font-size-base-mobile);
+  --le-font-size-input: var(--le-font-size-base-mobile);
+  --le-font-size-table-header: var(--le-font-size-base-mobile);
+  --le-font-size-table-cell: var(--le-font-size-base-mobile);
+  --le-font-size-paging: var(--le-font-size-base-mobile);
+  --le-font-size-dropdown: var(--le-font-size-base-mobile);
 `;
 
-export const mobileStyles = `
-  font-size: var(--le-font-size-base-mobile);
+export const getMobileStyles = (fontScale = 1.0) => `
+  :host {
+    ${baseFontSizeConstants(fontScale)}
+    font-size: var(--le-font-size-base-mobile);
 
-  ${baseFontSizeConstants}
+    /* Mobile-specific styling that can be added to host elements */
+    --le-font-size-base: 1em;
+    --le-font-size-xs: 0.75em;
+    --le-font-size-small: 0.9em;
+    --le-font-size-medium: 1.0em;
+    --le-font-size-large: 1.2em;
+    --le-font-size-xlarge: 1.4em;
+    --le-font-size-xxlarge: 1.6em;
+    
+    ${fontSizeElementVariablesMobile}
 
-  /* Mobile-specific styling that can be added to host elements */
-  --le-font-size-base: 1em;
-  --le-font-size-xs: 0.75em;
-  --le-font-size-small: 0.9em;
-  --le-font-size-medium: 1.0em;
-  --le-font-size-large: 1.2em;
-  --le-font-size-xlarge: 1.4em;
-  --le-font-size-xxlarge: 1.6em;
-  
-   ${fontSizeElementVariablesMobile}
-
-  /* Adjust padding for better touch targets */
-  --le-padding-s: 0.6rem;
-  --le-padding-m: 1rem;
-  
+    /* Adjust padding for better touch targets */
+    --le-padding-s: 0.6rem;
+    --le-padding-m: 1rem;
+  }
 `;
 
-export const desktopStyles = `
-  ${baseFontSizeConstants}
-  font-size: var(--le-font-size-base-desktop);
 
-  /* Standardized font sizes for desktop - these cascade to all sub-components */
-  --le-font-size-base: 1em;
-  --le-font-size-xs: 0.75em;
-  --le-font-size-small: 0.9em;
-  --le-font-size-medium: 1.0em;
-  --le-font-size-large: 1.2em;
-  --le-font-size-xlarge: 1.4em;
-  --le-font-size-xxlarge: 1.6em;
+export const getDesktopStyles = (fontScale = 1.0) => `
+  :host {
+    ${baseFontSizeConstants(fontScale)}
+    font-size: var(--le-font-size-base-desktop);
 
-  ${fontSizeElementVariablesDesktop}
+    /* Standardized font sizes for desktop - these cascade to all sub-components */
+    --le-font-size-base: 1em;
+    --le-font-size-xs: 0.75em;
+    --le-font-size-small: 0.9em;
+    --le-font-size-medium: 1.0em;
+    --le-font-size-large: 1.2em;
+    --le-font-size-xlarge: 1.4em;
+    --le-font-size-xxlarge: 1.6em;
 
+    ${fontSizeElementVariablesDesktop}
+  }
 `;
-
 
 // Shared base styles for dropdown elements
 export const dropdownStyles = `

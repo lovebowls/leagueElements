@@ -1,4 +1,4 @@
-import { buttonStyles, modalStyles, formStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
+import { buttonStyles, modalStyles, formStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
       ${buttonStyles}
@@ -19,10 +19,6 @@ export const BASE_STYLES = `
         /* Use flex to center the modal-shared-content if the host is the overlay */
         align-items: center;
         justify-content: center;
-      }
-      :host([open][is-mobile="true"]) {
-        display: flex;
-        ${mobileStyles}
       }
       :host([open]) {
         display: flex; 

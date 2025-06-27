@@ -74,6 +74,7 @@
     if (!sessionStorage.getItem(STORAGE_KEY)) {
       saveLeagueData(initialData);
     }
+    el.setAttribute('font-scale', '1.5');
     el.setAttribute('data', JSON.stringify(initialData));
 
     // Check for a leagueId in the URL and set it as current
@@ -128,9 +129,6 @@
       console.log('[Test Harness - league-admin-element] el.removeAttribute("is-mobile")');
     }
     
-    // Verify after operation
-    console.log('[Test Harness - league-admin-element] el.hasAttribute("is-mobile") after logic:', el.hasAttribute('is-mobile'));
-    console.log('[Test Harness - league-admin-element] el.getAttribute("is-mobile") after logic:', el.getAttribute('is-mobile'));
     
     // Pass lovebowls teams data to the element
     el.setAttribute('lovebowls-teams', JSON.stringify(lovebowlsTeamsData));

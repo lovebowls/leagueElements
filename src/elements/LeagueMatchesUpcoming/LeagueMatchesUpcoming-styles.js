@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles, pagingStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles,pagingStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
       ${panelStyles}
@@ -57,9 +57,6 @@ const BASE_STYLES = `
 
 export const MOBILE_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${mobileStyles}
-      }
       .paging-btn {
         padding: 0.2rem 0.7rem;
       }
@@ -72,9 +69,6 @@ export const MOBILE_STYLES = `
 
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${desktopStyles}
-      }
       /* Desktop: Keep max-height and scrollbars for space management */
       .matches-list {
         max-height: 300px;

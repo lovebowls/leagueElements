@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, mobileStyles, desktopStyles, dropdownStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
   ${panelStyles}
@@ -337,10 +337,6 @@ const BASE_STYLES = `
 
 export const MOBILE_STYLES = `
   ${BASE_STYLES}
-  :host {
-    ${mobileStyles}
-  }
-  
   /* Mobile-specific layout styles */
   .schedule-container {
     display: flex;
@@ -609,11 +605,7 @@ export const MOBILE_STYLES = `
 
 export const DESKTOP_STYLES = `
   ${BASE_STYLES}
-  
-  :host {
-    ${desktopStyles}
-  }
-  
+    
   /* Desktop-specific layout styles */
   .schedule-container {
     display: flex;

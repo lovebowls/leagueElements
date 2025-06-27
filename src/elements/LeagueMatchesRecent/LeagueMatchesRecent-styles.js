@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles, pagingStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, pagingStyles } from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -71,11 +71,7 @@ const BASE_STYLES = `
 
 // Mobile-specific styles
 export const MOBILE_STYLES = `
-      ${BASE_STYLES}
-      :host {
-        ${mobileStyles}
-      }
-      .paging-btn {
+      ${BASE_STYLES}      .paging-btn {
         padding: 0.2rem 0.7rem;
       }
       /* Mobile: Remove height constraints and scrollbars for dynamic content-based height */
@@ -88,9 +84,6 @@ export const MOBILE_STYLES = `
 // Desktop-specific styles
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${desktopStyles}
-      }
       /* Desktop: Keep max-height and scrollbars for space management */
       .matches-container {
         max-height: 300px;

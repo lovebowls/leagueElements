@@ -1,11 +1,3 @@
-// leagueMatch.js
-// Modal dialog for creating/updating a match
-
-// OR if vanilla:
-// class LeagueMatch extends HTMLElement { ... }
-
-// Import shared styles
-// import { buttonStyles, modalStyles, formStyles, mobileStyles } from './shared-styles.js'; // REMOVED
 import { BASE_STYLES } from './leagueMatch-styles.js';
 
 class LeagueMatchEvent extends CustomEvent {

@@ -17,6 +17,7 @@ import '../leagueCalendar/LeagueCalendar.js';
 import '../LeagueSchedule/LeagueSchedule.js';
 
 import {  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
+import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
 import { League, Match } from '@lovebowls/leaguejs';
 import { FormUtils } from '../../utils/formUtils.js';
@@ -54,8 +55,14 @@ class LeagueElement extends HTMLElement {
   get _canEdit() {
     return this.getAttribute('can-edit') === 'true';
   }
+
+  get _fontScale() {
+    const scale = parseFloat(this.getAttribute('font-scale')) || 1.0;
+    // Clamp the scale between 0.5 and 2.0 for reasonable bounds
+    return Math.max(0.5, Math.min(2.0, scale));
+  }
   static get observedAttributes() {
-    return ['data', 'selectedMatch', 'is-mobile', 'lovebowls-teams', 'can-edit'];
+    return ['data', 'selectedMatch', 'is-mobile', 'lovebowls-teams', 'can-edit', 'font-scale'];
   }
 
   connectedCallback() {
@@ -99,6 +106,8 @@ class LeagueElement extends HTMLElement {
       this.render();
     } else if (name === 'can-edit') {
       this.render();
+    } else if (name === 'font-scale') {
+      this.render(); // Font scale change requires re-render to update styles
     }
   }
 
@@ -234,7 +243,10 @@ class LeagueElement extends HTMLElement {
       // Render based on device type
       const baseTemplate = this._isMobile ? MOBILE_TEMPLATE : DESKTOP_TEMPLATE;
       this.shadow.innerHTML = `
-        <style>${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}</style>
+        <style>
+          ${this._isMobile ? getMobileStyles(this._fontScale) : getDesktopStyles(this._fontScale)}
+          ${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}
+        </style>
         ${this._fillTemplate(baseTemplate)}
       `;
       
@@ -242,6 +254,7 @@ class LeagueElement extends HTMLElement {
       const recentMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
       if (recentMatchesElement) {
         recentMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
+        recentMatchesElement.setAttribute('font-scale', String(this._fontScale));
         recentMatchesElement.setAttribute('can-edit', this._canEdit.toString());
         recentMatchesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
         recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
@@ -263,6 +276,7 @@ class LeagueElement extends HTMLElement {
         const attentionMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
         if (attentionMatchesElement) {
           attentionMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
+          attentionMatchesElement.setAttribute('font-scale', String(this._fontScale));
           // Pass the whole league data instead of just matches
           attentionMatchesElement.setAttribute('data', JSON.stringify(this.data));
           
@@ -294,6 +308,7 @@ class LeagueElement extends HTMLElement {
       const upcomingFixturesElement = this.shadow.querySelector(this._isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
       if (upcomingFixturesElement) {
         upcomingFixturesElement.setAttribute('is-mobile', this._isMobile.toString());
+        upcomingFixturesElement.setAttribute('font-scale', String(this._fontScale));
         upcomingFixturesElement.setAttribute('can-edit', this._canEdit.toString());
         upcomingFixturesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
         
@@ -320,6 +335,7 @@ class LeagueElement extends HTMLElement {
       const scheduleElement = this.shadow.querySelector(this._isMobile ? '#mobile-schedule' : '#desktop-schedule');
       if (scheduleElement) {
         scheduleElement.setAttribute('is-mobile', this._isMobile.toString());
+        scheduleElement.setAttribute('font-scale', String(this._fontScale));
         scheduleElement.setAttribute('can-edit', this._canEdit.toString());
         
         if (this.data) {
@@ -353,6 +369,7 @@ class LeagueElement extends HTMLElement {
       const calendarElement = this.shadow.querySelector(this._isMobile ? '#mobile-calendar' : '#desktop-calendar');
       if (calendarElement) {
         calendarElement.setAttribute('is-mobile', this._isMobile.toString());
+        calendarElement.setAttribute('font-scale', String(this._fontScale));
         if (this.data && this.data.matches) {
             calendarElement.setAttribute('matches', JSON.stringify(this.data.matches));
         } else {
@@ -2563,6 +2580,7 @@ class LeagueElement extends HTMLElement {
       
       modal.open = true; // This line sets the property
       modal.isMobile = this._isMobile;
+      modal.setAttribute('font-scale', String(this._fontScale));
       modal.mode = this.matchModalMode;
       modal.canEdit = this._canEdit;
       // Pass attention reason if available in matchModalData

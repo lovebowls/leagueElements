@@ -1,4 +1,4 @@
-import { buttonStyles, modalStyles, formStyles, mobileStyles, desktopStyles } from '../shared-styles.js';
+import { buttonStyles, modalStyles, formStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
   ${buttonStyles}
@@ -19,14 +19,8 @@ export const BASE_STYLES = `
     justify-content: center;
   }
   
-  :host([open][is-mobile="true"]) {
+  :host {
     display: flex;
-    ${mobileStyles}
-  }
-  
-  :host([open]) {
-    display: flex;
-    ${desktopStyles}
   }
 
   /* Teams Manager Layout */

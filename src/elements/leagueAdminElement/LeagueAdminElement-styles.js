@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, mobileStyles, desktopStyles, tabStyles, dropdownStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, modalStyles, formStyles, listItemStyles, tabStyles, dropdownStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -359,7 +359,6 @@ const BASE_STYLES = `
       ${BASE_STYLES}
 
       :host {
-        ${mobileStyles}
         background: var(--swal-background-color-host-mobile, #f5f5f5);
         border: none;
         border-radius: 0;
@@ -547,7 +546,6 @@ const BASE_STYLES = `
   export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
-         ${desktopStyles}
          padding: var(--swal-padding-m);
          height: 100%;
          background-color: var(--swal-background-color-host-desktop);
@@ -680,7 +678,7 @@ const BASE_STYLES = `
           <div id="teams-panel" class="panel" style="display:none;">
             <div class="panel-header panel-header-shared"> 
               <span>Teams</span>
-                              <button id="add-team-button" class="button-shared">Manage Teams</button>
+              <button id="add-team-button" class="button-shared">Manage</button>
           </div>
             <div id="teams-list" class="panel-content panel-content-shared"></div> 
               </div>

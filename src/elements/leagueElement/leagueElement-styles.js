@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, dropdownStyles, mobileStyles, desktopStyles, tabStyles, formStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles,getMobileStyles, getDesktopStyles, tabStyles, formStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -447,12 +447,10 @@ const BASE_STYLES = `
   export const MOBILE_STYLES = `
       ${BASE_STYLES}
       :host {
-        ${mobileStyles}
         padding: var(--le-padding-s); 
         background: var(--le-background-color-host); 
         border: none;
         border-radius: 0;
-        /* Font sizes are now included via mobileStyles */
       }
       
       /* Mobile-specific dropdown adjustments */
@@ -810,7 +808,6 @@ const BASE_STYLES = `
   export const DESKTOP_STYLES = `
       ${BASE_STYLES}
       :host {
-        ${desktopStyles}
         padding: var(--le-padding-m); 
         height: 100%;
         background-color: var(--le-background-color-host); /* MODIFIED - Can be different for desktop host if desired */
@@ -1017,7 +1014,7 @@ const BASE_STYLES = `
           <th class="position-cell"></th>
           <th>Team</th>
           <th>Pts</th>
-          <th>MP</th>
+          <th>P</th>
           <th>W</th>
           <th>D</th>
           <th>L</th>

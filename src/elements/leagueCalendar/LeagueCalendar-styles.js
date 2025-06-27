@@ -1,5 +1,3 @@
-import { mobileStyles, desktopStyles } from '../shared-styles.js';
-
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
       :host {
@@ -153,9 +151,6 @@ const BASE_STYLES = `
 // Mobile-specific styles
 export const MOBILE_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${mobileStyles}
-      }
       .calendar-grid > div { /* Applies to headers and days */
         padding: var(--le-padding-s, 0.5rem) var(--le-padding-xs, 0.25rem);
         border-radius: var(--le-border-radius-small, 2px);
@@ -165,9 +160,6 @@ export const MOBILE_STYLES = `
 // Desktop-specific styles
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${desktopStyles}
-      }
     `;
 
 export const TEMPLATE = `

@@ -8,6 +8,7 @@ import '../leagueResetModal/leagueResetModal.js';
 import '../leagueTeams/leagueTeams.js';
 import '../LeagueSchedule/LeagueSchedule.js';
 import {  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
+import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
 
@@ -67,8 +68,14 @@ class LeagueAdminElement extends HTMLElement {
     return this.getAttribute('is-mobile') === 'true';
   }
 
+  get _fontScale() {
+    const scale = parseFloat(this.getAttribute('font-scale')) || 1.0;
+    // Clamp the scale between 0.5 and 2.0 for reasonable bounds
+    return Math.max(0.5, Math.min(2.0, scale));
+  }
+
   static get observedAttributes() {
-    return ['data', 'is-mobile', 'current-league-id', 'lovebowls-teams']; 
+    return ['data', 'is-mobile', 'current-league-id', 'lovebowls-teams', 'font-scale']; 
   }
 
   _injectGlobalSwalStyles() {
@@ -149,6 +156,8 @@ class LeagueAdminElement extends HTMLElement {
       needsRender = true; // Data change always triggers a full re-render of the list
     } else if (name === 'is-mobile') {
       needsRender = true;
+    } else if (name === 'font-scale') {
+      needsRender = true; // Font scale change requires re-render to update styles
     } else if (name === 'current-league-id') {
       this._currentLeagueId = newValue || null;
       // Apply selection only if we have leagues loaded already
@@ -322,7 +331,7 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   render() {
-    console.log('[LeagueAdmin] render() called');
+    console.log(`[LeagueAdmin] render() called fontscale:${this._fontScale}`);
     let leagueForRender = null;
     const tempLeague = this._getSelectedLeague(); // This can return undefined
 
@@ -332,11 +341,12 @@ class LeagueAdminElement extends HTMLElement {
 
     this.shadow.innerHTML = `
       <style>
+        ${this._isMobile ? getMobileStyles(this._fontScale) : getDesktopStyles(this._fontScale)}
         ${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}
       </style>
       ${TEMPLATE_CONTENT}
     `;
-    
+    console.log(`[LeagueAdmin] render() scale: ${this._fontScale} -> innerHTML:${this.shadow.innerHTML}`);
     // Setup resizer
     this._setupResizer();
     // Initial UI setup that happens after main template is in place
@@ -382,6 +392,7 @@ class LeagueAdminElement extends HTMLElement {
       resetModal = document.createElement('league-reset-modal');
       resetModal.open = true;
       resetModal.isMobile = this._isMobile;
+      resetModal.setAttribute('font-scale', this._fontScale);
       resetModal.data = this._leagueToReset;
       
       resetModal.addEventListener('reset-save', (e) => {
@@ -413,6 +424,7 @@ class LeagueAdminElement extends HTMLElement {
       teamModal = document.createElement('league-teams');
       teamModal.open = true;
       teamModal.isMobile = this._isMobile;
+      teamModal.setAttribute('font-scale', this._fontScale);
       teamModal.data = this._getSelectedLeague();
       teamModal.existingTeams = this._lovebowlsTeams;
       
@@ -2085,6 +2097,7 @@ class LeagueAdminElement extends HTMLElement {
       modal.teams = this.matchModalTeams;
       modal.open = true;
       modal.isMobile = this._isMobile;
+      modal.setAttribute('font-scale', this._fontScale);
       modal.mode = this.matchModalMode;
       
       const selectedLeague = this._getSelectedLeague();
@@ -2232,6 +2245,7 @@ class LeagueAdminElement extends HTMLElement {
     
     const isMobile = String(this._isMobile);
     attentionMatchesElement.setAttribute('is-mobile', isMobile);
+    attentionMatchesElement.setAttribute('font-scale', String(this._fontScale));
     
     try {
       // Pass the whole league instance instead of just matches
@@ -2281,6 +2295,7 @@ class LeagueAdminElement extends HTMLElement {
     
     const isMobile = String(this._isMobile);
     scheduleElement.setAttribute('is-mobile', isMobile);
+    scheduleElement.setAttribute('font-scale', String(this._fontScale));
     
     // Set the can-edit attribute to allow editing matches
     scheduleElement.setAttribute('can-edit', 'true');

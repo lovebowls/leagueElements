@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, listItemStyles, mobileStyles, desktopStyles, pagingStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, listItemStyles, pagingStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
       ${panelStyles}
@@ -43,9 +43,6 @@ const BASE_STYLES = `
 
 export const  MOBILE_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${mobileStyles}
-      }
       .match-item {
         padding: var(--swal-padding-xs, 0.2rem) 0;
       }
@@ -58,9 +55,6 @@ export const  MOBILE_STYLES = `
 
 export const DESKTOP_STYLES = `
       ${BASE_STYLES}
-      :host {
-        ${desktopStyles}
-      }
       .match-item {
         padding: var(--swal-padding-xs, 0.2rem) 0;
       }
