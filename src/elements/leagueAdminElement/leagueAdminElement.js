@@ -144,6 +144,10 @@ class LeagueAdminElement extends HTMLElement {
 
   disconnectedCallback() {
     // Cleanup if needed
+    if (this._documentClickHandlerBound) {
+      document.removeEventListener('click', this._documentClickHandlerBound);
+      this._documentClickHandlerBound = null;
+    }
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -484,8 +488,8 @@ class LeagueAdminElement extends HTMLElement {
 
     if (!this._leagues || this._leagues.length === 0) {
       const li = document.createElement('li');
+      li.classList.add('list-item');
       li.textContent = 'No leagues available.';
-      li.style.padding = '0.5rem'; // Basic styling for the message
       listElement.appendChild(li);
       return;
     }
@@ -504,6 +508,7 @@ class LeagueAdminElement extends HTMLElement {
       }
 
       const li = document.createElement('li');
+      li.classList.add('list-item');
       
       const nameSpan = document.createElement('span');
       nameSpan.classList.add('list-item-text-primary');
@@ -518,6 +523,7 @@ class LeagueAdminElement extends HTMLElement {
       li.setAttribute('data-id', leagueId);
       
       if (league._id === this._selectedLeagueId) {
+        li.classList.add('selected');
         this._createAndAppendLeagueActions(actionsContainer, league._id);
       }
       
@@ -555,8 +561,7 @@ class LeagueAdminElement extends HTMLElement {
     // Clear the team filter from the schedule component before changing leagues
     const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
     if (scheduleElement) {
-      scheduleElement.selectedTeamId = null;
-      scheduleElement.removeAttribute('selected');
+      scheduleElement.removeAttribute('selected-team');
       if (typeof scheduleElement.clearFilterState === 'function') {
         scheduleElement.clearFilterState();
       }
@@ -615,23 +620,17 @@ class LeagueAdminElement extends HTMLElement {
   _createAndAppendLeagueActions(container, leagueId) {
     container.innerHTML = ''; // Clear any previous content
 
-    // Create dropdown container
-    const dropdownContainer = document.createElement('div');
-    dropdownContainer.classList.add('dropdown-shared');
-
-    // Create select element like LeagueSchedule
-    const selectActions = document.createElement('select');
-    selectActions.classList.add('dropdown-select-shared');
-    selectActions.title = 'More actions';
+    // Create a button instead of dropdown select
+    const menuButton = document.createElement('button');
+    menuButton.textContent = '...';
+    menuButton.classList.add('button-shared');
+    menuButton.title = 'More actions';
     
-    // Add default option
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = '...';
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    selectActions.appendChild(defaultOption);
-
+    // Create the dropdown menu (initially hidden)
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.classList.add('dropdown-menu');
+    dropdownMenu.style.display = 'none';
+    
     // Add action options
     const actions = [
       { value: 'view', label: 'View..' },
@@ -641,42 +640,75 @@ class LeagueAdminElement extends HTMLElement {
     ];
 
     actions.forEach(action => {
-      const option = document.createElement('option');
-      option.value = action.value;
-      option.textContent = action.label;
-      selectActions.appendChild(option);
+      const menuItem = document.createElement('div');
+      menuItem.classList.add('dropdown-menu-item');
+      menuItem.textContent = action.label;
+      menuItem.dataset.action = action.value;
+      
+      menuItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // Store the league ID for the action handlers
+        this._currentLeagueIdForMenu = leagueId;
+        
+        // Handle the selected action
+        switch (action.value) {
+          case 'view':
+            this._handleViewLeagueTable();
+            break;
+          case 'edit':
+            this._handleEditLeagueRules();
+            break;
+          case 'delete':
+            this._handleDeleteLeague();
+            break;
+          case 'reset':
+            this._handleResetLeague();
+            break;
+        }
+        
+        // Hide the menu after action
+        this._hideGlobalLeagueMenu();
+      });
+      
+      dropdownMenu.appendChild(menuItem);
     });
 
-    // Handle selection
-    selectActions.addEventListener('change', (e) => {
+    // Handle button click to show/hide menu
+    menuButton.addEventListener('click', (e) => {
       e.stopPropagation();
-      const selectedValue = e.target.value;
       
-      // Store the league ID for the action handlers
-      this._currentLeagueIdForMenu = leagueId;
+      // Check if this menu is already visible
+      const isVisible = dropdownMenu.style.display === 'block';
       
-      // Handle the selected action
-      switch (selectedValue) {
-        case 'view':
-          this._handleViewLeagueTable();
-          break;
-        case 'edit':
-          this._handleEditLeagueRules();
-          break;
-        case 'delete':
-          this._handleDeleteLeague();
-          break;
-        case 'reset':
-          this._handleResetLeague();
-          break;
+      if (isVisible) {
+        // Hide this menu if it's currently visible
+        dropdownMenu.style.display = 'none';
+      } else {
+        // Hide any other open menus first
+        this._hideGlobalLeagueMenu();
+        
+        // Show this menu
+        dropdownMenu.style.display = 'block';
+        
+        // Position the menu using fixed positioning relative to the button
+        const buttonRect = menuButton.getBoundingClientRect();
+        dropdownMenu.style.top = `${buttonRect.bottom + 2}px`; // 2px gap below button
+        dropdownMenu.style.left = `${buttonRect.right - 120}px`; // Align right edge (120px is min-width)
       }
-      
-      // Reset select to default
-      e.target.value = '';
     });
     
-    dropdownContainer.appendChild(selectActions);
-    container.appendChild(dropdownContainer);
+    // Store reference to menu for hiding
+    menuButton._dropdownMenu = dropdownMenu;
+    
+    container.appendChild(menuButton);
+    container.appendChild(dropdownMenu);
+    
+    // Add document click listener to hide menu when clicking outside
+    if (!this._documentClickHandlerBound) {
+      this._documentClickHandlerBound = this._handleDocumentClick.bind(this);
+      document.addEventListener('click', this._documentClickHandlerBound);
+    }
   }
 
   _showLeagueSpecificPanels() {
@@ -793,26 +825,26 @@ class LeagueAdminElement extends HTMLElement {
     
     if (teams.length === 0) {
       const li = document.createElement('li');
+      li.classList.add('list-item');
       li.textContent = 'No teams available.';
-      li.style.padding = '0.5rem';
       teamsList.appendChild(li);
       return;
     }
     
     teams.forEach(team => {
       const li = document.createElement('li');
-      li.classList.add('team-item', 'list-item-shared');
+      li.classList.add('list-item');
       
       // Use team._id as the identifier and team.name for display
       li.dataset.teamId = team._id; // CHANGED: Use _id as the identifier
       
       // Check if this team is the selected one
       if (this._selectedTeamId === team._id) {
-        li.classList.add('selected-team');
+        li.classList.add('selected');
       }
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('team-name', 'list-item-text-primary');
+      nameSpan.classList.add('list-item-text-primary');
       nameSpan.textContent = team.name; // CHANGED: Display the name instead of label
       
       // Add a small indicator if this is a lovebowls team (can use another way to identify)
@@ -828,7 +860,7 @@ class LeagueAdminElement extends HTMLElement {
       li.appendChild(nameSpan);
       
       const actionsDiv = document.createElement('div');
-      actionsDiv.classList.add('team-actions', 'list-item-actions');
+      actionsDiv.classList.add('list-item-actions');
       li.appendChild(actionsDiv);
 
       // Add click listener to the list item itself
@@ -897,19 +929,31 @@ class LeagueAdminElement extends HTMLElement {
 
   /**
    * Hides/resets all league action dropdown menus to their default state
-   * This function finds all dropdown-select-shared elements and resets them to the default "..." option
+   * This function finds all dropdown menu elements and hides them
    */
   _hideGlobalLeagueMenu() {
-    // Find all league action dropdown selects in the shadow DOM
-    const dropdownSelects = this.shadow.querySelectorAll('.dropdown-select-shared');
+    // Find all dropdown menus in the shadow DOM
+    const dropdownMenus = this.shadow.querySelectorAll('.dropdown-menu');
     
-    dropdownSelects.forEach(select => {
-      // Reset each select to its default value (empty string, which corresponds to the "..." option)
-      select.value = '';
+    dropdownMenus.forEach(menu => {
+      // Hide each dropdown menu
+      menu.style.display = 'none';
     });
     
     // Clear the current league ID for menu context
     this._currentLeagueIdForMenu = null;
+  }
+  
+  /**
+   * Handle document clicks to close dropdown menus when clicking outside
+   */
+  _handleDocumentClick(e) {
+    // Check if the click was inside any dropdown menu or button
+    const isInsideDropdown = e.target.closest('.dropdown-menu') || e.target.closest('.button-shared');
+    
+    if (!isInsideDropdown) {
+      this._hideGlobalLeagueMenu();
+    }
   }
   
   _handleResetLeague() {
@@ -2376,7 +2420,6 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _handleAdminScheduleEvent(e) {
-    console.group('[LeagueAdmin] _handleAdminScheduleEvent');
     
     // Validate the event detail
     if (!e.detail) {
@@ -2386,7 +2429,6 @@ class LeagueAdminElement extends HTMLElement {
     }
     
     const eventType = e.detail.type;
-    console.log('Schedule event type:', eventType);
     
     try {
       switch (eventType) {
@@ -2441,10 +2483,10 @@ class LeagueAdminElement extends HTMLElement {
 
     // Deselect previously selected team item
     if (this._selectedTeamId && this._selectedTeamId !== teamId) {
-      const prevSelectedLi = this.shadow.querySelector(`.team-item[data-team-id="${this._selectedTeamId}"]`);
+      const prevSelectedLi = this.shadow.querySelector(`.list-item[data-team-id="${this._selectedTeamId}"]`);
       if (prevSelectedLi) {
         prevSelectedLi.classList.remove('selected');
-        const prevActionsDiv = prevSelectedLi.querySelector('.team-actions');
+        const prevActionsDiv = prevSelectedLi.querySelector('.list-item-actions');
         if (prevActionsDiv) {
           prevActionsDiv.innerHTML = ''; // Clear its buttons
         }
@@ -2452,13 +2494,13 @@ class LeagueAdminElement extends HTMLElement {
     }
 
     // Handle new selection
-    const currentSelectedLi = this.shadow.querySelector(`.team-item[data-team-id="${teamId}"]`);
+    const currentSelectedLi = this.shadow.querySelector(`.list-item[data-team-id="${teamId}"]`);
     if (!currentSelectedLi) return; // Should not happen if click is on an item
 
     if (this._selectedTeamId === teamId) {
       // Clicked on already selected team: toggle visibility (hide actions)
       currentSelectedLi.classList.remove('selected');
-      const actionsDiv = currentSelectedLi.querySelector('.team-actions');
+      const actionsDiv = currentSelectedLi.querySelector('.list-item-actions');
       if (actionsDiv) {
         actionsDiv.innerHTML = '';
       }
@@ -2467,7 +2509,7 @@ class LeagueAdminElement extends HTMLElement {
       // Clicked on a new team: show actions
       currentSelectedLi.classList.add('selected');
       this._selectedTeamId = teamId;
-      const actionsDiv = currentSelectedLi.querySelector('.team-actions');
+      const actionsDiv = currentSelectedLi.querySelector('.list-item-actions');
       if (actionsDiv) {
         this._createAndAppendTeamActions(actionsDiv, team);
       }
@@ -2479,14 +2521,10 @@ class LeagueAdminElement extends HTMLElement {
       // Set the team filter in the schedule component
       const scheduleElement = this.shadow.querySelector('#admin-league-schedule');
       if (scheduleElement && this._selectedTeamId) {
-        scheduleElement.selectedTeamId = this._selectedTeamId;
-        scheduleElement.saveFilterState();
-        scheduleElement.renderWithoutReset();
+        scheduleElement.setAttribute('selected-team', this._selectedTeamId);
       } else if (scheduleElement && !this._selectedTeamId) {
         // Clear the filter when no team is selected
-        scheduleElement.selectedTeamId = null;
-        scheduleElement.saveFilterState();
-        scheduleElement.renderWithoutReset();
+        scheduleElement.removeAttribute('selected-team');
       }
     }
   }

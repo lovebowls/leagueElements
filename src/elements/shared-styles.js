@@ -70,7 +70,7 @@ export const getDesktopStyles = (fontScale = 1.0) => `
 
 // Shared base styles for dropdown elements
 export const dropdownStyles = `
-  /* Shared base styles for dropdown elements */
+  /* Shared base styles for dropdown select elements */
   .dropdown-select-shared {
     appearance: none;
     -webkit-appearance: none;
@@ -112,6 +112,49 @@ export const dropdownStyles = `
     display: flex;
     align-items: center;
     gap: var(--le-padding-s, 0.5rem);
+  }
+
+  /* Shared styles for dropdown menus (button-triggered) */
+  .list-item-actions {
+    position: relative; /* Ensure actions container can contain absolutely positioned menu */
+  }
+  
+  .dropdown-menu {
+    position: fixed; /* Use fixed positioning to escape container boundaries */
+    background-color: var(--le-background-color-panel, #fff);
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 120px;
+    z-index: 9999; /* Much higher z-index to appear above list containers */
+    margin-top: 2px; /* Small gap between button and menu */
+  }
+  
+  .dropdown-menu-item {
+    padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 0.75em);
+    cursor: pointer;
+    border-bottom: 1px solid var(--le-border-color-light, #eee);
+    transition: background-color 0.2s ease;
+    font-size: var(--le-font-size-base, 1em);
+    color: var(--le-text-color-primary, #333);
+  }
+  
+  .dropdown-menu-item:last-child {
+    border-bottom: none;
+  }
+  
+  .dropdown-menu-item:hover {
+    background-color: var(--le-background-color-hover, #f5f5f5);
+  }
+  
+  .dropdown-menu-item:first-child {
+    border-top-left-radius: var(--le-border-radius-standard, 4px);
+    border-top-right-radius: var(--le-border-radius-standard, 4px);
+  }
+  
+  .dropdown-menu-item:last-child {
+    border-bottom-left-radius: var(--le-border-radius-standard, 4px);
+    border-bottom-right-radius: var(--le-border-radius-standard, 4px);
   }
 `;
 

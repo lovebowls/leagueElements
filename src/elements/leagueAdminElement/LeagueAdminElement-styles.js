@@ -8,7 +8,7 @@ const BASE_STYLES = `
       ${formStyles}    /* ADDED SHARED FORM STYLE */
       ${listStyles} /* ADDED SHARED LIST ITEM STYLE */
       ${tabStyles}
-      ${dropdownStyles} /* ADDED SHARED DROPDOWN STYLE */
+      ${dropdownStyles} /* ADDED SHARED DROPDOWN STYLE - now includes dropdown menu styles */
       :host {
         display: block;
         border: 1px solid var(--swal-border-color-medium, #ccc); 
@@ -492,8 +492,10 @@ const BASE_STYLES = `
               <span>Teams</span>
               <button id="add-team-button" class="button-shared">Manage</button>
           </div>
-            <div id="teams-list" class="panel-content"></div> 
-              </div>
+            <div class="list-container">
+              <ul class="list" id="teams-list"></ul>
+            </div>
+          </div>
 
           <!-- LeagueMatchesAttention moved here, directly under Teams panel -->
           <div id="admin-matches-attention-container" class="panel" style="margin-bottom: var(--swal-padding-m);">

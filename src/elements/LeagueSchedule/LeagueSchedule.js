@@ -88,7 +88,8 @@ class LeagueSchedule extends HTMLElement {
     } else if (name === 'selected-team') {
       this.selectedTeamId = newValue || null;
       this.currentPage = 1; // Reset to first page when filter changes
-      this.render();
+      this.saveFilterState(); // Save the filter state when set externally
+      this.renderWithoutReset();
     }
   }
 
