@@ -453,6 +453,9 @@ class LeagueAdminElement extends HTMLElement {
         this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData: league }));
         this.closeTeamModal();
         
+        // Re-render the teams list to reflect the changes
+        this._renderTeamsList();
+        
         // If showFixtureScheduler is true and we have at least 2 teams, open the reset modal
         if (showFixtureScheduler && league.teams && league.teams.length >= 2) {
           // Small delay to allow the team modal to close and DOM to update
@@ -503,7 +506,7 @@ class LeagueAdminElement extends HTMLElement {
       const li = document.createElement('li');
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('list-item list-item-text-primary');
+      nameSpan.classList.add('list-item-text-primary');
       nameSpan.textContent = league.name || 'Unnamed League';
       li.appendChild(nameSpan);
 
@@ -561,7 +564,6 @@ class LeagueAdminElement extends HTMLElement {
 
     // Find the clicked league in our data - only match by _id
     const selectedLeague = this._leagues.find(league => league._id === leagueId);
-  
     if (selectedLeague) {
       // Use the _id as the identifier
       const effectiveId = selectedLeague._id;
@@ -685,11 +687,12 @@ class LeagueAdminElement extends HTMLElement {
       return;
     }
   
-  
     // Show the teams panel
     const teamsPanel = this.shadow.querySelector('#teams-panel');
     if (teamsPanel) {
+      teamsPanel.setAttribute('data', selectedLeague);
       teamsPanel.style.display = '';
+      // Render the teams list to populate it with team data
       this._renderTeamsList();
     } else {
       console.warn(this.LOG_PREFIX + 'Teams panel element not found');
@@ -764,6 +767,19 @@ class LeagueAdminElement extends HTMLElement {
     }
   }
   
+
+  _updateButtonStates() {
+    const btnCopy = this.shadow.querySelector('#copy-league-button');
+    const btnUpdate = this.shadow.querySelector('#update-league-button');
+    const btnDelete = this.shadow.querySelector('#delete-league-button');
+
+    const isLeagueSelected = !!this._selectedLeagueId;
+
+    if (btnCopy) btnCopy.disabled = !isLeagueSelected;
+    if (btnUpdate) btnUpdate.disabled = !isLeagueSelected;
+    if (btnDelete) btnDelete.disabled = !isLeagueSelected;
+  }
+
   _renderTeamsList() {
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) return;
@@ -785,18 +801,18 @@ class LeagueAdminElement extends HTMLElement {
     
     teams.forEach(team => {
       const li = document.createElement('li');
-      li.classList.add('list-item');
+      li.classList.add('team-item', 'list-item-shared');
       
       // Use team._id as the identifier and team.name for display
       li.dataset.teamId = team._id; // CHANGED: Use _id as the identifier
       
       // Check if this team is the selected one
       if (this._selectedTeamId === team._id) {
-        li.classList.add('selected');
+        li.classList.add('selected-team');
       }
       
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('list-item-text-primary');
+      nameSpan.classList.add('team-name', 'list-item-text-primary');
       nameSpan.textContent = team.name; // CHANGED: Display the name instead of label
       
       // Add a small indicator if this is a lovebowls team (can use another way to identify)
@@ -837,19 +853,7 @@ class LeagueAdminElement extends HTMLElement {
       teamsList.appendChild(li);
     });
   }
-
-  _updateButtonStates() {
-    const btnCopy = this.shadow.querySelector('#copy-league-button');
-    const btnUpdate = this.shadow.querySelector('#update-league-button');
-    const btnDelete = this.shadow.querySelector('#delete-league-button');
-
-    const isLeagueSelected = !!this._selectedLeagueId;
-
-    if (btnCopy) btnCopy.disabled = !isLeagueSelected;
-    if (btnUpdate) btnUpdate.disabled = !isLeagueSelected;
-    if (btnDelete) btnDelete.disabled = !isLeagueSelected;
-  }
-
+  
   _attachBaseEventListeners() {
     const btnNew = this.shadow.querySelector('#new-league-button');
     const btnCopy = this.shadow.querySelector('#copy-league-button');
@@ -1101,14 +1105,14 @@ class LeagueAdminElement extends HTMLElement {
             teamId: team._id
           }));
           
-          // Re-render teams list
-          this._renderTeamsList();
-
           // ADDED: Refresh the attention panel to reflect removed matches
           const leagueToRefresh = this._getSelectedLeague();
           if (leagueToRefresh) {
             this._updateAttentionPanel(leagueToRefresh);
           }
+          
+          // Re-render the teams list to reflect the removal
+          this._renderTeamsList();
           
           // Show success message
           Swal.default.fire({
@@ -1428,9 +1432,6 @@ class LeagueAdminElement extends HTMLElement {
     this._selectedTeamId = teamId;
 
     this._hideTeamModal();
-
-    // Force a re-render to update the UI immediately
-    this._renderTeamsList();
   }
 
   // --- Modal Methods ---

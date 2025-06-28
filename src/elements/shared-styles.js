@@ -519,9 +519,6 @@ export const listStyles = `
     pointer-events: none;
     opacity: 0.6;
   }
-  .list-panel.disabled .list-item {
-    cursor: not-allowed;
-  }
   .list {
     list-style: none;
     margin: 0;
@@ -536,7 +533,9 @@ export const listStyles = `
     cursor: pointer;
     transition: background-color 0.2s ease;
   }
-
+  .list-panel.disabled .list-item {
+    cursor: not-allowed;
+  }
   .list-item:last-child {
     border-bottom: none;
   }
