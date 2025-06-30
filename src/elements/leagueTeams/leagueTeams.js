@@ -304,16 +304,16 @@ class LeagueTeams extends HTMLElement {
       <ul class="list">
         ${teams.map(team => `
           <li class="list-item ${this._selectedTeamId === team._id ? 'selected' : ''}" data-team-id="${team._id}">
-            <div class="team-info">
+            <span class="list-item-text-primary">
               <span class="team-name">${team.name}</span>
               ${this._isLovebowlsTeam(team._id) ? '<small class="team-source">(LB)</small>' : ''}
-            </div>
-            ${this._selectedTeamId === team._id && !this._showEditor ? `
-              <div class="team-actions">
+            </span>
+            <div class="list-item-actions">
+              ${this._selectedTeamId === team._id && !this._showEditor ? `
                 <button type="button" class="button-shared" data-action="edit" data-team-id="${team._id}">Edit</button>
                 <button type="button" class="button-shared" data-action="remove" data-team-id="${team._id}">Remove</button>
-              </div>
-            ` : ''}
+              ` : ''}
+            </div>
           </li>
         `).join('')}
       </ul>
@@ -436,7 +436,7 @@ class LeagueTeams extends HTMLElement {
       if (!this._showEditor) {
         item.addEventListener('click', (e) => {
           // Don't handle clicks on action buttons
-          if (e.target.closest('.team-actions')) return;
+          if (e.target.closest('.list-item-actions')) return;
           
           const teamId = e.currentTarget.dataset.teamId;
           this._handleTeamSelect(teamId);
@@ -445,7 +445,7 @@ class LeagueTeams extends HTMLElement {
     });
 
     // Team action button clicks
-    const editButtons = this.shadow.querySelectorAll('.team-actions button[data-action="edit"]');
+    const editButtons = this.shadow.querySelectorAll('.list-item-actions button[data-action="edit"]');
     editButtons.forEach(button => {
       if (!this._showEditor) {
         button.addEventListener('click', (e) => {
@@ -456,7 +456,7 @@ class LeagueTeams extends HTMLElement {
       }
     });
 
-    const removeButtons = this.shadow.querySelectorAll('.team-actions button[data-action="remove"]');
+    const removeButtons = this.shadow.querySelectorAll('.list-item-actions button[data-action="remove"]');
     removeButtons.forEach(button => {
       if (!this._showEditor) {
         button.addEventListener('click', (e) => {

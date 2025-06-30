@@ -1,9 +1,10 @@
-import { buttonStyles, modalStyles, formStyles } from '../shared-styles.js';
+import { buttonStyles, modalStyles, formStyles, listStyles } from '../shared-styles.js';
 
 export const BASE_STYLES = `
   ${buttonStyles}
   ${modalStyles}
   ${formStyles}
+  ${listStyles}
   
   :host {
     display: none;
@@ -124,8 +125,6 @@ export const BASE_STYLES = `
     white-space: nowrap;
   }
 
-
-
   /* Update button disabled state */
   .button-update:disabled {
     background-color: var(--le-background-color-disabled, #f5f5f5) !important;
@@ -156,34 +155,23 @@ export const BASE_STYLES = `
     opacity: 0.5;
   }
 
-  .team-info {
-    display: flex;
-    align-items: center;
-    flex: 1;
-  }
-
-  .team-name {
+  /* Custom team styling for the shared list items */
+  .list-item .team-name {
     font-weight: 500;
-    color: var(--le-text-color-primary, #333);
   }
 
-  .team-source {
+  .list-item .team-source {
     color: var(--le-text-color-secondary, #666);
     font-style: italic;
     margin-left: var(--le-padding-s, 0.5rem);
   }
 
-  .team-actions {
-    display: flex;
-    gap: var(--le-padding-s, 0.5rem);
-  }
-
-  .team-actions .button-shared {
+  .list-item-actions .button-shared {
     opacity: 0.8;
     transition: opacity 0.2s ease;
   }
 
-  .team-actions .button-shared:hover {
+  .list-item-actions .button-shared:hover {
     opacity: 1;
   }
 
@@ -323,9 +311,6 @@ export const BASE_STYLES = `
       padding: 15px;
     }
     
-    .teams-manager-header h3 {
-    }
-    
     .teams-manager-body {
       padding: 15px;
       gap: 15px;
@@ -364,26 +349,22 @@ export const BASE_STYLES = `
       min-width: auto;
     }
 
-    .team-list-item {
-      padding: 15px 10px;
-    }
-
-    .team-list-item.selected {
+    .list-item.selected {
       flex-direction: column;
       align-items: stretch;
       gap: 10px;
     }
 
-    .team-info {
+    .list-item .list-item-text-primary {
       order: 1;
     }
 
-    .team-actions {
+    .list-item .list-item-actions {
       order: 2;
       justify-content: flex-end;
     }
 
-    .team-actions .button-shared {
+    .list-item-actions .button-shared {
       width: auto;
       min-width: 80px;
     }
@@ -428,6 +409,5 @@ export const BASE_STYLES = `
       padding: 10px 15px !important;
       min-height: 44px;
     }
-
   }
 `; 
