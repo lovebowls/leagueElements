@@ -575,6 +575,8 @@ export const listStyles = `
     border-bottom: 1px solid var(--le-border-color-light, #eee);
     cursor: pointer;
     transition: background-color 0.2s ease;
+    min-height: 3.5rem; /* Ensure consistent height for action buttons */
+    box-sizing: border-box;
   }
   .list-panel.disabled .list-item {
     cursor: not-allowed;
@@ -601,6 +603,8 @@ export const listStyles = `
     flex-shrink: 0; /* Prevent actions from shrinking */
     display: flex;
     gap: var(--le-padding-xs, 0.4em); /* Increased gap */
+    align-items: center;
+    min-height: 2rem; /* Reserve space for buttons even when empty */
   }
 
   .list-item:hover {
@@ -615,12 +619,29 @@ export const listStyles = `
 
   @keyframes highlightItem {
     0% {
-      background-color: var(--le-background-color-accent, #4caf50);
-      transform: scale(1.02);
+      background-color: var(--le-background-color-accent, #108CFF);
+      box-shadow: 0 0 0 2px rgba(16, 140, 255, 0.3), 0 2px 8px rgba(16, 140, 255, 0.2);
     }
     100% {
       background-color: var(--le-background-color-selected, #e3f2fd);
-      transform: scale(1);
+      box-shadow: none;
+    }
+  }
+
+  /* Mobile-specific list item adjustments */
+  @media (max-width: 768px) {
+    .list-item {
+      min-height: 4rem; /* Slightly taller for mobile touch targets */
+      padding: var(--le-padding-l, 1.25rem) var(--le-padding-m, 1rem);
+    }
+    
+    .list-item .list-item-actions {
+      min-height: 2.5rem; /* Larger touch targets for mobile */
+    }
+    
+    .list-item .list-item-actions .button-shared {
+      min-height: 2.5rem; /* Ensure buttons are touch-friendly */
+      padding: var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
     }
   }
 `;

@@ -576,6 +576,9 @@ class LeagueAdminElement extends HTMLElement {
       // Update the selected league ID
       this._selectedLeagueId = effectiveId;
       
+      // Reset selected team BEFORE rendering anything
+      this._selectedTeamId = null;
+      
       this._renderLeagueList();
 
       // Update the UI to show the selected league
@@ -595,9 +598,6 @@ class LeagueAdminElement extends HTMLElement {
       
       // Show the league-specific panels
       this._showLeagueSpecificPanels();
-      
-      // Reset selected team
-      this._selectedTeamId = null;
       
       // Dispatch the leagueSelected event
       this.dispatchEvent(new LeagueAdminElementEvent('leagueSelected', { 
@@ -726,6 +726,9 @@ class LeagueAdminElement extends HTMLElement {
       teamsPanel.style.display = '';
       // Render the teams list to populate it with team data
       this._renderTeamsList();
+      
+      // Scroll the teams list to the top when a new league is selected
+      this._scrollTeamsListToTop();
     } else {
       console.warn(this.LOG_PREFIX + 'Teams panel element not found');
     }
@@ -884,6 +887,27 @@ class LeagueAdminElement extends HTMLElement {
       
       teamsList.appendChild(li);
     });
+  }
+  
+  _scrollTeamsListToTop() {
+    // Find the teams list container that has scrolling
+    const teamsListContainer = this.shadow.querySelector('#teams-panel .list-container');
+    if (teamsListContainer && typeof teamsListContainer.scrollTo === 'function') {
+      // Scroll to the top smoothly
+      teamsListContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      // Fallback: try to scroll the teams list directly
+      const teamsList = this.shadow.querySelector('#teams-list');
+      if (teamsList && typeof teamsList.scrollTo === 'function') {
+        teamsList.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    }
   }
   
   _attachBaseEventListeners() {

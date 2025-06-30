@@ -7,13 +7,17 @@ import { dirname, resolve as pathResolve } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export default {
   input: 'src/index.ts',
+  cache: true,
   output: [
     {
       file: 'dist/index.js',
       format: 'es',
-      sourcemap: true
+      sourcemap: true,
+      sourcemap: isDev ? 'inline' : true  // Inline for dev, separate for prod
     },
     {
       file: 'dist/index.cjs',
@@ -29,7 +33,8 @@ export default {
     typescript({
       tsconfig: pathResolve(__dirname, 'tsconfig.json'),
       sourceMap: true,
-      declaration: false
+      declaration: false,
+      incremental: true
     }),
     babel({
       babelHelpers: 'bundled',
