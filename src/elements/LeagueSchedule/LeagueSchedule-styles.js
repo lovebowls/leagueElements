@@ -108,10 +108,14 @@ const BASE_STYLES = `
     line-height: 1.4;
   }
   
-  .schedule-table th:first-child,
-  .schedule-table th:nth-child(3),
-  .schedule-table th:nth-child(4) {
+  .schedule-table th.date-col,
+  .schedule-table th.team-col {
     text-align: left;
+  }
+  
+  .schedule-table th.rink-col,
+  .schedule-table th.result-col {
+    text-align: center;
   }
   
   .schedule-table td {
@@ -331,6 +335,23 @@ const BASE_STYLES = `
   }
   
   .date-link:active {
+    color: var(--le-color-primary-darker, #004085);
+  }
+  
+  /* Editable rink link styles */
+  .rink-link {
+    color: var(--le-color-primary, #007bff);
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  
+  .rink-link:hover {
+    color: var(--le-color-primary-dark, #0056b3);
+    text-decoration: underline;
+  }
+  
+  .rink-link:active {
     color: var(--le-color-primary-darker, #004085);
   }
 `;
@@ -684,10 +705,14 @@ export const DESKTOP_STYLES = `
     line-height: 1.4;
   }
   
-  .schedule-table th:first-child,
-  .schedule-table th:nth-child(3),
-  .schedule-table th:nth-child(4) {
+  .schedule-table th.date-col,
+  .schedule-table th.team-col {
     text-align: left;
+  }
+  
+  .schedule-table th.rink-col,
+  .schedule-table th.result-col {
+    text-align: center;
   }
   
   .schedule-table td {
@@ -706,9 +731,17 @@ export const DESKTOP_STYLES = `
     border-top: none;
   }
   
-  .schedule-table td:first-child,
-  .schedule-table td:nth-child(3),
-  .schedule-table td:nth-child(4) {
+  .schedule-table td[data-label="Date"],
+  .schedule-table td[data-label="H"] {
+    text-align: left;
+  }
+  
+  .schedule-table td[data-label="Rink"],
+  .schedule-table td[data-label="Result"] {
+    text-align: center;
+  }
+  
+  .schedule-table td[data-label="A"] {
     text-align: left;
   }
   

@@ -79,6 +79,7 @@ describe('LeagueAdminElement - Advanced Features', () => {
     element._updateAttentionPanel = jest.fn();
     element._renderTeamsList = jest.fn();
     element._hideTeamModal = jest.fn();
+    element._getSwalCustomClasses = jest.fn().mockReturnValue({});
     
     // Mocking dispatchEvent
     element.dispatchEvent = jest.fn();
@@ -267,13 +268,17 @@ describe('LeagueAdminElement - Advanced Features', () => {
         {
           _id: 'league1',
           name: 'Test League',
-          teams: [mockTeam, { _id: 'team2', name: 'Team 2' }]
+          teams: [mockTeam, { _id: 'team2', name: 'Team 2' }],
+          matches: [
+            { _id: 'match1', homeTeam: { _id: 'team1' }, awayTeam: { _id: 'team2' } },
+            { _id: 'match2', homeTeam: { _id: 'team2' }, awayTeam: { _id: 'team3' } }
+          ]
         }
       ];
       
       element._leagues = mockLeagues;
       element._selectedLeagueId = 'league1';
-      element._renderTeamsList = jest.fn();
+      element._getSelectedLeague = jest.fn().mockReturnValue(mockLeagues[0]);
       
       // Mock Swal.fire to return a resolved promise
       Swal.fire = jest.fn().mockResolvedValue({ isConfirmed: true });
@@ -297,8 +302,12 @@ describe('LeagueAdminElement - Advanced Features', () => {
       expect(element._leagues[0].teams.length).toBe(1);
       expect(element._leagues[0].teams[0]._id).toBe('team2');
       
-      // Teams list should be re-rendered
-      expect(element._renderTeamsList).toHaveBeenCalled();
+      // Should remove matches involving the team
+      expect(element._leagues[0].matches.length).toBe(1);
+      expect(element._leagues[0].matches[0]._id).toBe('match2');
+      
+      // Should update attention panel instead of rendering teams list
+      expect(element._updateAttentionPanel).toHaveBeenCalledWith(mockLeagues[0]);
     });
   });
 

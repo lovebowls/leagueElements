@@ -53,7 +53,10 @@ class LeagueSchedule extends HTMLElement {
   }
 
   get _shouldShowRinkColumn() {
-    return this.league?.settings?.maxRinksPerSession && this.league.settings.maxRinksPerSession > 0;
+    // Show rink column if any match in the league has a rink assigned
+    return this.matches && this.matches.some(match => 
+      match.rink !== undefined && match.rink !== null && match.rink !== ''
+    );
   }
 
   static get observedAttributes() {
@@ -440,10 +443,10 @@ class LeagueSchedule extends HTMLElement {
    */
   formatMatchRink(match) {
     if (!match || !match.rink || match.rink === null || match.rink === undefined) {
-      return '-';
+      return '';
     }
     
-    return `Rink ${match.rink}`;
+    return `${match.rink}`;
   }
 
   /**
@@ -816,7 +819,11 @@ class LeagueSchedule extends HTMLElement {
                       this.formatMatchDate(match.date)}
                   </div>
                   ${this._shouldShowRinkColumn ? 
-                    `<div class="rink-section">${this.formatMatchRink(match)}</div>` : ''}
+                    `<div class="rink-section">
+                      ${editable ? 
+                        `<span class="rink-link" data-match-id="${match._id}" title="Edit Match">${this.formatMatchRink(match)}</span>` :
+                        this.formatMatchRink(match)}
+                    </div>` : ''}
                 </div>`;
               
               // Determine winner styling
@@ -1014,7 +1021,9 @@ class LeagueSchedule extends HTMLElement {
                     data-match-id="${match._id}"${titleAttr}
                   >
                     <td data-label="Date">${dateContent}</td>
-                    ${this._shouldShowRinkColumn ? `<td data-label="Rink">${this.formatMatchRink(match)}</td>` : ''}
+                    ${this._shouldShowRinkColumn ? `<td data-label="Rink">${editable ? 
+                      `<span class="rink-link" data-match-id="${match._id}" title="Edit Match">${this.formatMatchRink(match)}</span>` :
+                      this.formatMatchRink(match)}</td>` : ''}
                     <td data-label="H" class="${homeTeamClass}">${this.getTeamName(match.homeTeam._id)}</td>
                     ${resultCell.replace('data-label="Result"', 'data-label="Result" class="center-align"')}
                     <td data-label="A"${awayTeamClass ? ` class="${awayTeamClass}"` : ''}>${this.getTeamName(match.awayTeam._id)}</td>
@@ -1151,8 +1160,8 @@ class LeagueSchedule extends HTMLElement {
     const matchElements = this.shadow.querySelectorAll('.match-card, .match-row');
     matchElements.forEach(element => {
       element.addEventListener('click', (e) => {
-        // Don't trigger if clicking on a date link (edit functionality)
-        if (e.target.classList.contains('date-link')) {
+        // Don't trigger if clicking on a date link or rink link (edit functionality)
+        if (e.target.classList.contains('date-link') || e.target.classList.contains('rink-link')) {
           return;
         }
         
@@ -1167,6 +1176,19 @@ class LeagueSchedule extends HTMLElement {
     // Date link clicks for editing
     const dateLinks = this.shadow.querySelectorAll('.date-link');
     dateLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent row click
+        const matchId = link.getAttribute('data-match-id');
+        const match = this.matches.find(m => m._id === matchId);
+        if (match) {
+          this.handleEditMatch(e, match);
+        }
+      });
+    });
+    
+    // Rink link clicks for editing
+    const rinkLinks = this.shadow.querySelectorAll('.rink-link');
+    rinkLinks.forEach(link => {
       link.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent row click
         const matchId = link.getAttribute('data-match-id');

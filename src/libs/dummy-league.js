@@ -19,6 +19,10 @@ class Match {
     this.awayTeam = data.awayTeam;
     this.date = data.date;
     this.result = data.result || null;
+    // Add rink property to preserve rink information
+    if (data.rink !== undefined && data.rink !== null) {
+      this.rink = data.rink;
+    }
   }
 }
 
