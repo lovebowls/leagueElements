@@ -479,27 +479,7 @@ describe('LeagueElement', () => {
       
       expect(element.activeCalendarFilterDate).toBeNull();
     });
-    
-    it('should handle recent match click events', () => {
-      element.data = new League(mockLeagueData);
-      element.openMatchModal = jest.fn();
-            
-      const clickEvent = {
-        detail: {
-          type: 'matchClick',
-          match: { _id: 'match1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
-        }
-      };
-      
-      element._handleRecentMatchClick(clickEvent);
-      
-      expect(element.openMatchModal).toHaveBeenCalledWith(
-        clickEvent.detail.match,
-        element.data.teams,
-        'edit'
-      );
-    });
-    
+        
     it('should handle attention match click events', () => {
       element.data = new League(mockLeagueData);
       element.openMatchModal = jest.fn();
@@ -523,27 +503,6 @@ describe('LeagueElement', () => {
         'edit'
       );
     });
-    
-    it('should handle upcoming match click events', () => {
-      element.data = new League(mockLeagueData);
-      element.openMatchModal = jest.fn();
-      
-      const clickEvent = {
-        detail: {
-          type: 'matchClick',
-          match: { _id: 'matchFuture1', homeTeam: { _id: 'Team A', name: 'Team Alpha' }, awayTeam: { _id: 'Team B', name: 'Team Beta' } }
-        }
-      };
-      
-      element._handleUpcomingMatchClick(clickEvent);
-      
-      expect(element.openMatchModal).toHaveBeenCalledWith(
-        clickEvent.detail.match,
-        element.data.teams,
-        'edit'
-      );
-    });
-  });
   
   describe('Match Modal Handling', () => {
     it('should open match modal correctly', () => {

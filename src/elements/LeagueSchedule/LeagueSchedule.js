@@ -13,6 +13,7 @@ import { MOBILE_STYLES, DESKTOP_STYLES } from './LeagueSchedule-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
 import { exportMatchesToCSV, exportMatchesToExcel, exportMatchesToWord, exportMatchesToPDF, exportMatchesToJSON } from '../../utils/data.js';
 import { League } from '@lovebowls/leaguejs';
+import '../leagueCalendar/LeagueCalendar.js';
 
 /**
  * Custom element to display a complete schedule of matches from a League
@@ -523,6 +524,26 @@ class LeagueSchedule extends HTMLElement {
   }
 
   /**
+   * Handles calendar date change events
+   * @param {Event} e - Calendar event
+   */
+  handleCalendarDateChange = (e) => {
+    if (e.detail.type === 'dateChange') {
+      // Set the date filter based on the calendar selection
+      this.filterDate = e.detail.dateString || null;
+      this.currentPage = 1; // Reset to first page when filter changes
+      this.saveFilterState();
+      this.renderWithoutReset();
+    } else if (e.detail.type === 'filterClear') {
+      // Clear the date filter
+      this.filterDate = null;
+      this.currentPage = 1;
+      this.saveFilterState();
+      this.render();
+    }
+  }
+
+  /**
    * Handles team filter change
    * @param {Event} e - Change event
    */
@@ -764,7 +785,7 @@ class LeagueSchedule extends HTMLElement {
       <div class="schedule-container">
         ${this.error ? `<div class="error">${this.error}</div>` : ''}
         
-        <div class="filter-panel">
+        <div class="controls-panel">
           <div class="filter-controls">
             <div class="dropdown-shared">
               <select class="dropdown-select-shared" id="team-filter">
@@ -787,6 +808,12 @@ class LeagueSchedule extends HTMLElement {
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
             </select>
+          </div>
+        </div>
+        
+        <div class="filter-panel">
+          <div class="calendar-filter">
+            <league-calendar id="mobile-schedule-calendar" is-mobile="true"></league-calendar>
           </div>
         </div>
         
@@ -944,7 +971,7 @@ class LeagueSchedule extends HTMLElement {
       <div class="schedule-container">
         ${this.error ? `<div class="error">${this.error}</div>` : ''}
         
-        <div class="filter-panel">
+        <div class="controls-panel">
           <div class="filter-controls">
             <div class="dropdown-shared">
               <select class="dropdown-select-shared" id="team-filter">
@@ -967,6 +994,12 @@ class LeagueSchedule extends HTMLElement {
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
             </select>
+          </div>
+        </div>
+        
+        <div class="filter-panel">
+          <div class="calendar-filter">
+            <league-calendar id="desktop-schedule-calendar"></league-calendar>
           </div>
         </div>
         
@@ -1112,6 +1145,23 @@ class LeagueSchedule extends HTMLElement {
     const teamFilter = this.shadow.querySelector('#team-filter');
     if (teamFilter) {
       teamFilter.addEventListener('change', this.handleTeamFilter);
+    }
+    
+    // Calendar event handling
+    const calendarElement = this.shadow.querySelector('#mobile-schedule-calendar, #desktop-schedule-calendar');
+    if (calendarElement) {
+      // Configure calendar with matches data
+      if (this.matches && this.matches.length > 0) {
+        calendarElement.setAttribute('matches', JSON.stringify(this.matches));
+      }
+      
+      // Set current filter date if exists
+      if (this.filterDate) {
+        calendarElement.setAttribute('current-filter-date', this.filterDate);
+      }
+      
+      // Add event listener for calendar events
+      calendarElement.addEventListener('league-calendar-event', this.handleCalendarDateChange);
     }
     
     // Export dropdown

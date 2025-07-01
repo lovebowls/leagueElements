@@ -9,11 +9,8 @@ class LeagueEvent extends CustomEvent {
   }
 }
 
-import '../LeagueMatchesRecent/LeagueMatchesRecent.js';
-import '../LeagueMatchesUpcoming/LeagueMatchesUpcoming.js';
 import '../LeagueMatchesAttention/LeagueMatchesAttention.js';
 import '../leagueMatch/leagueMatch.js';
-import '../leagueCalendar/LeagueCalendar.js';
 import '../LeagueSchedule/LeagueSchedule.js';
 
 import {  MOBILE_STYLES,  DESKTOP_STYLES,  TABLE_HEADER,  MOBILE_TEMPLATE,  DESKTOP_TEMPLATE} from './leagueElement-styles.js';
@@ -28,8 +25,7 @@ class LeagueElement extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.data = null;
-    this.selectedResultDate = null; // Retained for LeagueMatchesRecent filtering if needed -- WILL BE REPLACED by activeCalendarFilterDate
-    this.activeCalendarFilterDate = null; // UPDATED: Will store a string in YYYY-MM-DD format representing the selected date
+    this.selectedResultDate = null; // Retained for LeagueMatchesRecent filtering if needed
     this.leftPanelFlexBasis = null;
     this.minRightPanelPixelWidth = null;
     this.activeView = 'table'; // Default to table view
@@ -45,7 +41,6 @@ class LeagueElement extends HTMLElement {
     this.lovebowlsTeams = []; // Store lovebowls teams data
     this._handleScheduleMatchEditBound = null; // Bound function for schedule match edit events
     this.selectedTeamForSchedule = null; // Track selected team for schedule filtering
-    this.shadow.host.addEventListener('league-calendar-event', this._handleCalendarDateChange.bind(this)); // ADDED event listener
   }
 
   get _isMobile() {
@@ -161,7 +156,17 @@ class LeagueElement extends HTMLElement {
     // Generate can-edit attribute for child components
     const canEditAttr = this._canEdit ? 'can-edit="true"' : 'can-edit="false"';
 
-    return template
+    // For desktop, conditionally show/hide the entire right panel and resizer
+    let processedTemplate = template;
+    if (!this._isMobile && !this._canEdit) {
+      // Hide the resizer and right panel when not in edit mode on desktop
+      processedTemplate = template
+        .replace('<div class="dashboard">', '<div class="dashboard no-right-panel">')
+        .replace('<div class="resizer"></div>', '<div class="resizer" style="display: none;"></div>')
+        .replace('<div class="right-panel">', '<div class="right-panel" style="display: none;">');
+    }
+
+    return processedTemplate
       .replace(/\{\{title\}\}/g, currentTitle)
       .replace('{{tableRows}}', this.tableRows)
       .replace('{{matrixView}}', this.activeView === 'matrix' ? this.renderMatrix() : '')
@@ -250,27 +255,6 @@ class LeagueElement extends HTMLElement {
         ${this._fillTemplate(baseTemplate)}
       `;
       
-      // Configure the recent matches components
-      const recentMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-      if (recentMatchesElement) {
-        recentMatchesElement.setAttribute('is-mobile', this._isMobile.toString());
-        recentMatchesElement.setAttribute('font-scale', String(this._fontScale));
-        recentMatchesElement.setAttribute('can-edit', this._canEdit.toString());
-        recentMatchesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
-        recentMatchesElement.setAttribute('data', JSON.stringify(this.data.matches));
-                
-        if (this.activeCalendarFilterDate) {
-            // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
-            recentMatchesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
-        } else {
-            recentMatchesElement.removeAttribute('filter-date');
-        }
-        
-        recentMatchesElement.removeEventListener('league-matches-recent-event', this._handleRecentMatchClick);
-        this._handleRecentMatchClickBound = this._handleRecentMatchClick.bind(this);
-        recentMatchesElement.addEventListener('league-matches-recent-event', this._handleRecentMatchClickBound);
-      }
-      
       // Configure the attention matches components (only if editing is enabled)
       if (this._canEdit) {
         const attentionMatchesElement = this.shadow.querySelector(this._isMobile ? '#mobile-attention-matches' : '#desktop-attention-matches');
@@ -303,33 +287,6 @@ class LeagueElement extends HTMLElement {
       if (this.activeView === 'trends') { // If trends tab is active by default (e.g. on reload/state persistence)
         this.setupTrendsViewInteractivity(); // Ensure interactivity is set up
       }
-
-      // Configure the upcoming fixtures component
-      const upcomingFixturesElement = this.shadow.querySelector(this._isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
-      if (upcomingFixturesElement) {
-        upcomingFixturesElement.setAttribute('is-mobile', this._isMobile.toString());
-        upcomingFixturesElement.setAttribute('font-scale', String(this._fontScale));
-        upcomingFixturesElement.setAttribute('can-edit', this._canEdit.toString());
-        upcomingFixturesElement.setAttribute('team-mapping', JSON.stringify(this._getTeamsFromLeagueData()));
-        
-        if (this.data && this.data.matches) {
-            upcomingFixturesElement.setAttribute('data', JSON.stringify(this.data.matches));
-            // Set filter-date for upcoming fixtures
-            if (this.activeCalendarFilterDate) {
-                // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
-                upcomingFixturesElement.setAttribute('filter-date', this.activeCalendarFilterDate);
-            } else {
-                upcomingFixturesElement.removeAttribute('filter-date');
-            }
-        } else {
-            console.warn('[LeagueElement] render: this.data.matches is NOT available for upcomingFixturesElement.');
-        }
-
-        // Add listener for match clicks
-        this._handleUpcomingMatchClickBound = this._handleUpcomingMatchClick.bind(this);
-        upcomingFixturesElement.removeEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Remove previous if any
-        upcomingFixturesElement.addEventListener('league-matches-upcoming-event', this._handleUpcomingMatchClickBound); // Listen for general events
-      }
       
       // Configure the schedule component
       const scheduleElement = this.shadow.querySelector(this._isMobile ? '#mobile-schedule' : '#desktop-schedule');
@@ -345,12 +302,7 @@ class LeagueElement extends HTMLElement {
           console.warn('[LeagueElement] render: this.data is NOT available for scheduleElement.');
         }
         
-        // Pass the current filter date to the schedule component
-        if (this.activeCalendarFilterDate) {
-          scheduleElement.setAttribute('filter-date', this.activeCalendarFilterDate);
-        } else {
-          scheduleElement.removeAttribute('filter-date');
-        }
+        // The schedule component now manages its own date filtering through its embedded calendar
         
         // Pass the selected team for schedule filtering
         if (this.selectedTeamForSchedule) {
@@ -365,27 +317,7 @@ class LeagueElement extends HTMLElement {
         }
       }
 
-      // ADDED: Configure the league-calendar component
-      const calendarElement = this.shadow.querySelector(this._isMobile ? '#mobile-calendar' : '#desktop-calendar');
-      if (calendarElement) {
-        calendarElement.setAttribute('is-mobile', this._isMobile.toString());
-        calendarElement.setAttribute('font-scale', String(this._fontScale));
-        if (this.data && this.data.matches) {
-            calendarElement.setAttribute('matches', JSON.stringify(this.data.matches));
-        } else {
-            console.warn('[LeagueElement] render: this.data.matches is NOT available for league-calendar.');
-        }
-        // Pass current filter date to keep calendar selection in sync if changed from parent
-        // (e.g. if filter was set by URL param or other means and leagueElement needs to inform calendar)
-        if (this.activeCalendarFilterDate) {
-            // UPDATED: activeCalendarFilterDate is now already a string in YYYY-MM-DD format
-            calendarElement.setAttribute('current-filter-date', this.activeCalendarFilterDate);
-        } else {
-            calendarElement.removeAttribute('current-filter-date');
-        }
-        // Event listener for 'league-calendar-event' is set up in connectedCallback of leagueElement
-        // and handles updates from the calendar.
-      }
+
 
     } else {
       // Show error if data is missing or invalid
@@ -419,6 +351,12 @@ class LeagueElement extends HTMLElement {
     
     if (!resizer || !leftPanel || !rightPanel) {
       console.warn('Resizer or panels not found, skipping setupResizer.');
+      return;
+    }
+
+    // Skip setup if resizer is hidden (when not in edit mode)
+    if (resizer.style.display === 'none') {
+      console.log('Resizer is hidden, skipping setupResizer.');
       return;
     }
 
@@ -482,8 +420,8 @@ class LeagueElement extends HTMLElement {
   }
 
   /**
-   * Renders the form icons with tooltips for recent matches.
-   * @param {Array<Object>|string} [matches=[]] - An array of recent match objects or a form string
+   * Renders the form icons with tooltips for matches.
+   * @param {Array<Object>|string} [matches=[]] - An array of match objects or a form string
    *                                Each object should have 'result' (W/D/L)
    *                                and 'description' (the tooltip text).
    * @returns {string} HTML string for the form icons.
@@ -844,7 +782,7 @@ class LeagueElement extends HTMLElement {
   }
 
   /**
-   * Sorts teams by their recent form using a weighted scoring system.
+   * Sorts teams by their form using a weighted scoring system.
    * More recent matches have higher weight in the calculation.
    * @param {Array<Object>} stats - Array of team statistics objects
    * @returns {Array<Object>} Teams sorted by form score (best form first)
@@ -2361,30 +2299,6 @@ class LeagueElement extends HTMLElement {
   }
 
   /**
-   * Get all matches for a team up to a specific date, sorted by date (most recent first)
-   * @deprecated Use FormUtils.getTeamMatchesUpToDate instead
-   */
-  _getTeamMatchesUpToDate(teamId, targetDate, allMatches) {
-    return FormUtils.getTeamMatchesUpToDate(teamId, targetDate, allMatches, this.tableFilter);
-  }
-
-  /**
-   * Calculate form score at a specific date for a team
-   * @deprecated Use FormUtils.calculateFormScoreAtDate instead
-   */
-  _calculateFormScoreAtDate(teamId, targetDate, allMatches) {
-    return FormUtils.calculateFormScoreAtDate(teamId, targetDate, allMatches, this.tableFilter);
-  }
-
-  /**
-   * Calculate form score from a specific set of matches for a team
-   * @deprecated Use FormUtils.calculateFormScoreFromMatches instead
-   */
-  _calculateFormScoreFromMatches(matches, teamId) {
-    return FormUtils.calculateFormScoreFromMatches(matches, teamId);
-  }
-
-  /**
    * Calculate basic statistics from matches (helper method for rank movement calculation)
    * @param {Array<Object>} matches - Array of match objects
    * @param {Array<string>} allTeamIdsInLeague - Array of all team IDs in the league
@@ -2650,104 +2564,7 @@ class LeagueElement extends HTMLElement {
     }
   }
 
-  // New handler for match clicks from league-matches-upcoming
-  _handleUpcomingMatchClick(e) {
-    // Check if the event is specifically a matchClick event
-    if (e.detail.type === 'matchClick' && e.detail.match) {
-      // Use the standardized team objects directly from the data property
-      // with fallback to table data if teams array is not available
-      const teams = this._getTeamsFromLeagueData();
-      this.openMatchModal(e.detail.match, teams, 'edit');
-    }
-  }
 
-  // New handler for date changes from league-matches-upcoming calendar
-  _handleUpcomingFixtureDateChange(e) {
-    // Check if the event is specifically a dateChange event
-    if (e.detail.type === 'dateChange') {
-      const selectedDateFromUpcoming = e.detail.selectedDate;
-    }
-  }
-
-  // ADDED: Handler for events from league-calendar
-  _handleCalendarDateChange(e) {
-    if (e.detail.type === 'dateChange') {
-        // Use Temporal API for date handling
-        
-        // Option 1: Use the dateString directly (YYYY-MM-DD format) - preferred approach
-        if (e.detail.dateString) {
-            // Store the date string directly - this is the simplest and most reliable
-            this.activeCalendarFilterDate = e.detail.dateString;
-        } 
-        // Option 2: Create from year, month, day components using Temporal
-        else if (e.detail.year && e.detail.month && e.detail.day) {
-            try {
-                // Create a PlainDate using Temporal
-                const plainDate = TemporalUtils.createPlainDate(
-                    e.detail.year, 
-                    e.detail.month, 
-                    e.detail.day
-                );
-                
-                // Store as ISO string (YYYY-MM-DD)
-                this.activeCalendarFilterDate = plainDate.toString();
-            } catch (err) {
-                console.error('[LeagueElement] Error creating Temporal date:', err);
-                this.activeCalendarFilterDate = null;
-            }
-        }
-        // Legacy support for Date objects
-        else if (e.detail.date) {
-            try {
-                // Convert legacy Date to Temporal PlainDate
-                const legacyDate = new Date(e.detail.date);
-                const plainDate = TemporalUtils.fromLegacyDate(legacyDate);
-                if (plainDate) {
-                    this.activeCalendarFilterDate = plainDate.toString();
-                } else {
-                    throw new Error('Invalid date conversion');
-                }
-            } catch (err) {
-                console.error('[LeagueElement] Error converting legacy Date:', err);
-                
-                // Fallback to direct string formatting if Temporal conversion fails
-                const d = new Date(e.detail.date);
-                this.activeCalendarFilterDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            }
-        }
-        else {
-            console.warn('[LeagueElement] No date information found in calendar event', e.detail);
-            this.activeCalendarFilterDate = null;
-        }
-    } else if (e.detail.type === 'filterClear') {
-        this.activeCalendarFilterDate = null;
-    }
-    
-    // Update child components that depend on this filter date
-    this.render(); // Re-render to propagate the filter-date attribute to children
-  }
-
-  // OPTIONAL: Direct update method if render() is too much
-  /*
-  _updateChildFilterDates() {
-    const isMobile = this.getAttribute('is-mobile') === 'true';
-    const newFilterDate = this.activeCalendarFilterDate ? this.activeCalendarFilterDate.toISOString().split('T')[0] : null;
-
-    const upcomingFixturesElement = this.shadow.querySelector(isMobile ? '#mobile-upcoming-fixtures' : '#desktop-upcoming-fixtures');
-    const recentMatchesElement = this.shadow.querySelector(isMobile ? '#mobile-recent-matches' : '#desktop-recent-matches');
-    const calendarElement = this.shadow.querySelector(isMobile ? '#mobile-calendar' : '#desktop-calendar');
-
-    if (newFilterDate) {
-        if (upcomingFixturesElement) upcomingFixturesElement.setAttribute('filter-date', newFilterDate);
-        if (recentMatchesElement) recentMatchesElement.setAttribute('filter-date', newFilterDate);
-        if (calendarElement) calendarElement.setAttribute('current-filter-date', newFilterDate);
-    } else {
-        if (upcomingFixturesElement) upcomingFixturesElement.removeAttribute('filter-date');
-        if (recentMatchesElement) recentMatchesElement.removeAttribute('filter-date');
-        if (calendarElement) calendarElement.removeAttribute('current-filter-date');
-    }
-  }
-  */
 
   // Add this new method to parse lovebowls teams
   parseLovebowlsTeams(teamsData) {
@@ -3171,8 +2988,7 @@ class LeagueElement extends HTMLElement {
         match
       }));
     } else if (type === 'filterClear') {
-      // Clear both date and team filters when schedule component requests it
-      this.activeCalendarFilterDate = null;
+      // Clear team filter when schedule component requests it
       this.selectedTeamForSchedule = null;
       this.render(); // Re-render to update all components
     }

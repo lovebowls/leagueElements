@@ -699,7 +699,7 @@ const BASE_STYLES = `
       }
 
       /* Rest of mobile styles remain unchanged */
-      .panel { /* This applies to upcoming, recent, attention panels in mobile */
+      .panel { /* This applies to attention panels in mobile */
         border: 1px solid var(--le-border-color-medium); 
         border-radius: var(--le-border-radius-standard); 
         background: var(--le-background-color-panel); 
@@ -883,6 +883,10 @@ const BASE_STYLES = `
         flex-direction: column;
         gap: var(--le-padding-m); 
         min-width: 0;
+      }
+      /* When right panel is hidden, left panel should take full width */
+      .dashboard.no-right-panel .left-panel {
+        flex: 1;
       }
       .panel { /* Panels in the right column for desktop */
         border: 1px solid var(--le-border-color-medium); 
@@ -1074,17 +1078,6 @@ const BASE_STYLES = `
             {{trendsViewContent}}
           </div>
         </div>
-        <div class="panel"> 
-          <league-calendar id="mobile-calendar"></league-calendar> 
-        </div>
-        <div class="panel">
-          <div class="panel-header panel-header-shared">Upcoming Matches</div>
-          <league-matches-upcoming id="mobile-upcoming-fixtures" is-mobile="true"></league-matches-upcoming>
-        </div>
-        <div class="panel">
-          <div class="panel-header panel-header-shared">Recent Results</div>
-          <league-matches-recent id="mobile-recent-matches" is-mobile="true"></league-matches-recent>
-        </div>
         {{attentionPanel}}
       </div>
     `;
@@ -1139,17 +1132,6 @@ const BASE_STYLES = `
         </div>
         <div class="resizer"></div>
         <div class="right-panel">
-          <div class="panel">
-            <league-calendar id="desktop-calendar"></league-calendar>
-          </div>
-          <div class="panel">
-            <div class="panel-header panel-header-shared">Upcoming Matches</div>
-            <league-matches-upcoming id="desktop-upcoming-fixtures"></league-matches-upcoming>
-          </div>
-          <div class="panel">
-            <div class="panel-header panel-header-shared">Recent Results</div>
-            <league-matches-recent id="desktop-recent-matches"></league-matches-recent>
-          </div>
           {{attentionPanel}}
         </div>
       </div>

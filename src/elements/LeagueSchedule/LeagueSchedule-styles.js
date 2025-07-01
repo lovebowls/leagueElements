@@ -29,13 +29,26 @@ const BASE_STYLES = `
     gap: var(--le-padding-s, 0.5rem);
   }
   
+  .calendar-filter {
+    /* Layout properties moved to mobile/desktop sections */
+    padding: var(--le-padding-s, 0.5rem) 0;
+  }
+  
+  .controls-panel {
+    /* Layout properties moved to mobile/desktop sections */
+    padding: 0;
+    margin-bottom: var(--le-padding-s, 0.5rem);
+    background: transparent;
+    border: none;
+  }
+  
   /* Enhanced dropdown styling for button-like appearance */
-  .filter-panel .dropdown-shared {
+  .controls-panel .dropdown-shared {
     position: relative;
     display: inline-block;
   }
   
-  .filter-panel .dropdown-select-shared {
+  .controls-panel .dropdown-select-shared {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -56,20 +69,20 @@ const BASE_STYLES = `
     font-weight: 500;
   }
   
-  .filter-panel .dropdown-select-shared:hover {
+  .controls-panel .dropdown-select-shared:hover {
     background-color: var(--le-background-color-button-hover, #e0e0e0);
     border-color: var(--le-border-color-dark, #ccc);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
-  .filter-panel .dropdown-select-shared:focus {
+  .controls-panel .dropdown-select-shared:focus {
     outline: none;
     border-color: var(--le-text-color-accent, #2196f3);
     box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
     background-color: var(--le-background-color-panel, #fff);
   }
   
-  .filter-panel .dropdown-select-shared:active {
+  .controls-panel .dropdown-select-shared:active {
     background-color: var(--le-background-color-button-hover, #e0e0e0);
     transform: translateY(1px);
   }
@@ -364,31 +377,39 @@ export const MOBILE_STYLES = `
     flex-direction: column;
   }
   
-  .filter-panel {
+  .controls-panel {
     display: flex;
-    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
     gap: var(--le-padding-s, 0.5rem);
-    margin-bottom: var(--le-padding-m, 1rem);
+    margin-bottom: var(--le-padding-s, 0.5rem);
   }
   
   .filter-controls {
     display: flex;
     align-items: center;
-    width: 50%;
+    gap: var(--le-padding-s, 0.5rem);
+    flex: 1;
   }
   
-  /* Mobile-specific dropdown styling */
-  .filter-panel .filter-controls .dropdown-shared {
+  .filter-panel {
+    margin-bottom: var(--le-padding-m, 1rem);
+  }
+  
+  .calendar-filter {
     width: 100%;
   }
   
-  /* Make the direct child dropdown-shared also 50% width */
-  .filter-panel > .dropdown-shared {
-    width: 50%;
+  /* Mobile-specific dropdown styling */
+  .controls-panel .filter-controls .dropdown-shared {
+    flex: 1;
   }
   
-  .filter-panel .dropdown-shared .dropdown-select-shared {
+  .controls-panel .dropdown-shared {
+    flex: 1;
+  }
+  
+  .controls-panel .dropdown-shared .dropdown-select-shared {
     width: 100%;
     padding: var(--le-padding-s, 0.75rem) calc(var(--le-padding-m, 1rem) * 2.5) var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
     min-height: 44px; /* Minimum touch target size */
@@ -397,7 +418,7 @@ export const MOBILE_STYLES = `
     border-width: 2px;
   }
   
-  .filter-panel .dropdown-select-shared:focus {
+  .controls-panel .dropdown-select-shared:focus {
     border-width: 2px;
   }
   
@@ -633,24 +654,36 @@ export const DESKTOP_STYLES = `
     flex-direction: column;
   }
   
-  .filter-panel {
+  .controls-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: var(--le-padding-m, 1rem);
+    margin-bottom: var(--le-padding-s, 0.5rem);
   }
   
   .filter-controls {
     display: flex;
     align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
+  }
+  
+  .filter-panel {
+    margin-bottom: var(--le-padding-m, 1rem);
+  }
+  
+  .calendar-filter {
+    max-width: 400px;
+    margin: 0;
   }
   
   /* Desktop-specific dropdown styling */
-  .filter-controls .dropdown-shared {
+  .controls-panel .filter-controls .dropdown-shared {
     width: auto;
     min-width: 200px;
   }
   
-  .filter-panel .dropdown-shared .dropdown-select-shared {
+  .controls-panel .dropdown-shared .dropdown-select-shared {
     min-width: 160px;
     width: auto;
   }
@@ -870,7 +903,7 @@ export const DESKTOP_STYLES = `
   }
   
   /* Desktop dropdowns - ensure consistency */
-  .filter-panel .dropdown-shared {
+  .controls-panel .dropdown-shared {
     width: auto;
     min-width: 160px;
   }
