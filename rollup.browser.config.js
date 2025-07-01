@@ -12,10 +12,8 @@ const __dirname = dirname(__filename);
 // List of elements to bundle
 const elements = [
   'leagueElement',
-  'LeagueMatchesRecent',
   'leagueAdminElement',
   'LeagueMatchesAttention',
-  'LeagueMatchesUpcoming',
   'leagueMatch',
   'leagueTeams',
   'LeagueCalendar',

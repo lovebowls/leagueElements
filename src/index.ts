@@ -15,6 +15,4 @@ export {
   // Explicitly re-export LeagueElement as LeagueElementComponent to avoid naming conflict
   LeagueElement as LeagueElementComponent, 
   LeagueMatchesAttention,
-  LeagueMatchesRecent,
-  LeagueMatchesUpcoming
 } from './elements'; 

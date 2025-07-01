@@ -25,7 +25,6 @@ class LeagueElement extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.data = null;
-    this.selectedResultDate = null; // Retained for LeagueMatchesRecent filtering if needed
     this.leftPanelFlexBasis = null;
     this.minRightPanelPixelWidth = null;
     this.activeView = 'table'; // Default to table view

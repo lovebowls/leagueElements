@@ -462,6 +462,60 @@ const BASE_STYLES = `
       /* Mobile-specific layout styles */
       .tab-bar {
         display: flex;
+        flex-wrap: wrap; /* Allow tabs to wrap to next line */
+        gap: var(--le-padding-xs); /* Small gap between tabs */
+        padding: var(--le-padding-xs); /* Add padding around the tab bar */
+        background-color: var(--le-background-color-header);
+        border-bottom: 1px solid var(--le-border-color-medium);
+        overflow-x: auto; /* Allow horizontal scrolling as fallback */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      }
+      
+      /* Mobile tab button styling */
+      .tab-bar .tab-button {
+        flex: 1 1 auto; /* Allow flexible sizing */
+        min-width: 70px; /* Minimum width to prevent too small buttons */
+        max-width: 120px; /* Maximum width to allow more tabs per row */
+        padding: var(--le-padding-s) var(--le-padding-xs); /* Adjusted padding for mobile */
+        font-size: var(--le-font-size-small); /* Smaller font for mobile */
+        text-align: center;
+        white-space: nowrap; /* Prevent text wrapping within buttons */
+        border-radius: var(--le-border-radius-small);
+        margin: 0; /* Remove any default margins */
+        border: 1px solid var(--le-border-color-medium);
+        background: var(--le-background-color-button);
+        color: var(--le-text-color-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        /* Ensure good touch targets */
+        min-height: 44px; /* iOS recommended minimum touch target */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .tab-bar .tab-button:hover {
+        background: var(--le-background-color-button-hover);
+        color: var(--le-text-color-primary);
+      }
+      
+      .tab-bar .tab-button.active {
+        background: var(--le-background-color-panel);
+        color: var(--le-text-color-primary);
+        font-weight: 600;
+        border-color: var(--le-text-color-accent);
+      }
+      
+      /* Settings icon in mobile tab bar */
+      .tab-bar .settings-icon {
+        flex-shrink: 0; /* Don't shrink the settings icon */
+        min-width: 44px; /* Ensure good touch target */
+        height: 44px; /* Match tab button height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto; /* Push to the right */
       }
       .view-container {
         flex: 1; 
@@ -736,12 +790,12 @@ const BASE_STYLES = `
       td:nth-child(3) {
         font-weight: bold;
       }
-      .panel-header { /* Header within the right-side panels (Upcoming, Recent, Attention) */
+      .panel-header { /* Header within the right-side panels (Attention) */
         font-size: var(--le-font-size-medium); 
         margin-bottom: var(--le-padding-s); 
         color: var(--le-text-color-primary); 
       }
-      .match-item { /* For items within Upcoming, Recent, Attention */
+      .match-item { /* For items within Attention */
         padding: var(--le-padding-s) var(--le-padding-s); /* Increased padding */
       }
       .match-score { /* This seems to be for a different component, but if used here */
@@ -802,6 +856,26 @@ const BASE_STYLES = `
           display: none;
         }
       }
+      
+      /* Extra small screens - even more compact tabs */
+      @media (max-width: 400px) {
+        .tab-bar .tab-button {
+          min-width: 60px; /* Even smaller minimum width */
+          max-width: 90px; /* Smaller maximum width */
+          padding: var(--le-padding-xs) 2px; /* Tighter padding */
+          font-size: calc(var(--le-font-size-small) * 0.9); /* Slightly smaller font */
+        }
+        
+        .tab-bar .settings-icon {
+          min-width: 36px; /* Smaller settings icon */
+          height: 36px;
+          font-size: var(--le-font-size-medium);
+        }
+        
+        .tab-bar {
+          padding: 2px; /* Tighter padding around tab bar */
+        }
+      }
     `;
 
   // Desktop-specific styles
@@ -816,6 +890,52 @@ const BASE_STYLES = `
       /* Desktop-specific layout styles */
       .tab-bar {
         display: flex;
+        gap: 0; /* No gap for desktop tabs as they connect */
+        border-bottom: 2px solid var(--le-border-color-light);
+        background-color: var(--le-background-color-header);
+      }
+      
+      /* Desktop tab button styling */
+      .tab-bar .tab-button {
+        background: var(--le-background-color-button);
+        border: 1px solid var(--le-border-color-medium);
+        border-bottom: none;
+        padding: var(--le-padding-s) var(--le-padding-m);
+        cursor: pointer;
+        font-size: var(--le-font-size-medium);
+        font-weight: 500;
+        color: var(--le-text-color-secondary);
+        border-radius: var(--le-border-radius-standard) var(--le-border-radius-standard) 0 0;
+        position: relative;
+        transition: all 0.2s ease;
+        min-width: 120px;
+        text-align: center;
+        user-select: none;
+        white-space: nowrap;
+      }
+      
+      .tab-bar .tab-button:hover {
+        background: var(--le-background-color-button-hover);
+        color: var(--le-text-color-primary);
+      }
+      
+      .tab-bar .tab-button.active {
+        background: var(--le-background-color-panel);
+        color: var(--le-text-color-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--le-background-color-panel);
+        margin-bottom: -2px;
+        z-index: 1;
+      }
+      
+      .tab-bar .tab-button:not(:last-child) {
+        border-right: none;
+      }
+      
+      /* Settings icon in desktop tab bar */
+      .tab-bar .settings-icon {
+        margin-left: auto; /* Push to the right */
+        align-self: center;
       }
       .view-container {
         flex: 1; 

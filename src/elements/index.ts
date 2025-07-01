@@ -30,7 +30,5 @@ export { default as LeagueMatch } from './leagueMatch/leagueMatch.js';
 export { default as LeagueAdminElement } from './leagueAdminElement/leagueAdminElement.js';
 export { default as LeagueElement } from './leagueElement/leagueElement.js';
 export { default as LeagueMatchesAttention } from './LeagueMatchesAttention/LeagueMatchesAttention.js';
-export { default as LeagueMatchesRecent } from './LeagueMatchesRecent/LeagueMatchesRecent.js';
-export { default as LeagueMatchesUpcoming } from './LeagueMatchesUpcoming/LeagueMatchesUpcoming.js';
 export { default as LeagueSchedule } from './LeagueSchedule/LeagueSchedule.js';
 export { default as LeagueTeams } from './leagueTeams/leagueTeams.js'; 

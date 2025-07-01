@@ -10,8 +10,6 @@ jest.mock('../shared-styles.js', () => ({
   buttonStyles: ''
 }));
 
-jest.mock('../LeagueMatchesRecent/LeagueMatchesRecent.js', () => {});
-jest.mock('../LeagueMatchesUpcoming/LeagueMatchesUpcoming.js', () => {});
 jest.mock('../LeagueMatchesAttention/LeagueMatchesAttention.js', () => {});
 jest.mock('../leagueMatch/leagueMatch.js', () => {});
 jest.mock('../LeagueCalendar/LeagueCalendar.js', () => {});
@@ -157,8 +155,6 @@ describe('LeagueElement', () => {
   describe('Component Initialization', () => {
     it('should initialize with default properties', () => {
       expect(element.data).toBeNull();
-      expect(element.selectedResultDate).toBeNull();
-      expect(element.activeCalendarFilterDate).toBeNull();
       expect(element.activeView).toBe('table');
       expect(element.tableFilter).toBe('overall');
       expect(element.matchModalOpen).toBe(false);
@@ -453,32 +449,6 @@ describe('LeagueElement', () => {
   });
   
   describe('Event Handling', () => {
-    it('should handle calendar date change events', () => {
-      const dateChangeEvent = {
-        detail: {
-          type: 'dateChange',
-          dateString: '2023-02-15'
-        }
-      };
-      
-      element._handleCalendarDateChange(dateChangeEvent);
-      
-      expect(element.activeCalendarFilterDate).toBe('2023-02-15');
-    });
-    
-    it('should handle calendar date clear events', () => {
-      element.activeCalendarFilterDate = '2023-02-15';
-      
-      const clearEvent = {
-        detail: {
-          type: 'filterClear'
-        }
-      };
-      
-      element._handleCalendarDateChange(clearEvent);
-      
-      expect(element.activeCalendarFilterDate).toBeNull();
-    });
         
     it('should handle attention match click events', () => {
       element.data = new League(mockLeagueData);
@@ -503,6 +473,7 @@ describe('LeagueElement', () => {
         'edit'
       );
     });
+  });
   
   describe('Match Modal Handling', () => {
     it('should open match modal correctly', () => {

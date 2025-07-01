@@ -11,7 +11,6 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export default {
   input: 'src/index.ts',
-  cache: true,
   output: [
     {
       file: 'dist/index.js',
