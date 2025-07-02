@@ -18,6 +18,7 @@ import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
 import { League, Match } from '@lovebowls/leaguejs';
 import { FormUtils } from '../../utils/formUtils.js';
+import { exportTableToExcel, exportTableToWord, exportTableToPDF } from '../../utils/data.js';
 
 class LeagueElement extends HTMLElement {
 
@@ -1987,6 +1988,55 @@ class LeagueElement extends HTMLElement {
         this.tableFilter = event.target.value;
         this.render(); // Re-render with the new filter
       };
+    }
+
+    // Setup export dropdown
+    const exportSelect = this.shadow.querySelector('#table-export-select');
+    if (exportSelect) {
+      exportSelect.onchange = (event) => {
+        const exportType = event.target.value;
+        if (exportType) {
+          this.handleTableExport(exportType);
+          // Reset dropdown to default state
+          event.target.value = '';
+        }
+      };
+    }
+  }
+
+  handleTableExport(exportType) {
+    // Get the current filtered table data as displayed
+    const filteredTableData = this._getFilteredLeagueData();
+    
+    if (!filteredTableData || filteredTableData.length === 0) {
+      alert('No table data available to export.');
+      return;
+    }
+
+    // Get league name for the export
+    const leagueName = this.data?.name || 'League Table';
+    
+    // Generate filename based on league name and filter
+    const baseFilename = leagueName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    
+    try {
+      switch (exportType) {
+        case 'excel':
+          exportTableToExcel(filteredTableData, this.tableFilter, leagueName, baseFilename);
+          break;
+        case 'word':
+          exportTableToWord(filteredTableData, this.tableFilter, leagueName, baseFilename);
+          break;
+        case 'pdf':
+          exportTableToPDF(filteredTableData, this.tableFilter, leagueName, baseFilename);
+          break;
+        default:
+          console.warn('Unknown export type:', exportType);
+          alert('Unknown export format. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error during table export:', error);
+      alert('Error exporting table. Please try again.');
     }
   }
 

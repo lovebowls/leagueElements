@@ -327,6 +327,22 @@ const BASE_STYLES = `
 export const MOBILE_STYLES = `
   ${BASE_STYLES}
   
+  /* Mobile-specific controls panel adjustments */
+  .controls-panel {
+    flex-direction: column;
+    gap: var(--le-padding-s, 0.5rem);
+    align-items: stretch;
+  }
+  
+  .controls-panel .dropdown-shared {
+    width: 100%;
+  }
+  
+  .controls-panel .dropdown-select-shared {
+    width: 100%;
+    min-width: auto;
+  }
+  
   .calendar-filter {
     width: 100%;
   }
@@ -557,6 +573,26 @@ export const MOBILE_STYLES = `
 
 export const DESKTOP_STYLES = `
   ${BASE_STYLES}
+  
+  /* Desktop-specific controls panel adjustments */
+  .controls-panel {
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .filter-controls {
+    flex: 0 0 auto;
+  }
+  
+  .controls-panel .dropdown-shared:last-child {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+  
+  .controls-panel .dropdown-shared:last-child .dropdown-select-shared {
+    min-width: 120px;
+    width: auto;
+  }
       
   .calendar-filter {
     max-width: 400px;

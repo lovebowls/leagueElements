@@ -1122,4 +1122,351 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/**
+ * Export league table to Excel format and trigger download
+ * @param {Array} tableData - Array of team objects from the league table
+ * @param {string} tableFilter - Current table filter (overall, home, away, form)
+ * @param {string} leagueName - Name of the league
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export async function exportTableToExcel(tableData, tableFilter = 'overall', leagueName = 'League', filename = 'league-table') {
+  if (!tableData || !Array.isArray(tableData)) {
+    console.warn('exportTableToExcel: Invalid table data');
+    return;
+  }
+
+  try {
+    // Define the schema for the Excel file
+    const schema = [
+      {
+        column: 'Position',
+        type: Number,
+        value: team => team.currentRank || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Team',
+        type: String,
+        value: team => team.teamDisplayName || team.teamName || 'Unknown',
+        width: 30,
+        align: 'left'
+      },
+      {
+        column: 'Points',
+        type: Number,
+        value: team => team.points || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Played',
+        type: Number,
+        value: team => team.played || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Won',
+        type: Number,
+        value: team => team.won || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Drawn',
+        type: Number,
+        value: team => team.drawn || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Lost',
+        type: Number,
+        value: team => team.lost || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'For',
+        type: Number,
+        value: team => team.shotsFor || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Against',
+        type: Number,
+        value: team => team.shotsAgainst || 0,
+        width: 10,
+        align: 'center'
+      },
+      {
+        column: 'Difference',
+        type: Number,
+        value: team => team.shotDifference || 0,
+        width: 12,
+        align: 'center'
+      }
+    ];
+
+    const filterSuffix = tableFilter !== 'overall' ? ` (${tableFilter.charAt(0).toUpperCase() + tableFilter.slice(1)})` : '';
+    const finalFilename = `${filename}${filterSuffix.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+    // Generate the Excel file
+    await writeXlsxFile(tableData, {
+      schema,
+      fileName: `${finalFilename}.xlsx`,
+      fontFamily: 'Calibri',
+      fontSize: 11,
+      getHeaderStyle: () => ({
+        fontWeight: 'bold',
+        backgroundColor: '#f2f2f2',
+        align: 'center'
+      })
+    });
+
+    console.log(`Excel file "${finalFilename}.xlsx" has been downloaded successfully`);
+  } catch (error) {
+    console.error('Error exporting table to Excel:', error);
+    alert('Error creating Excel file. Please try again.');
+  }
+}
+
+/**
+ * Export league table to Word format and trigger download
+ * @param {Array} tableData - Array of team objects from the league table
+ * @param {string} tableFilter - Current table filter (overall, home, away, form)
+ * @param {string} leagueName - Name of the league
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export function exportTableToWord(tableData, tableFilter = 'overall', leagueName = 'League', filename = 'league-table') {
+  if (!tableData || !Array.isArray(tableData)) {
+    console.warn('exportTableToWord: Invalid table data');
+    return;
+  }
+
+  const filterSuffix = tableFilter !== 'overall' ? ` (${tableFilter.charAt(0).toUpperCase() + tableFilter.slice(1)})` : '';
+  const finalFilename = `${filename}${filterSuffix.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+  // Create HTML document that Word can open
+  let htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${escapeHtml(leagueName)} Table${escapeHtml(filterSuffix)}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        h2 { color: #666; margin-top: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        td:nth-child(2) { text-align: left; } /* Team name column */
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .stats { margin-top: 10px; font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>${escapeHtml(leagueName)} Table${escapeHtml(filterSuffix)}</h1>
+    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Pos</th>
+                <th>Team</th>
+                <th>Pts</th>
+                <th>P</th>
+                <th>W</th>
+                <th>D</th>
+                <th>L</th>
+                <th>F</th>
+                <th>A</th>
+                <th>±</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+  tableData.forEach(team => {
+    const teamName = escapeHtml(team.teamDisplayName || team.teamName || 'Unknown');
+    const position = team.currentRank || '-';
+    const points = team.points || 0;
+    const played = team.played || 0;
+    const won = team.won || 0;
+    const drawn = team.drawn || 0;
+    const lost = team.lost || 0;
+    const shotsFor = team.shotsFor || 0;
+    const shotsAgainst = team.shotsAgainst || 0;
+    const difference = team.shotDifference || 0;
+    const diffSign = difference > 0 ? '+' : '';
+    
+    htmlContent += `
+            <tr>
+                <td>${position}</td>
+                <td>${teamName}</td>
+                <td><strong>${points}</strong></td>
+                <td>${played}</td>
+                <td>${won}</td>
+                <td>${drawn}</td>
+                <td>${lost}</td>
+                <td>${shotsFor}</td>
+                <td>${shotsAgainst}</td>
+                <td>${diffSign}${difference}</td>
+            </tr>`;
+  });
+
+  htmlContent += `
+        </tbody>
+    </table>
+ </body>
+</html>`;
+
+  // Create and download file
+  downloadFile(htmlContent, `${finalFilename}.doc`, 'application/msword');
+}
+
+/**
+ * Export league table to PDF format and trigger download
+ * @param {Array} tableData - Array of team objects from the league table
+ * @param {string} tableFilter - Current table filter (overall, home, away, form)
+ * @param {string} leagueName - Name of the league
+ * @param {string} filename - Filename for the export (without extension)
+ */
+export function exportTableToPDF(tableData, tableFilter = 'overall', leagueName = 'League', filename = 'league-table') {
+  if (!tableData || !Array.isArray(tableData)) {
+    console.warn('exportTableToPDF: Invalid table data');
+    return;
+  }
+
+  const filterSuffix = tableFilter !== 'overall' ? ` (${tableFilter.charAt(0).toUpperCase() + tableFilter.slice(1)})` : '';
+  const finalFilename = `${filename}${filterSuffix.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+  // Create a simple HTML structure that can be printed to PDF
+  let htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${escapeHtml(leagueName)} Table${escapeHtml(filterSuffix)}</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            font-size: 12px;
+        }
+        h1 { 
+            color: #333; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 10px; 
+            font-size: 18px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px; 
+            page-break-inside: avoid;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 6px; 
+            text-align: center; 
+            font-size: 11px;
+        }
+        th { 
+            background-color: #f2f2f2; 
+            font-weight: bold; 
+        }
+        td:nth-child(2) { text-align: left; } /* Team name column */
+        tr:nth-child(even) { 
+            background-color: #f9f9f9; 
+        }
+        .print-instruction {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .stats { 
+            margin-top: 15px; 
+            font-size: 10px; 
+            color: #666; 
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-instruction no-print">
+        <strong>Instructions:</strong> Use your browser's print function (Ctrl+P) and select "Save as PDF" to create a PDF file.
+    </div>
+    
+    <h1>${escapeHtml(leagueName)} Table${escapeHtml(filterSuffix)}</h1>
+    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Pos</th>
+                <th>Team</th>
+                <th>Pts</th>
+                <th>P</th>
+                <th>W</th>
+                <th>D</th>
+                <th>L</th>
+                <th>F</th>
+                <th>A</th>
+                <th>±</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+  tableData.forEach(team => {
+    const teamName = escapeHtml(team.teamDisplayName || team.teamName || 'Unknown');
+    const position = team.currentRank || '-';
+    const points = team.points || 0;
+    const played = team.played || 0;
+    const won = team.won || 0;
+    const drawn = team.drawn || 0;
+    const lost = team.lost || 0;
+    const shotsFor = team.shotsFor || 0;
+    const shotsAgainst = team.shotsAgainst || 0;
+    const difference = team.shotDifference || 0;
+    const diffSign = difference > 0 ? '+' : '';
+    
+    htmlContent += `
+            <tr>
+                <td><strong>${position}</strong></td>
+                <td>${teamName}</td>
+                <td><strong>${points}</strong></td>
+                <td>${played}</td>
+                <td>${won}</td>
+                <td>${drawn}</td>
+                <td>${lost}</td>
+                <td>${shotsFor}</td>
+                <td>${shotsAgainst}</td>
+                <td>${diffSign}${difference}</td>
+            </tr>`;
+  });
+
+  htmlContent += `
+        </tbody>
+    </table>
+</body>
+</html>`;
+
+  // Open in new window for printing to PDF
+  const newWindow = window.open('', '_blank');
+  if (newWindow) {
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+    newWindow.focus();
+  } else {
+    // Fallback: download as HTML file
+    downloadFile(htmlContent, `${finalFilename}.html`, 'text/html');
+  }
 } 

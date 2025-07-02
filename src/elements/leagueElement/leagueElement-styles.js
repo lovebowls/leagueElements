@@ -581,6 +581,18 @@ const BASE_STYLES = `
         align-items: center;
         gap: 10px;
       }
+      
+      .controls-panel {
+        display: flex;
+        align-items: center;
+        gap: var(--le-padding-s, 0.5rem);
+      }
+      
+      .filter-controls {
+        display: flex;
+        align-items: center;
+        gap: var(--le-padding-s, 0.5rem);
+      }
       .matrix-grid {
         display: grid;
       }
@@ -949,6 +961,18 @@ const BASE_STYLES = `
         justify-content: space-between;
         align-items: center;
       }
+      
+      .controls-panel {
+        display: flex;
+        align-items: center;
+        gap: var(--le-padding-s, 0.5rem);
+      }
+      
+      .filter-controls {
+        display: flex;
+        align-items: center;
+        gap: var(--le-padding-s, 0.5rem);
+      }
       .matrix-grid {
         display: grid;
       }
@@ -1143,6 +1167,14 @@ const BASE_STYLES = `
               <div class="controls-panel">
                 <div class="filter-controls">
                   <div class="dropdown-shared">
+                    <select id="table-export-select" class="dropdown-select-shared">
+                      <option value="">Export</option>
+                      <option value="excel">Excel</option>
+                      <option value="word">Word</option>
+                      <option value="pdf">PDF</option>
+                    </select>
+                  </div>
+                  <div class="dropdown-shared">
                     <select id="table-filter-select" class="dropdown-select-shared">
                       <option value="overall" {{overallSelected}}>Overall</option>
                       <option value="home" {{homeSelected}}>Home</option>
@@ -1150,8 +1182,8 @@ const BASE_STYLES = `
                       <option value="form" {{formSelected}}>Form</option>
                     </select>
                   </div>
-                  <span class="settings-icon" title="Edit League Settings">⚙️</span>
                 </div>
+                <span class="settings-icon" title="Edit League Settings">⚙️</span>
               </div>
             </div>
             <div class="content">
@@ -1198,6 +1230,14 @@ const BASE_STYLES = `
               <span>{{title}}</span>
               <div class="controls-panel">
                 <div class="filter-controls">
+                  <div class="dropdown-shared">
+                    <select id="table-export-select" class="dropdown-select-shared">
+                      <option value="">Export</option>
+                      <option value="excel">Excel</option>
+                      <option value="word">Word</option>
+                      <option value="pdf">PDF</option>
+                    </select>
+                  </div>
                   <div class="dropdown-shared">
                     <select id="table-filter-select" class="dropdown-select-shared">
                       <option value="overall" {{overallSelected}}>Overall</option>
