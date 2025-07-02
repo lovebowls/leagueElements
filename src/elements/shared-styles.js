@@ -6,25 +6,15 @@ const baseFontSizeConstants = (fontScale = 1.0) => `
 `;
 
 // Shared font size base variables and UI element font sizes (used internally)
-const fontSizeElementVariablesDesktop = `
+const getFontSizeElementVariables = (isMobile = false) => `
   /* Specific sizes for common UI elements */
-  --le-font-size-button: var(--le-font-size-base-desktop);
-  --le-font-size-label: var(--le-font-size-base-desktop);
-  --le-font-size-input: var(--le-font-size-base-desktop);
-  --le-font-size-table-header: var(--le-font-size-base-desktop);
-  --le-font-size-table-cell: var(--le-font-size-base-desktop);
-  --le-font-size-paging: var(--le-font-size-base-desktop);
-  --le-font-size-dropdown: var(--le-font-size-base-desktop);
-`;
-const fontSizeElementVariablesMobile = `
-  /* Specific sizes for common UI elements */
-  --le-font-size-button: var(--le-font-size-base-mobile);
-  --le-font-size-label: var(--le-font-size-base-mobile);
-  --le-font-size-input: var(--le-font-size-base-mobile);
-  --le-font-size-table-header: var(--le-font-size-base-mobile);
-  --le-font-size-table-cell: var(--le-font-size-base-mobile);
-  --le-font-size-paging: var(--le-font-size-base-mobile);
-  --le-font-size-dropdown: var(--le-font-size-base-mobile);
+  --le-font-size-button: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-label: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-input: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-table-header: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-table-cell: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-paging: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-dropdown: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
 `;
 
 export const getMobileStyles = (fontScale = 1.0) => `
@@ -41,7 +31,7 @@ export const getMobileStyles = (fontScale = 1.0) => `
     --le-font-size-xlarge: 1.4em;
     --le-font-size-xxlarge: 1.6em;
     
-    ${fontSizeElementVariablesMobile}
+    ${getFontSizeElementVariables(true)}
 
     /* Adjust padding for better touch targets */
     --le-padding-s: 0.6rem;
@@ -90,7 +80,7 @@ export const getDesktopStyles = (fontScale = 1.0) => `
     --le-font-size-xlarge: 1.4em;
     --le-font-size-xxlarge: 1.6em;
 
-    ${fontSizeElementVariablesDesktop}
+    ${getFontSizeElementVariables(false)}
 
     /* Desktop-specific dropdown styling */
     .controls-panel .filter-controls .dropdown-shared {
@@ -253,7 +243,7 @@ export const panelStyles = `
     color: var(--le-text-color-primary, #333);
     cursor: pointer;
     line-height: 1.4;
-    min-width: 120px;
+    min-width: 150px;
     transition: all 0.2s ease;
     font-weight: 500;
   }

@@ -801,7 +801,7 @@ class LeagueSchedule extends HTMLElement {
           
           <div class="dropdown-shared">
             <select id="export-select" class="dropdown-select-shared">
-              <option value="">Export...</option>
+              <option value="">Export</option>
               <option value="excel">Excel</option>
               <option value="word">Word</option>
               <option value="pdf">PDF</option>
@@ -1169,7 +1169,7 @@ class LeagueSchedule extends HTMLElement {
         const format = e.target.value;
         if (format) {
           this.exportData(format);
-          // Reset the select to show "Export..." again
+          // Reset the select to show "Export" again
           e.target.value = '';
         }
       });

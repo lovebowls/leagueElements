@@ -17,8 +17,21 @@ const BASE_STYLES = `
     flex-direction: column;
   }
   
+  .controls-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--le-padding-m, 1rem);
+    padding: var(--le-padding-s, 0.5rem) 0;
+  }
+  
+  .filter-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
+  }
+  
   .filter-panel {
-    /* Layout properties moved to mobile/desktop sections */
     padding: 0;
     margin-bottom: 0;
     background: transparent;
@@ -26,7 +39,6 @@ const BASE_STYLES = `
   }
     
   .calendar-filter {
-    /* Layout properties moved to mobile/desktop sections */
     padding: var(--le-padding-s, 0.5rem) 0;
   }
   
