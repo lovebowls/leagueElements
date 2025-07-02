@@ -972,19 +972,17 @@ class LeagueSchedule extends HTMLElement {
         ${this.error ? `<div class="error">${this.error}</div>` : ''}
         
         <div class="controls-panel">
-          <div class="filter-controls">
-            <div class="dropdown-shared">
-              <select class="dropdown-select-shared" id="team-filter">
-                <option value="">All Teams</option>
-                ${league?.teams?.map(team => `
-                  <option value="${team._id}" ${team._id === selectedTeamId ? 'selected' : ''}>
-                    ${team.name}
-                  </option>
-                `).join('')}
-              </select>
-            </div>
+          <div class="dropdown-shared">
+            <select class="dropdown-select-shared" id="team-filter">
+              <option value="">All Teams</option>
+              ${league?.teams?.map(team => `
+                <option value="${team._id}" ${team._id === selectedTeamId ? 'selected' : ''}>
+                  ${team.name}
+                </option>
+              `).join('')}
+            </select>
           </div>
-          
+        
           <div class="dropdown-shared">
             <select id="export-select" class="dropdown-select-shared">
               <option value="">Export...</option>

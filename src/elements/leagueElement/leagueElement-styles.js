@@ -1,12 +1,12 @@
-import { panelStyles, buttonStyles, dropdownStyles,getMobileStyles, getDesktopStyles, tabStyles, formStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles, getMobileStyles, getDesktopStyles, tabStyles, formStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
-      ${panelStyles}   /* ADDED SHARED STYLE */
-      ${buttonStyles}  /* ADDED SHARED STYLE */
-      ${dropdownStyles} /* ADDED SHARED STYLE */
+      ${panelStyles}
+      ${buttonStyles}
+      ${dropdownStyles}
       ${tabStyles}
-      ${formStyles}    /* ADDED SHARED FORM STYLES INCLUDING ENHANCED CHECKBOXES */
+      ${formStyles}
       :host {
         display: block;
         border: 1px solid var(--le-border-color-medium, #ccc); 
@@ -164,6 +164,7 @@ const BASE_STYLES = `
         overflow: auto; /* For scrolling */
         padding: var(--le-padding-m);
         height: 100%;
+        flex: 1;
       }
       
       /* Matrix Styles - Layout-agnostic properties only */
@@ -506,17 +507,7 @@ const BASE_STYLES = `
         font-weight: 600;
         border-color: var(--le-text-color-accent);
       }
-      
-      /* Settings icon in mobile tab bar */
-      .tab-bar .settings-icon {
-        flex-shrink: 0; /* Don't shrink the settings icon */
-        min-width: 44px; /* Ensure good touch target */
-        height: 44px; /* Match tab button height */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-left: auto; /* Push to the right */
-      }
+
       .view-container {
         flex: 1; 
         display: flex; 
@@ -597,9 +588,6 @@ const BASE_STYLES = `
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      .schedule-container {
-        flex: 1; 
       }
       .matrix-container {
         flex: 1; 
@@ -866,11 +854,7 @@ const BASE_STYLES = `
           font-size: calc(var(--le-font-size-small) * 0.9); /* Slightly smaller font */
         }
         
-        .tab-bar .settings-icon {
-          min-width: 36px; /* Smaller settings icon */
-          height: 36px;
-          font-size: var(--le-font-size-medium);
-        }
+
         
         .tab-bar {
           padding: 2px; /* Tighter padding around tab bar */
@@ -932,11 +916,7 @@ const BASE_STYLES = `
         border-right: none;
       }
       
-      /* Settings icon in desktop tab bar */
-      .tab-bar .settings-icon {
-        margin-left: auto; /* Push to the right */
-        align-self: center;
-      }
+
       .view-container {
         flex: 1; 
         display: flex; 
@@ -976,9 +956,6 @@ const BASE_STYLES = `
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      .schedule-container {
-        flex: 1; 
       }
       .matrix-container {
         flex: 1; 
@@ -1142,9 +1119,9 @@ const BASE_STYLES = `
           <th>W</th>
           <th>D</th>
           <th>L</th>
-          <th>SF</th>
-          <th>SA</th>
-          <th>SD</th>
+          <th>F</th>
+          <th>A</th>
+          <th>±</th>
           <th>Form</th>
         </tr>
       </thead>
@@ -1159,18 +1136,22 @@ const BASE_STYLES = `
             <button class="tab-button" data-view="schedule">Schedule</button>
             <button class="tab-button" data-view="matrix">Matrix</button>
             <button class="tab-button" data-view="trends">Trends</button>
-            <span class="settings-icon" title="Edit League Settings">⚙️</span>
           </div>
           <div class="view-container" id="mobile-table-view">
             <div class="title title-with-filter">
               <span>{{title}}</span>
-              <div class="dropdown-shared">
-                <select id="table-filter-select" class="dropdown-select-shared">
-                  <option value="overall" {{overallSelected}}>Overall</option>
-                  <option value="home" {{homeSelected}}>Home</option>
-                  <option value="away" {{awaySelected}}>Away</option>
-                  <option value="form" {{formSelected}}>Form</option>
-                </select>
+              <div class="controls-panel">
+                <div class="filter-controls">
+                  <div class="dropdown-shared">
+                    <select id="table-filter-select" class="dropdown-select-shared">
+                      <option value="overall" {{overallSelected}}>Overall</option>
+                      <option value="home" {{homeSelected}}>Home</option>
+                      <option value="away" {{awaySelected}}>Away</option>
+                      <option value="form" {{formSelected}}>Form</option>
+                    </select>
+                  </div>
+                  <span class="settings-icon" title="Edit League Settings">⚙️</span>
+                </div>
               </div>
             </div>
             <div class="content">
@@ -1211,18 +1192,22 @@ const BASE_STYLES = `
             <button class="tab-button" data-view="schedule">Schedule</button>
             <button class="tab-button" data-view="matrix">Matrix</button>
             <button class="tab-button" data-view="trends">Trends</button>
-            <span class="settings-icon" title="Edit League Settings">⚙️</span>
           </div>
           <div class="view-container" id="desktop-table-view">
             <div class="title title-with-filter">
               <span>{{title}}</span>
-              <div class="dropdown-shared">
-                <select id="table-filter-select" class="dropdown-select-shared">
-                  <option value="overall" {{overallSelected}}>Overall</option>
-                  <option value="home" {{homeSelected}}>Home</option>
-                  <option value="away" {{awaySelected}}>Away</option>
-                  <option value="form" {{formSelected}}>Form</option>
-                </select>
+              <div class="controls-panel">
+                <div class="filter-controls">
+                  <div class="dropdown-shared">
+                    <select id="table-filter-select" class="dropdown-select-shared">
+                      <option value="overall" {{overallSelected}}>Overall</option>
+                      <option value="home" {{homeSelected}}>Home</option>
+                      <option value="away" {{awaySelected}}>Away</option>
+                      <option value="form" {{formSelected}}>Form</option>
+                    </select>
+                  </div>
+                </div>
+                <span class="settings-icon" title="Edit League Settings">⚙️</span>
               </div>
             </div>
             <div class="content">

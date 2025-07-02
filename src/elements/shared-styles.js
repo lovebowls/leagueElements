@@ -46,6 +46,32 @@ export const getMobileStyles = (fontScale = 1.0) => `
     /* Adjust padding for better touch targets */
     --le-padding-s: 0.6rem;
     --le-padding-m: 1rem;
+    
+  .controls-panel {
+    gap: var(--le-padding-s, 0.5rem);
+  }
+
+  /* Mobile-specific dropdown styling */
+  .controls-panel .filter-controls .dropdown-shared {
+    flex: 1;
+  }
+  
+  .controls-panel .dropdown-shared {
+    flex: 1;
+  }
+  
+  .controls-panel .dropdown-shared .dropdown-select-shared {
+    width: 100%;
+    padding: var(--le-padding-s, 0.75rem) calc(var(--le-padding-m, 1rem) * 2.5) var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
+    min-height: 44px; /* Minimum touch target size */
+    background-size: 1.2rem;
+    background-position: right 1rem center;
+    border-width: 2px;
+  }
+  
+  .controls-panel .dropdown-select-shared:focus {
+    border-width: 2px;
+  }
   }
 `;
 
@@ -65,6 +91,17 @@ export const getDesktopStyles = (fontScale = 1.0) => `
     --le-font-size-xxlarge: 1.6em;
 
     ${fontSizeElementVariablesDesktop}
+
+    /* Desktop-specific dropdown styling */
+    .controls-panel .filter-controls .dropdown-shared {
+      width: auto;
+      min-width: 200px;
+    }
+
+    .controls-panel .dropdown-shared .dropdown-select-shared {
+      min-width: 160px;
+      width: auto;
+    }
   }
 `;
 
@@ -177,6 +214,70 @@ export const panelStyles = `
     /* Common border for content area if needed
     border: 1px solid var(--le-border-color-light, #f0f0f0);
     */
+  }
+
+  .controls-panel {
+    /* Layout properties moved to mobile/desktop sections */
+    padding: 0;
+    margin-bottom: var(--le-padding-s, 0.5rem);
+    background: transparent;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--le-padding-m, 1rem);
+  }
+
+  .filter-controls {
+    gap: var(--le-padding-s, 0.5rem);
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  
+  /* Enhanced dropdown styling for button-like appearance */
+  .controls-panel .dropdown-shared {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .controls-panel .dropdown-select-shared {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: var(--le-background-color-button, #f0f0f0);
+    border: 1px solid var(--le-border-color-medium, #ddd);
+    border-radius: var(--le-border-radius-standard, 4px);
+    padding: var(--le-padding-s, 0.5rem) calc(var(--le-padding-m, 1rem) * 2) var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
+    font-size: var(--le-font-size-dropdown, 1em));
+    color: var(--le-text-color-primary, #333);
+    cursor: pointer;
+    line-height: 1.4;
+    min-width: 120px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+  
+  .controls-panel .dropdown-select-shared:hover {
+    background-color: var(--le-background-color-button-hover, #e0e0e0);
+    border-color: var(--le-border-color-dark, #ccc);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .controls-panel .dropdown-select-shared:focus {
+    outline: none;
+    border-color: var(--le-text-color-accent, #2196f3);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    background-color: var(--le-background-color-panel, #fff);
+  }
+  
+  .controls-panel .dropdown-select-shared:active {
+    background-color: var(--le-background-color-button-hover, #e0e0e0);
+    transform: translateY(1px);
   }
 `;
 
