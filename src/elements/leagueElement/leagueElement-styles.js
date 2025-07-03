@@ -466,7 +466,6 @@ const BASE_STYLES = `
         flex-wrap: wrap; /* Allow tabs to wrap to next line */
         gap: var(--le-padding-xs); /* Small gap between tabs */
         padding: var(--le-padding-xs); /* Add padding around the tab bar */
-        background-color: var(--le-background-color-header);
         border-bottom: 1px solid var(--le-border-color-medium);
         overflow-x: auto; /* Allow horizontal scrolling as fallback */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
@@ -891,7 +890,6 @@ const BASE_STYLES = `
         display: flex;
         gap: 0; /* No gap for desktop tabs as they connect */
         border-bottom: 2px solid var(--le-border-color-light);
-        background-color: var(--le-background-color-header);
       }
       
       /* Desktop tab button styling */
@@ -1002,9 +1000,11 @@ const BASE_STYLES = `
         min-width: 0;
         display: flex;
         flex-direction: column;
-        border: 1px solid var(--le-border-color-medium); 
-        border-radius: var(--le-border-radius-standard); 
-        background: var(--le-background-color-panel); 
+        border: none;
+        border-radius: 0;
+        background: none;
+        padding: 0;
+        margin: 0;
       }
       .right-panel {
         flex: 1;
@@ -1021,7 +1021,6 @@ const BASE_STYLES = `
         border: 1px solid var(--le-border-color-medium); 
         border-radius: var(--le-border-radius-standard); 
         background: var(--le-background-color-panel); 
-        padding: var(--le-padding-m); 
       }
       .panel-header { /* Header within right-column panels */
         font-size: var(--le-font-size-large); 
@@ -1043,7 +1042,7 @@ const BASE_STYLES = `
       }
       .content { /* Content area for table/matrix/trends in left panel */
         flex: 1;
-        padding: var(--le-padding-m); 
+        padding: var(--le-padding-s); 
       }
       th, td {
         padding: var(--le-padding-s);

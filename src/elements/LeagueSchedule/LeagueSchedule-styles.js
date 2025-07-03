@@ -578,20 +578,37 @@ export const DESKTOP_STYLES = `
   .controls-panel {
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    padding: 0 var(--le-padding-s, 0.5rem);
+    box-sizing: border-box;
   }
   
   .filter-controls {
-    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
+    flex: 1;
+    justify-content: space-between;
   }
   
-  .controls-panel .dropdown-shared:last-child {
-    flex: 0 0 auto;
-    margin-left: auto;
-  }
-  
-  .controls-panel .dropdown-shared:last-child .dropdown-select-shared {
-    min-width: 120px;
+  /* Desktop-specific dropdown styling for filter controls */
+  .filter-controls .dropdown-shared {
     width: auto;
+    min-width: 120px;
+  }
+  
+  .filter-controls .dropdown-shared:last-child {
+    text-align: right;
+  }
+  
+  .filter-controls .dropdown-select-shared {
+    width: 100%;
+    min-width: 120px;
+  }
+  
+  .filter-controls .dropdown-shared:last-child .dropdown-select-shared {
+    width: auto;
+    min-width: 120px;
   }
       
   .calendar-filter {
