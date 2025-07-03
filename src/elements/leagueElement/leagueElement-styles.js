@@ -1164,28 +1164,28 @@ const BASE_STYLES = `
           <div class="view-container" id="mobile-table-view">
             <div class="title title-with-filter">
               <span>{{title}}</span>
-              <div class="controls-panel">
-                <div class="filter-controls">
-                  <div class="dropdown-shared">
-                    <select id="table-export-select" class="dropdown-select-shared">
-                      <option value="">Export</option>
-                      <option value="excel">Excel</option>
-                      <option value="word">Word</option>
-                      <option value="pdf">PDF</option>
-                    </select>
-                  </div>
-                  <div class="dropdown-shared">
-                    <select id="table-filter-select" class="dropdown-select-shared">
-                      <option value="overall" {{overallSelected}}>Overall</option>
-                      <option value="home" {{homeSelected}}>Home</option>
-                      <option value="away" {{awaySelected}}>Away</option>
-                      <option value="form" {{formSelected}}>Form</option>
-                    </select>
-                  </div>
-                </div>
-                <span class="settings-icon" title="Edit League Settings">⚙️</span>
-              </div>
+              <span class="settings-icon" title="Edit League Settings">⚙️</span>
             </div>
+            <div class="controls-panel">
+              <div class="filter-controls">
+                <div class="dropdown-shared">
+                  <select id="table-filter-select" class="dropdown-select-shared">
+                    <option value="overall" {{overallSelected}}>Overall</option>
+                    <option value="home" {{homeSelected}}>Home</option>
+                    <option value="away" {{awaySelected}}>Away</option>
+                    <option value="form" {{formSelected}}>Form</option>
+                  </select>
+                </div>
+                <div class="dropdown-shared">
+                  <select id="table-export-select" class="dropdown-select-shared">
+                    <option value="">Export</option>
+                    <option value="excel">Excel</option>
+                    <option value="word">Word</option>
+                    <option value="pdf">PDF</option>
+                  </select>
+                </div>
+              </div>
+            </div>            
             <div class="content">
               <table id="leagueTable">
                 ${TABLE_HEADER}
@@ -1196,13 +1196,11 @@ const BASE_STYLES = `
             </div>
           </div>
           <div class="view-container" id="mobile-schedule-view" style="display: none;">
-            <div class="title">{{title}} - Schedule</div>
             <div class="schedule-container">
               <league-schedule id="mobile-schedule" is-mobile="true" {{canEditAttr}}></league-schedule>
             </div>
           </div>
           <div class="view-container" id="mobile-matrix-view" style="display: none;">
-            <div class="title">{{title}} - Matrix</div>
             <div class="matrix-container">
               {{matrixView}}
             </div>
@@ -1227,29 +1225,29 @@ const BASE_STYLES = `
           </div>
           <div class="view-container" id="desktop-table-view">
             <div class="title title-with-filter">
-              <span>{{title}}</span>
-              <div class="controls-panel">
-                <div class="filter-controls">
-                  <div class="dropdown-shared">
-                    <select id="table-export-select" class="dropdown-select-shared">
-                      <option value="">Export</option>
-                      <option value="excel">Excel</option>
-                      <option value="word">Word</option>
-                      <option value="pdf">PDF</option>
-                    </select>
-                  </div>
-                  <div class="dropdown-shared">
-                    <select id="table-filter-select" class="dropdown-select-shared">
-                      <option value="overall" {{overallSelected}}>Overall</option>
-                      <option value="home" {{homeSelected}}>Home</option>
-                      <option value="away" {{awaySelected}}>Away</option>
-                      <option value="form" {{formSelected}}>Form</option>
-                    </select>
-                  </div>
-                </div>
-                <span class="settings-icon" title="Edit League Settings">⚙️</span>
-              </div>
+              <span>{{title}}</span>              
+              <span class="settings-icon" title="Edit League Settings">⚙️</span>
             </div>
+            <div class="controls-panel">
+              <div class="filter-controls">
+                <div class="dropdown-shared">
+                  <select id="table-filter-select" class="dropdown-select-shared">
+                    <option value="overall" {{overallSelected}}>Overall</option>
+                    <option value="home" {{homeSelected}}>Home</option>
+                    <option value="away" {{awaySelected}}>Away</option>
+                    <option value="form" {{formSelected}}>Form</option>
+                  </select>
+                </div>
+                <div class="dropdown-shared">
+                  <select id="table-export-select" class="dropdown-select-shared">
+                    <option value="">Export</option>
+                    <option value="excel">Excel</option>
+                    <option value="word">Word</option>
+                    <option value="pdf">PDF</option>
+                  </select>
+                </div>
+              </div>
+            </div>            
             <div class="content">
               <table id="leagueTable">
                 ${TABLE_HEADER}
@@ -1260,13 +1258,11 @@ const BASE_STYLES = `
             </div>
           </div>
           <div class="view-container" id="desktop-schedule-view" style="display: none;">
-            <div class="title">{{title}} - Schedule</div>
             <div class="schedule-container">
               <league-schedule id="desktop-schedule" {{canEditAttr}}></league-schedule>
             </div>
           </div>
           <div class="view-container" id="desktop-matrix-view" style="display: none;">
-            <!-- Title for matrix can be dynamic or part of renderMatrix -->
             <div class="matrix-container">
               {{matrixView}}
             </div>

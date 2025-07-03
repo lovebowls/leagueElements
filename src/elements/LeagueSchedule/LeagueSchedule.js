@@ -797,17 +797,16 @@ class LeagueSchedule extends HTMLElement {
                 `).join('')}
               </select>
             </div>
-          </div>
-          
-          <div class="dropdown-shared">
-            <select id="export-select" class="dropdown-select-shared">
-              <option value="">Export</option>
-              <option value="excel">Excel</option>
-              <option value="word">Word</option>
-              <option value="pdf">PDF</option>
-              <option value="json">JSON</option>
-              <option value="csv">CSV</option>
-            </select>
+            <div class="dropdown-shared">
+              <select id="export-select" class="dropdown-select-shared">
+                <option value="">Export</option>
+                <option value="excel">Excel</option>
+                <option value="word">Word</option>
+                <option value="pdf">PDF</option>
+                <option value="json">JSON</option>
+                <option value="csv">CSV</option>
+              </select>
+            </div>
           </div>
         </div>
         
@@ -981,17 +980,16 @@ class LeagueSchedule extends HTMLElement {
                 </option>
               `).join('')}
             </select>
-          </div>
-        
-          <div class="dropdown-shared">
-            <select id="export-select" class="dropdown-select-shared">
-              <option value="">Export</option>
-              <option value="excel">Excel</option>
-              <option value="word">Word</option>
-              <option value="pdf">PDF</option>
-              <option value="json">JSON</option>
-              <option value="csv">CSV</option>
-            </select>
+            <div class="dropdown-shared">
+              <select id="export-select" class="dropdown-select-shared">
+                <option value="">Export</option>
+                <option value="excel">Excel</option>
+                <option value="word">Word</option>
+                <option value="pdf">PDF</option>
+                <option value="json">JSON</option>
+                <option value="csv">CSV</option>
+              </select>
+            </div>
           </div>
         </div>
         
