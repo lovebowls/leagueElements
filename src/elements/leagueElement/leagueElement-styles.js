@@ -83,7 +83,7 @@ const BASE_STYLES = `
         cursor: pointer;
         color: var(--le-text-color-secondary); 
         margin-left: auto;
-        padding: var(--le-padding-m) var(--le-padding-m); 
+        padding: var(--le-padding-xs) var(--le-padding-m); 
         transition: color 0.2s;
         font-size: var(--le-font-size-large); 
       }
@@ -162,7 +162,7 @@ const BASE_STYLES = `
       /* Schedule Styles - Layout-agnostic properties only */
       .schedule-container {
         overflow: auto; /* For scrolling */
-        padding: var(--le-padding-m);
+        padding: var(--le-padding-xs);
         height: 100%;
         flex: 1;
       }
@@ -170,7 +170,8 @@ const BASE_STYLES = `
       /* Matrix Styles - Layout-agnostic properties only */
       .matrix-container {
         overflow: auto; /* For scrolling */
-        padding: var(--le-padding-m); 
+        padding: var(--le-padding-xs); 
+        flex: 1;
       }
       .matrix-grid {
         border: 1px solid var(--le-border-color-dark); 
@@ -271,7 +272,7 @@ const BASE_STYLES = `
 
       /* Trends View Styles - Layout-agnostic properties only */
       .trends-view-wrapper {
-        padding: var(--le-padding-m); 
+        padding: var(--le-padding-xs); 
         height: 100%;
         box-sizing: border-box;
       }
@@ -293,7 +294,7 @@ const BASE_STYLES = `
         background-color: var(--le-background-color-button, #f0f0f0);
         border: 1px solid var(--le-border-color-medium, #ddd);
         border-radius: var(--le-border-radius-standard, 4px);
-        padding: var(--le-padding-s, 0.5rem) calc(var(--le-padding-m, 1rem) * 2) var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
+        padding: 0 var(--le-padding-s, 0.5rem);
         font-size: var(--le-font-size-dropdown, var(--le-font-size-medium, 1em));
         color: var(--le-text-color-primary, #333);
         cursor: pointer;
@@ -602,12 +603,8 @@ const BASE_STYLES = `
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      .matrix-container {
-        flex: 1; 
-      }
-      
-      /* Matrix specific mobile adjustments - COMPLETELY REDESIGNED */
+      }    
+      /* Matrix specific mobile adjustments*/
       .matrix-container { 
         overflow-x: auto;
         width: 100%;
@@ -979,6 +976,10 @@ const BASE_STYLES = `
         flex: 1;
         justify-content: space-between;
       }
+      /* Matrix specific adjustments*/
+      .matrix-container { 
+        padding-top: var(--le-padding-s, 0.5rem);
+      }        
       .matrix-grid {
         display: grid;
       }
@@ -987,9 +988,7 @@ const BASE_STYLES = `
         align-items: center;
         justify-content: center;
       }
-      .matrix-container {
-        flex: 1; 
-      }
+
       .dashboard {
         display: flex;
         height: 100%;
@@ -1037,12 +1036,11 @@ const BASE_STYLES = `
         background: var(--le-text-color-secondary); 
       }
       .title { /* Main title in the left panel (Table/Matrix/Trends) */
-        margin-bottom: var(--le-padding-s); 
-        padding: var(--le-padding-m); 
+        padding: var(--le-padding-xs); 
       }
       .content { /* Content area for table/matrix/trends in left panel */
         flex: 1;
-        padding: var(--le-padding-s); 
+        padding: 0; 
       }
       th, td {
         padding: var(--le-padding-s);

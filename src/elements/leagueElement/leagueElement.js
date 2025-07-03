@@ -990,7 +990,7 @@ class LeagueElement extends HTMLElement {
 
     return `
       <div class="trends-view-wrapper">
-        <div class="trends-controls dropdown-container-flex">
+        <div class="controls-panel">
           <div class="dropdown-shared">
             <select id="graph-type-select" class="dropdown-select-shared">
               <option value="pointsOverTime">Points Over Time</option>

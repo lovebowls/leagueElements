@@ -131,13 +131,6 @@ export const dropdownStyles = `
     position: relative;
     display: inline-block;
   }
-  
-  /* For dropdowns within flexbox layouts */
-  .dropdown-container-flex {
-    display: flex;
-    align-items: center;
-    gap: var(--le-padding-s, 0.5rem);
-  }
 
   /* Shared styles for dropdown menus (button-triggered) */
   .list-item-actions {
@@ -208,6 +201,7 @@ export const panelStyles = `
     /* Layout properties moved to mobile/desktop sections */
     padding: 0;
     margin-bottom: var(--le-padding-s, 0.5rem);
+    margin-top: var(--le-padding-s, 0.5rem);
     background: transparent;
     border: none;
     display: flex;
