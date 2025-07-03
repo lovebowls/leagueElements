@@ -586,12 +586,15 @@ const BASE_STYLES = `
         display: flex;
         align-items: center;
         gap: var(--le-padding-s, 0.5rem);
+        width: 100%;
       }
       
       .filter-controls {
         display: flex;
         align-items: center;
         gap: var(--le-padding-s, 0.5rem);
+        flex: 1;
+        justify-content: space-between;
       }
       .matrix-grid {
         display: grid;
@@ -966,12 +969,17 @@ const BASE_STYLES = `
         display: flex;
         align-items: center;
         gap: var(--le-padding-s, 0.5rem);
+        width: 100%;
+        padding: 0 var(--le-padding-s, 0.5rem);
+        box-sizing: border-box;
       }
       
       .filter-controls {
         display: flex;
         align-items: center;
         gap: var(--le-padding-s, 0.5rem);
+        flex: 1;
+        justify-content: space-between;
       }
       .matrix-grid {
         display: grid;
@@ -1089,6 +1097,26 @@ const BASE_STYLES = `
         font-weight: bold;
       }
 
+      /* Desktop-specific dropdown styling for filter controls */
+      .filter-controls .dropdown-shared {
+        width: auto;
+        min-width: 120px;
+      }
+      
+      .filter-controls .dropdown-shared:last-child {
+        text-align: right;
+      }
+      
+      .filter-controls .dropdown-select-shared {
+        width: 100%;
+        min-width: 120px;
+      }
+      
+      .filter-controls .dropdown-shared:last-child .dropdown-select-shared {
+        width: auto;
+        min-width: 120px;
+      }
+      
       /* Desktop-specific trends legend layout - multi-column */
       .trends-graph-legend {
         display: grid;

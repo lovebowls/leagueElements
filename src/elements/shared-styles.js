@@ -15,6 +15,9 @@ const getFontSizeElementVariables = (isMobile = false) => `
   --le-font-size-table-cell: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-paging: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-dropdown: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-padding-xs: 0.25rem;
+  --le-padding-s: 0.6rem;
+  --le-padding-m: 1rem;
 `;
 
 export const getMobileStyles = (fontScale = 1.0) => `
@@ -32,10 +35,6 @@ export const getMobileStyles = (fontScale = 1.0) => `
     --le-font-size-xxlarge: 1.6em;
     
     ${getFontSizeElementVariables(true)}
-
-    /* Adjust padding for better touch targets */
-    --le-padding-s: 0.6rem;
-    --le-padding-m: 1rem;
     
   .controls-panel {
     gap: var(--le-padding-s, 0.5rem);
@@ -62,7 +61,7 @@ export const getMobileStyles = (fontScale = 1.0) => `
   .controls-panel .dropdown-select-shared:focus {
     border-width: 2px;
   }
-  }
+}
 `;
 
 
@@ -105,8 +104,7 @@ export const dropdownStyles = `
     background-color: var(--le-background-color-panel, #fff);
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-small, 3px);
-    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 0.75rem);
-    padding-right: calc(var(--le-padding-m, 0.75rem) * 2);
+    padding: var(--le-padding-xs, 0.25rem);
     font-size: var(--le-font-size-base, 1em);
     color: var(--le-text-color-primary, #333);
     cursor: pointer;
@@ -238,7 +236,7 @@ export const panelStyles = `
     background-color: var(--le-background-color-button, #f0f0f0);
     border: 1px solid var(--le-border-color-medium, #ddd);
     border-radius: var(--le-border-radius-standard, 4px);
-    padding: var(--le-padding-s, 0.5rem) calc(var(--le-padding-m, 1rem) * 2) var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
+    padding: var(--le-padding-xs, 0.25rem);
     font-size: var(--le-font-size-dropdown, 1em));
     color: var(--le-text-color-primary, #333);
     cursor: pointer;
