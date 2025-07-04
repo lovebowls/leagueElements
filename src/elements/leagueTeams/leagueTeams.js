@@ -251,7 +251,7 @@ class LeagueTeams extends HTMLElement {
         <div class="teams-manager-content ${mobileClass}">
           <div class="teams-manager-header">
             <h3>Manage Teams - ${leagueName}</h3>
-            <button type="button" class="modal-close-button" id="close-teams-manager" aria-label="Close">&times;</button>
+            <span class="close-button close-button-shared" id="close-teams-manager" aria-label="Close">&times;</span>
           </div>
           
           <div class="teams-manager-body">
@@ -310,8 +310,8 @@ class LeagueTeams extends HTMLElement {
             </span>
             <div class="list-item-actions">
               ${this._selectedTeamId === team._id && !this._showEditor ? `
-                <button type="button" class="button-shared" data-action="edit" data-team-id="${team._id}">Edit</button>
-                <button type="button" class="button-shared" data-action="remove" data-team-id="${team._id}">Remove</button>
+                <button type="button" class="button-shared" data-action="edit" data-team-id="${team._id}">${this._isMobile ? '✏️' : 'Edit'}</button>
+                <button type="button" class="button-shared" data-action="remove" data-team-id="${team._id}">${this._isMobile ? '❌' : 'Remove'}</button>
               ` : ''}
             </div>
           </li>

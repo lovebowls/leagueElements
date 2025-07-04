@@ -219,25 +219,7 @@ export const BASE_STYLES = `
     padding: var(--le-padding-l, 1.5rem);
   }
 
-  .modal-close-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--le-text-color-secondary, #666);
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-  }
 
-  .modal-close-button:hover {
-    background-color: var(--le-background-color-button-hover, #e0e0e0);
-    color: var(--le-text-color-primary, #333);
-  }
 
   /* Form styles */
   .form-group-shared {
@@ -313,30 +295,31 @@ export const BASE_STYLES = `
     
     .teams-manager-body {
       padding: 15px;
-      gap: 15px;
+      gap: 10px; /* Reduced gap to collapse space */
     }
     
     .teams-manager-footer {
       padding: 15px;
-      flex-direction: column;
-      gap: 15px;
+      flex-direction: row; /* Keep buttons side by side like league modal */
+      gap: 10px;
     }
 
     .footer-options {
       order: 1;
-      justify-content: center;
+      justify-content: flex-start;
     }
 
     .footer-buttons {
       order: 2;
-      flex-direction: column-reverse;
+      flex-direction: row; /* Keep buttons side by side */
       gap: 10px;
-      margin-left: 0;
+      margin-left: auto;
     }
 
     .footer-buttons .button-shared {
-      width: 100%;
+      width: auto; /* Allow buttons to size naturally */
       margin: 0;
+      min-width: 80px; /* Ensure minimum touch target */
     }
     
     .teams-action-buttons {
