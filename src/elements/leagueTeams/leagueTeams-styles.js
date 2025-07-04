@@ -166,15 +166,6 @@ export const BASE_STYLES = `
     margin-left: var(--le-padding-s, 0.5rem);
   }
 
-  .list-item-actions .button-shared {
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
-  }
-
-  .list-item-actions .button-shared:hover {
-    opacity: 1;
-  }
-
   .no-teams-message {
     padding: var(--le-padding-l, 1.5rem);
     text-align: center;
@@ -221,52 +212,7 @@ export const BASE_STYLES = `
 
 
 
-  /* Form styles */
-  .form-group-shared {
-    margin-bottom: var(--le-padding-m, 1rem);
-  }
-
-  .form-label-shared {
-    display: block;
-    margin-bottom: var(--le-padding-s, 0.5rem);
-    font-weight: bold;
-    color: var(--le-text-color-primary, #333);
-  }
-
-  .form-label-shared input[type="checkbox"] {
-    margin-right: var(--le-padding-xs, 0.25rem);
-  }
-
-  .form-input-shared {
-    width: 100%;
-    padding: var(--le-padding-s, 0.5rem);
-    border: 1px solid var(--le-border-color-medium, #ddd);
-    border-radius: var(--le-border-radius-standard, 4px);
-    background-color: var(--le-background-color-panel, #fff);
-    color: var(--le-text-color-primary, #333);
-    box-sizing: border-box;
-  }
-
-  .form-input-shared:focus {
-    outline: none;
-    border-color: var(--le-border-color-focus, #007cba);
-    box-shadow: 0 0 0 2px var(--le-background-color-focus-ring, rgba(0, 124, 186, 0.2));
-  }
-
-  .form-input-shared:disabled {
-    background-color: var(--le-background-color-disabled, #f5f5f5);
-    color: var(--le-text-color-disabled, #999);
-    cursor: not-allowed;
-  }
-
-  .form-error-shared {
-    color: var(--le-text-color-error, #d32f2f);
-    background-color: var(--le-background-color-error, #ffeaa7);
-    padding: var(--le-padding-s, 0.5rem);
-    border: 1px solid var(--le-border-color-error, #e74c3c);
-    border-radius: var(--le-border-radius-standard, 4px);
-    margin-bottom: var(--le-padding-s, 0.5rem);
-  }
+  /* These form styles are provided by shared-styles.js formStyles import */
 
   /* Update button styling */
   .button-update {
@@ -332,25 +278,7 @@ export const BASE_STYLES = `
       min-width: auto;
     }
 
-    .list-item.selected {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-    }
 
-    .list-item .list-item-text-primary {
-      order: 1;
-    }
-
-    .list-item .list-item-actions {
-      order: 2;
-      justify-content: flex-end;
-    }
-
-    .list-item-actions .button-shared {
-      width: auto;
-      min-width: 80px;
-    }
 
     .team-editor-header {
       padding: 15px 10px;
@@ -379,18 +307,6 @@ export const BASE_STYLES = `
       min-width: 100px;
     }
 
-    .form-label-shared {
-      margin-bottom: 8px;
-    }
-    
-    .form-input-shared {
-      padding: 10px !important;
-      height: auto !important;
-    }
-    
-    .button-shared {
-      padding: 10px 15px !important;
-      min-height: 44px;
-    }
+    /* Form and button styles handled by shared-styles.js */
   }
 `; 

@@ -3,7 +3,7 @@
 
 import { BASE_STYLES } from './leagueTeams-styles.js';
 import * as Swal from 'sweetalert2';
-import { sweetAlertGlobalStyles, sweetAlertMobileOverrides } from '../shared-styles.js';
+import { sweetAlertGlobalStyles, sweetAlertMobileOverrides, getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 
 class LeagueTeamsEvent extends CustomEvent {
   constructor(type, detail) {
@@ -246,6 +246,7 @@ class LeagueTeams extends HTMLElement {
     this.shadow.innerHTML = `
       <style>
         ${BASE_STYLES}
+        ${this._isMobile ? getMobileStyles() : getDesktopStyles()}
       </style>
       <div class="modal-shared-overlay" style="display: ${this._open ? 'flex' : 'none'};">
         <div class="teams-manager-content ${mobileClass}">
@@ -308,12 +309,7 @@ class LeagueTeams extends HTMLElement {
               <span class="team-name">${team.name}</span>
               ${this._isLovebowlsTeam(team._id) ? '<small class="team-source">(LB)</small>' : ''}
             </span>
-            <div class="list-item-actions">
-              ${this._selectedTeamId === team._id && !this._showEditor ? `
-                <button type="button" class="button-shared" data-action="edit" data-team-id="${team._id}">${this._isMobile ? '✏️' : 'Edit'}</button>
-                <button type="button" class="button-shared" data-action="remove" data-team-id="${team._id}">${this._isMobile ? '❌' : 'Remove'}</button>
-              ` : ''}
-            </div>
+            <div class="list-item-actions"></div>
           </li>
         `).join('')}
       </ul>
@@ -430,39 +426,26 @@ class LeagueTeams extends HTMLElement {
       addTeamBtn.addEventListener('click', () => this._handleAddTeam());
     }
 
-    // Team list clicks
+    // Team list clicks and populate actions for selected teams
     const teamItems = this.shadow.querySelectorAll('.list-item');
     teamItems.forEach(item => {
       if (!this._showEditor) {
+        const teamId = item.dataset.teamId;
+        const team = this._workingLeague?.teams?.find(t => t._id === teamId);
+        
+        // If this is the selected team, populate its actions
+        if (this._selectedTeamId === teamId && team) {
+          const actionsDiv = item.querySelector('.list-item-actions');
+          if (actionsDiv) {
+            this._createAndAppendTeamActions(actionsDiv, team);
+          }
+        }
+        
         item.addEventListener('click', (e) => {
           // Don't handle clicks on action buttons
           if (e.target.closest('.list-item-actions')) return;
           
-          const teamId = e.currentTarget.dataset.teamId;
           this._handleTeamSelect(teamId);
-        });
-      }
-    });
-
-    // Team action button clicks
-    const editButtons = this.shadow.querySelectorAll('.list-item-actions button[data-action="edit"]');
-    editButtons.forEach(button => {
-      if (!this._showEditor) {
-        button.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const teamId = e.target.dataset.teamId;
-          this._handleEditTeam(teamId);
-        });
-      }
-    });
-
-    const removeButtons = this.shadow.querySelectorAll('.list-item-actions button[data-action="remove"]');
-    removeButtons.forEach(button => {
-      if (!this._showEditor) {
-        button.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const teamId = e.target.dataset.teamId;
-          this._handleRemoveTeam(teamId);
         });
       }
     });
@@ -644,6 +627,28 @@ class LeagueTeams extends HTMLElement {
         });
       }
     });
+  }
+
+  _createAndAppendTeamActions(actionsContainer, team) {
+    actionsContainer.innerHTML = ''; // Clear previous buttons
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = this._isMobile ? '✏️' : 'Edit';
+    editBtn.classList.add('button-shared');
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent li click handler
+      this._handleEditTeam(team._id);
+    });
+    actionsContainer.appendChild(editBtn);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = this._isMobile ? '❌' : 'Remove';
+    removeBtn.classList.add('button-shared');
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent li click handler
+      this._handleRemoveTeam(team._id);
+    });
+    actionsContainer.appendChild(removeBtn);
   }
 
   _handleTeamSelect(teamId) {

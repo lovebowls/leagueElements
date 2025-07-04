@@ -1,4 +1,5 @@
 import { BASE_STYLES } from './leagueMatch-styles.js';
+import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 
 class LeagueMatchEvent extends CustomEvent {
   constructor(type, detail) {
@@ -436,6 +437,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     this.shadow.innerHTML = `
       <style>
         ${BASE_STYLES}
+        ${this._isMobile ? getMobileStyles() : getDesktopStyles()}
       </style>
       <div class="modal-shared-content ${this._open ? 'modal-is-open' : 'modal-is-closed'} ${isMobileView ? 'mobile-view' : ''}" 
            role="dialog" 

@@ -2,6 +2,7 @@
 // Modal dialog for resetting league matches with scheduling parameters
 
 import { BASE_STYLES } from './leagueResetModal-styles.js';
+import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { League } from '@lovebowls/leaguejs';
 
 class LeagueResetModalEvent extends CustomEvent {
@@ -381,6 +382,7 @@ class LeagueResetModal extends HTMLElement {
     this.shadow.innerHTML = `
       <style>
         ${BASE_STYLES}
+        ${this._isMobile ? getMobileStyles() : getDesktopStyles()}
       </style>
       <div class="modal-shared-overlay" style="display: ${this._open ? 'flex' : 'none'};">
         <div class="modal-shared-content ${mobileClass}">

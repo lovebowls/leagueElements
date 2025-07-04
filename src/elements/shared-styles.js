@@ -61,6 +61,61 @@ export const getMobileStyles = (fontScale = 1.0) => `
   .controls-panel .dropdown-select-shared:focus {
     border-width: 2px;
   }
+
+  /* Mobile-specific checkbox improvements */
+  .form-label-shared input[type="checkbox"] {
+    /* Make checkbox larger and more touch-friendly */
+    width: 25px !important;
+    height: 25px !important;
+    min-width: 25px !important;
+    min-height: 25px !important;
+    margin-right: var(--le-padding-s, 0.75em) !important;
+    /* Add visual enhancement */
+    transform: scale(1.2) !important;
+    cursor: pointer !important;
+  }
+
+  /* Target labels that contain checkboxes - multiple selectors for maximum compatibility */
+  .form-label-shared[for*="Checkbox"],
+  .form-label-shared[for*="checkbox"] {
+    font-size: var(--le-font-size-small, 0.8em) !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* More general selector - any form-label-shared containing checkbox input */
+  .form-label-shared:has(input[type="checkbox"]) {
+    font-size: var(--le-font-size-small, 0.8em) !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Fallback for browsers that don't support :has() - use specific ID */
+  #useExistingTeamLabel {
+    font-size: var(--le-font-size-small, 0.8em) !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Input fields on mobile */
+  .form-input-shared, .form-select-shared {
+    min-height: 44px; /* Standard mobile touch target */
+    padding: var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
+    font-size: var(--le-font-size-medium, 1.0em);
+    border-width: 2px;
+  }
+
+  .form-input-shared:focus, .form-select-shared:focus {
+    border-width: 2px;
+  }
+
+  .form-label-shared {
+    font-size: var(--le-font-size-small, 1.0em);
+    margin-bottom: var(--le-padding-s, 0.75rem);
+  }
 }
 `;
 
