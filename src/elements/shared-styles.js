@@ -27,8 +27,8 @@ export const getMobileStyles = (fontScale = 1.0) => `
 
     /* Mobile-specific styling that can be added to host elements */
     --le-font-size-base: 1em;
-    --le-font-size-xs: 0.75em;
-    --le-font-size-small: 0.9em;
+    --le-font-size-xs: 0.6em;
+    --le-font-size-small: 0.8em;
     --le-font-size-medium: 1.0em;
     --le-font-size-large: 1.2em;
     --le-font-size-xlarge: 1.4em;
@@ -186,7 +186,7 @@ export const panelStyles = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: var(--le-font-size-large, 1.4em);
+    font-size: var(--le-font-size-medium, 1.1em);
   }
 
   .panel-content {
@@ -261,7 +261,7 @@ export const panelStyles = `
 
 export const buttonStyles = `
   .button-shared {
-    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
+    padding: 0 8px;
     border: 1px solid var(--le-border-color-medium, #ccc);
     background-color: var(--le-background-color-button, #f0f0f0);
     color: var(--le-text-color-primary, #333); /* Ensure text color contrasts with button background */
@@ -667,14 +667,10 @@ export const listStyles = `
   /* Example of a text part within a list item that should grow */
   .list-item .list-item-text-primary {
     flex-grow: 1;
-    font-size: var(--le-font-size-medium, 1.2em);
+    font-size: var(--le-font-size-small, 1.2em);
     text-align: left; /* Ensure text is left-aligned */
     display: flex;
     align-items: center; /* Center text vertically within its container */
-    /* Potentially add text overflow properties if needed */
-    /* white-space: nowrap; */
-    /* overflow: hidden; */
-    /* text-overflow: ellipsis; */
   }
 
   /* Example of an actions container part within a list item */
@@ -711,7 +707,7 @@ export const listStyles = `
   @media (max-width: 768px) {
     .list-item {
       min-height: 4rem; /* Slightly taller for mobile touch targets */
-      padding: var(--le-padding-l, 1.25rem) var(--le-padding-m, 1rem);
+      padding: 0 var(--le-padding-xs, 1rem);;
     }
     
     .list-item .list-item-actions {
@@ -720,7 +716,6 @@ export const listStyles = `
     
     .list-item .list-item-actions .button-shared {
       min-height: 2.5rem; /* Ensure buttons are touch-friendly */
-      padding: var(--le-padding-s, 0.5rem) var(--le-padding-m, 1rem);
     }
   }
 `;

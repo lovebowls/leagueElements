@@ -109,12 +109,11 @@ const BASE_STYLES = `
           box-shadow: var(--swal-shadow-mobile-panel);
           padding: var(--swal-padding-xs);
       }
-      .column-leagues .panel-header-shared .action-buttons { /* For New/Copy buttons in Leagues header */
-        display: flex; /* Ensure buttons are in a row */
-        align-items: center;
-        justify-content: flex-end; /* Align these buttons to the right */
-        gap: var(--swal-padding-s); /* Space between New/Copy */
-        margin-left: auto; /* Push this container to the right of "Leagues" text */
+      .column-leagues .panel-header-shared button:first-of-type { /* First button (New) gets pushed to the right */
+        margin-left: auto;
+      }
+      .column-leagues .panel-header-shared button:not(:first-of-type) { /* Subsequent buttons (Copy) get spacing */
+        margin-left: var(--swal-padding-s);
       }
       .league-action-button { /* These are small icon-like buttons, potentially keep specific styles or create a new shared variant */
         padding: var(--swal-padding-xs) var(--swal-padding-s); 
@@ -390,7 +389,7 @@ const BASE_STYLES = `
         border-radius: var(--swal-border-radius-mobile-panel);
         background: var(--swal-background-color-panel);
         box-shadow: var(--swal-shadow-mobile-panel);
-        padding: var(--swal-padding-s) var(--swal-padding-m);
+        padding: var(--swal-padding-s) 0;
         margin: 0 0 var(--swal-padding-m) 0;
         width: 100%;
         box-sizing: border-box;
@@ -473,10 +472,8 @@ const BASE_STYLES = `
           <div class="list-panel">
             <div class="panel-header panel-header-shared">
               <span>Leagues</span>
-              <div class="action-buttons"> 
-                <button id="new-league-button" class="button-shared">New</button>
-                <button id="copy-league-button" class="button-shared" disabled>Copy</button>
-              </div>
+              <button id="new-league-button" class="button-shared">New</button>
+              <button id="copy-league-button" class="button-shared" disabled>Copy</button>
             </div>
             <div class="list-container">
               <ul class="list" id="league-list"></ul>
@@ -516,23 +513,9 @@ const BASE_STYLES = `
                 <league-schedule id="admin-league-schedule"></league-schedule>
               </div>
           </div>
-
-          <!-- REMOVED The entire matches-panel div -->
-          <!-- 
-          <div id="matches-panel" class="panel" style="display:none;">
-            <div class="panel-header panel-header-shared"> 
-              <span>Matches</span>
-              <button id="add-match-button" class="button-shared">Add Match</button>
-            </div>
-            <div id="matches-list" class="panel-content"></div> 
-          </div>
-          -->
-
         </div>
       </div>
-          </div>
-      
-
+    </div>
       
     <!-- Modal for New/Edit League -->
     <div id="league-modal" class="modal-shared-overlay">

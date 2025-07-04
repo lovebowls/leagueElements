@@ -914,8 +914,6 @@ class LeagueAdminElement extends HTMLElement {
     const btnNew = this.shadow.querySelector('#new-league-button');
     const btnCopy = this.shadow.querySelector('#copy-league-button');
     const btnUpdate = this.shadow.querySelector('#update-league-button');
-    // Remove reference to the deleted button
-    // const btnDelete = this.shadow.querySelector('#delete-league-button');
     const btnCloseModal = this.shadow.querySelector('#close-league-modal');
     const btnCancelModal = this.shadow.querySelector('#cancel-league-button');
     const btnSaveModal = this.shadow.querySelector('#save-league-button');
@@ -923,8 +921,6 @@ class LeagueAdminElement extends HTMLElement {
     if (btnNew) btnNew.addEventListener('click', () => this._handleNewLeague());
     if (btnCopy) btnCopy.addEventListener('click', () => this._handleCopyLeague());
     if (btnUpdate) btnUpdate.addEventListener('click', () => this._handleEditLeagueRules());
-    // Remove event listener for deleted button 
-    // if (btnDelete) btnDelete.addEventListener('click', () => this._handleDeleteLeague());
     
     if (btnCloseModal) btnCloseModal.addEventListener('click', () => this._hideModal());
     if (btnCancelModal) btnCancelModal.addEventListener('click', () => this._hideModal());
@@ -2557,7 +2553,7 @@ class LeagueAdminElement extends HTMLElement {
     actionsContainer.innerHTML = ''; // Clear previous buttons
 
     const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
+    editBtn.textContent = this._isMobile ? '✏️' : 'Edit';
     editBtn.classList.add('button-shared');
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent li click handler
@@ -2566,7 +2562,7 @@ class LeagueAdminElement extends HTMLElement {
     actionsContainer.appendChild(editBtn);
 
     const removeBtn = document.createElement('button');
-    removeBtn.textContent = 'Remove';
+    removeBtn.textContent = this._isMobile ? '❌' : 'Remove';
     removeBtn.classList.add('button-shared');
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent li click handler
