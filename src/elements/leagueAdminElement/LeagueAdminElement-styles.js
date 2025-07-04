@@ -301,9 +301,6 @@ const BASE_STYLES = `
       /* Ensuring specificity for panel headers within the specific columns if needed */
       .column-leagues .panel-header,
       .column-details .panel-header {
-          /* These already have .panel-header-shared in template, so shared styles apply. */
-          /* Add specific overrides here if .panel-header-shared is not enough */
-          /* For example, to ensure they use the correct background for admin context: */
           background-color: var(--swal-background-color-header);
       }
 
@@ -404,7 +401,7 @@ const BASE_STYLES = `
         margin-bottom: var(--swal-padding-s);
         background: none; /* Keep transparent background */
         border: none; /* Keep no border */
-        padding: var(--swal-padding-xs) 0;
+        padding: var(--swal-padding-xs);
       }
       .panel-header button { /* Add Team button */
         padding: var(--swal-padding-s) var(--swal-padding-m); /* Keep existing padding */

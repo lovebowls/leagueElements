@@ -1,7 +1,7 @@
 const baseFontSizeConstants = (fontScale = 1.0) => `
 /* Base font sizes for different contexts */
   --le-font-size-base-desktop: ${16 * fontScale}px;
-  --le-font-size-base-mobile: ${20 * fontScale}px;
+  --le-font-size-base-mobile: ${18 * fontScale}px;
   line-height: 1.2;
 `;
 
@@ -261,7 +261,7 @@ export const panelStyles = `
 
 export const buttonStyles = `
   .button-shared {
-    padding: 0 8px;
+    padding: 2px 8px;
     border: 1px solid var(--le-border-color-medium, #ccc);
     background-color: var(--le-background-color-button, #f0f0f0);
     color: var(--le-text-color-primary, #333); /* Ensure text color contrasts with button background */

@@ -151,6 +151,9 @@ const BASE_STYLES = `
 // Mobile-specific styles
 export const MOBILE_STYLES = `
       ${BASE_STYLES}
+      .calendar-container {
+        font-size: var(--le-font-size-small);
+      }
       .calendar-grid > div { /* Applies to headers and days */
         padding: var(--le-padding-s, 0.5rem) var(--le-padding-xs, 0.25rem);
         border-radius: var(--le-border-radius-small, 2px);

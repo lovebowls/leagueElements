@@ -368,6 +368,7 @@ export const MOBILE_STYLES = `
   
   .schedule-cards {
     display: block;
+    font-size: var(--le-font-size-xs);
   }
   
   .match-card {
@@ -376,7 +377,7 @@ export const MOBILE_STYLES = `
     margin-bottom: 1rem;
     border: none;
     border-radius: 12px;
-    padding: 1rem;
+    padding: var(--le-padding-s);
     position: relative;
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
