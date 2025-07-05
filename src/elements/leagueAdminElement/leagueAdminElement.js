@@ -7,6 +7,7 @@ import '../leagueMatch/leagueMatch.js';
 import '../leagueResetModal/leagueResetModal.js';
 import '../leagueTeams/leagueTeams.js';
 import '../LeagueSchedule/LeagueSchedule.js';
+import '../leagueDashboard/LeagueDashboard.js';
 import {  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
 import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
@@ -633,7 +634,7 @@ class LeagueAdminElement extends HTMLElement {
     
     // Add action options
     const actions = [
-      { value: 'view', label: 'View..' },
+      { value: 'view', label: 'View Table ↗️' },
       { value: 'edit', label: 'Edit..' },
       { value: 'delete', label: 'Delete..' },
       { value: 'reset', label: 'Reset..' },
@@ -719,6 +720,15 @@ class LeagueAdminElement extends HTMLElement {
       return;
     }
   
+    // Show the dashboard panel and update it
+    const dashboardPanel = this.shadow.querySelector('#league-dashboard-panel');
+    if (dashboardPanel) {
+      dashboardPanel.style.display = '';
+      this._updateDashboardPanel(selectedLeague);
+    } else {
+      console.warn(this.LOG_PREFIX + 'Dashboard panel element not found');
+    }
+  
     // Show the teams panel
     const teamsPanel = this.shadow.querySelector('#teams-panel');
     if (teamsPanel) {
@@ -759,6 +769,14 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _hideLeagueSpecificPanels() {
+    
+    // Hide the dashboard panel
+    const dashboardPanel = this.shadow.querySelector('#league-dashboard-panel');
+    if (dashboardPanel) {
+      dashboardPanel.style.display = 'none';
+    } else {
+      console.warn(this.LOG_PREFIX + 'Dashboard panel element not found when trying to hide');
+    }
     
     // Hide the attention container
     const attentionContainer = this.shadow.querySelector('#admin-matches-attention-container');
@@ -935,6 +953,17 @@ class LeagueAdminElement extends HTMLElement {
     const btnAddTeam = this.shadow.querySelector('#add-team-button');
     if (btnAddTeam) {
       btnAddTeam.addEventListener('click', () => this._handleAddTeam());
+    }
+
+    // Dashboard event listeners
+    const btnEditLeague = this.shadow.querySelector('#edit-league-button');
+    if (btnEditLeague) {
+      btnEditLeague.addEventListener('click', () => this._handleEditLeagueRules());
+    }
+    
+    const btnViewTable = this.shadow.querySelector('#view-table-button');
+    if (btnViewTable) {
+      btnViewTable.addEventListener('click', () => this._handleViewLeagueTable());
     }
     
     // Team modal event listeners are now handled by the league-teams component
@@ -1173,6 +1202,7 @@ class LeagueAdminElement extends HTMLElement {
           const leagueToRefresh = this._getSelectedLeague();
           if (leagueToRefresh) {
             this._updateAttentionPanel(leagueToRefresh);
+            this._updateDashboardPanel(leagueToRefresh);
           }
           
           // Re-render the teams list to reflect the removal
@@ -2202,6 +2232,9 @@ class LeagueAdminElement extends HTMLElement {
         
         // Update the attention panel to reflect the changes without full re-render
         this._updateAttentionPanel(updatedLeague);
+        
+        // Update the dashboard panel to reflect the changes without full re-render
+        this._updateDashboardPanel(updatedLeague);
       });
       
       modal.addEventListener('match-cancel', () => {
@@ -2377,6 +2410,37 @@ class LeagueAdminElement extends HTMLElement {
       scheduleContainer.style.display = 'none';
     }
   }
+
+  _updateDashboardPanel(leagueToUse) {
+    console.log('[LeagueAdmin] _updateDashboardPanel called');
+    const selectedLeague = leagueToUse || this._getSelectedLeague();
+    const dashboardElement = this.shadow.querySelector('#admin-league-dashboard');
+    const dashboardContainer = this.shadow.querySelector('#league-dashboard-panel');
+    
+    if (!selectedLeague || !dashboardElement || !dashboardContainer) {
+      if (dashboardContainer) dashboardContainer.style.display = 'none';
+      console.log('[LeagueAdmin] _updateDashboardPanel early return - missing elements');
+      return;
+    }
+    
+    const isMobile = String(this._isMobile);
+    dashboardElement.setAttribute('is-mobile', isMobile);
+    dashboardElement.setAttribute('font-scale', String(this._fontScale));
+    
+    try {
+      // Set the league data for the dashboard component
+      const leagueData = JSON.stringify(selectedLeague);
+      dashboardElement.setAttribute('data', leagueData);
+      
+      dashboardContainer.style.display = '';
+            
+    } catch (error) {
+      console.error('[LeagueAdmin] Error updating dashboard panel:', error);
+      dashboardContainer.style.display = 'none';
+    }
+  }
+
+
 
   _handleAdminAttentionMatchClick(e) {
     

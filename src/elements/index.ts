@@ -31,4 +31,5 @@ export { default as LeagueAdminElement } from './leagueAdminElement/leagueAdminE
 export { default as LeagueElement } from './leagueElement/leagueElement.js';
 export { default as LeagueMatchesAttention } from './LeagueMatchesAttention/LeagueMatchesAttention.js';
 export { default as LeagueSchedule } from './LeagueSchedule/LeagueSchedule.js';
-export { default as LeagueTeams } from './leagueTeams/leagueTeams.js'; 
+export { default as LeagueTeams } from './leagueTeams/leagueTeams.js';
+export { default as LeagueDashboard } from './leagueDashboard/LeagueDashboard.js'; 

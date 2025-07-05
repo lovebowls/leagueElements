@@ -126,6 +126,33 @@ const BASE_STYLES = `
         background-color: var(--swal-background-color-button-hover);
       }
 
+      .panel-header-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--swal-padding-s);
+      }
+
+      /* Special styling for View Table button */
+      #view-table-button {
+        background: linear-gradient(135deg, var(--swal-text-color-accent, #007bff) 0%, var(--swal-text-color-accent-hover, #0056b3) 100%);
+        color: var(--swal-text-color-on-primary, #fff);
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      #view-table-button:hover {
+        background: linear-gradient(135deg, var(--swal-text-color-accent-hover, #0056b3) 0%, #004085 100%);
+        box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+        transform: translateY(-1px);
+      }
+
+      #view-table-button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+      }
+
       .action-buttons { /* Container for main action buttons */
         display: flex;
         gap: var(--swal-padding-s); 
@@ -469,8 +496,10 @@ const BASE_STYLES = `
           <div class="list-panel">
             <div class="panel-header panel-header-shared">
               <span>Leagues</span>
-              <button id="new-league-button" class="button-shared">New</button>
-              <button id="copy-league-button" class="button-shared" disabled>Copy</button>
+              <div class="panel-header-actions">
+                <button id="new-league-button" class="button-shared">New</button>
+                <button id="copy-league-button" class="button-shared" disabled>Copy</button>
+              </div>
             </div>
             <div class="list-container">
               <ul class="list" id="league-list"></ul>
@@ -481,6 +510,20 @@ const BASE_STYLES = `
         <div class="resizer" id="resizer"></div>
 
         <div class="column column-details">
+          <!-- League Dashboard Panel -->
+          <div id="league-dashboard-panel" class="panel" style="display:none;">
+            <div class="panel-header panel-header-shared">
+              <span>League Dashboard</span>
+              <div class="panel-header-actions">
+                <button id="edit-league-button" class="button-shared">Edit..</button>
+                <button id="view-table-button" class="button-shared">View Table ↗️</button>
+              </div>
+            </div>
+            <div class="panel-content">
+              <league-dashboard id="admin-league-dashboard"></league-dashboard>
+            </div>
+          </div>
+
           <div id="teams-panel" class="panel" style="display:none;">
             <div class="panel-header panel-header-shared"> 
               <span>Teams</span>
