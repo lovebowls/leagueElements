@@ -46,6 +46,10 @@ class LeagueDashboard extends HTMLElement {
     this.setupEventListeners();
   }
 
+  setupEventListeners() {
+    //
+  }
+
   disconnectedCallback() {
     // Clean up event listeners if needed
   }
