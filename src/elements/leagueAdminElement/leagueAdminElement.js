@@ -8,7 +8,7 @@ import '../leagueResetModal/leagueResetModal.js';
 import '../leagueTeams/leagueTeams.js';
 import '../LeagueSchedule/LeagueSchedule.js';
 import '../leagueDashboard/LeagueDashboard.js';
-import {  MOBILE_STYLES,  DESKTOP_STYLES,  TEMPLATE_CONTENT} from './LeagueAdminElement-styles.js';
+import {  MOBILE_STYLES,  DESKTOP_STYLES,  DESKTOP_TEMPLATE, MOBILE_TEMPLATE} from './LeagueAdminElement-styles.js';
 import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 
@@ -349,7 +349,7 @@ class LeagueAdminElement extends HTMLElement {
         ${this._isMobile ? getMobileStyles(this._fontScale) : getDesktopStyles(this._fontScale)}
         ${this._isMobile ? MOBILE_STYLES : DESKTOP_STYLES}
       </style>
-      ${TEMPLATE_CONTENT}
+      ${this._isMobile ? MOBILE_TEMPLATE : DESKTOP_TEMPLATE}
     `;
     // Setup resizer
     this._setupResizer();
@@ -634,10 +634,10 @@ class LeagueAdminElement extends HTMLElement {
     
     // Add action options
     const actions = [
-      { value: 'view', label: 'View Table ↗️' },
-      { value: 'edit', label: 'Edit..' },
-      { value: 'delete', label: 'Delete..' },
+      { value: 'view', label: 'Table ↗️' },
+      { value: 'edit', label: 'Rules..' },
       { value: 'reset', label: 'Reset..' },
+      { value: 'delete', label: 'Delete..' },
     ];
 
     actions.forEach(action => {

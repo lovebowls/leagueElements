@@ -13,7 +13,7 @@ class LeagueResetModalEvent extends CustomEvent {
 
 class LeagueResetModal extends HTMLElement {
   static get observedAttributes() {
-    return ['open', 'is-mobile', 'data'];
+    return ['open', 'is-mobile', 'data', 'font-scale'];
   }
 
   constructor() {
@@ -77,6 +77,12 @@ class LeagueResetModal extends HTMLElement {
     }
   }
   get isMobile() { return this._isMobile; }
+
+  get _fontScale() {
+    const scale = parseFloat(this.getAttribute('font-scale')) || 1.0;
+    // Clamp the scale between 0.5 and 2.0 for reasonable bounds
+    return Math.max(0.5, Math.min(2.0, scale));
+  }
 
   /**
    * @param {Object|string} value - League object or JSON string
@@ -378,29 +384,40 @@ class LeagueResetModal extends HTMLElement {
     
     // Check if the league has any matches
     const hasExistingMatches = this._league && this._league.matches && this._league.matches.length > 0;
-    
+    const attentionBannerHTML = hasExistingMatches ? '<div class="header-warning">This will clear all existing matches and generate new ones with the scheduling parameters below.</div>' : '';
     this.shadow.innerHTML = `
       <style>
         ${BASE_STYLES}
-        ${this._isMobile ? getMobileStyles() : getDesktopStyles()}
+        ${this._isMobile ? getMobileStyles(this._fontScale) : getDesktopStyles(this._fontScale)}
       </style>
       <div class="modal-shared-overlay" style="display: ${this._open ? 'flex' : 'none'};">
-        <div class="modal-shared-content ${mobileClass}">
+        <div class="modal-shared-content ${this._open ? 'modal-is-open' : 'modal-is-closed'} ${mobileClass}" 
+            role="dialog" 
+            aria-labelledby="reset-modal-title" 
+            aria-modal="true"
+            style="display: ${this._open ? 'flex' : 'none'};">
+          ${attentionBannerHTML} 
           <div class="modal-shared-header">
-            <div class="header-title-row">
-              <h3>Reset League Matches</h3>
-              <button type="button" class="modal-close-button" id="close-reset-modal" aria-label="Close">&times;</button>
-            </div>
-            ${hasExistingMatches ? '<div class="header-warning">This will clear all existing matches and generate new ones with the scheduling parameters below.</div>' : ''}
+            <span id="reset-modal-title">Reset Matches</span>
+            <button class="close-button-shared" id="close-reset-modal" aria-label="Close dialog">&times;</button>          
           </div>
           <div class="modal-shared-body">
-            
             <div class="league-info">
               <p><strong>League:</strong> ${this._escapeHtml(this.leagueName)}</p>
               <p><strong>Teams:</strong> ${this.teamCount}</p>
             </div>
 
-            <div class="form-row">
+            ${this._isMobile ? 
+            `<div class="form-group-shared">
+                <label for="startDate" class="form-label-shared">Start Date *</label>
+                <input type="date" id="startDate" class="form-input-shared" required>
+              </div>
+
+              <div class="form-group-shared">
+                <label for="maxMatchesPerDay" class="form-label-shared">Max rinks per session</label>
+                <input type="number" id="maxMatchesPerDay" class="form-input-shared" min="1" ${this.maxRinksPerSession ? `max="${this.maxRinksPerSession}"` : ''} placeholder="${this.maxMatchesPerDayPlaceholder}" value="${this.defaultMaxMatchesPerDay}">
+              </div>` :
+            `<div class="form-row">
               <div class="form-group-shared">
                 <label for="startDate" class="form-label-shared">Start Date *</label>
                 <input type="date" id="startDate" class="form-input-shared" required>
@@ -410,10 +427,10 @@ class LeagueResetModal extends HTMLElement {
                 <label for="maxMatchesPerDay" class="form-label-shared">Max rinks per session</label>
                 <input type="number" id="maxMatchesPerDay" class="form-input-shared" min="1" ${this.maxRinksPerSession ? `max="${this.maxRinksPerSession}"` : ''} placeholder="${this.maxMatchesPerDayPlaceholder}" value="${this.defaultMaxMatchesPerDay}">
               </div>
-            </div>
+            </div>`}
 
             <fieldset class="form-fieldset-shared">
-              <legend class="form-legend-shared">Scheduling Pattern</legend>
+              <legend class="form-legend">Scheduling Pattern</legend>
               
               <div class="form-group-shared">
                 <label class="form-checkbox-label-shared">

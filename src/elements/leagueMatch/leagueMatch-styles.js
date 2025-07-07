@@ -175,8 +175,6 @@ export const BASE_STYLES = `
           padding: 10px !important;
           height: auto !important;
         }
-        .form-checkbox-label-shared {
-        }
         .score-inputs {
           gap: 10px;
         }
@@ -206,14 +204,6 @@ export const BASE_STYLES = `
         }
       }
       
-      /* Also add styles for when mobile-view class is applied regardless of screen size */
-      .modal-shared-content.mobile-view {
-        width: 90% !important; /* Override any fixed width from shared styles */
-        max-width: 90% !important;
-        min-width: 280px !important;
-        margin: 10px auto;
-        transform: scale(1.05);
-      }
       .mobile-view .modal-shared-header {
         padding: 15px;
       }
@@ -231,9 +221,6 @@ export const BASE_STYLES = `
         padding: 12px !important;
         height: auto !important;
         border-radius: 6px !important;
-      }
-      .mobile-view .form-checkbox-label-shared {
-        margin: 5px 0;
       }
       .mobile-view .score-inputs {
         gap: 15px;

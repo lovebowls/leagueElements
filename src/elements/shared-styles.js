@@ -62,44 +62,6 @@ export const getMobileStyles = (fontScale = 1.0) => `
     border-width: 2px;
   }
 
-  /* Mobile-specific checkbox improvements */
-  .form-label-shared input[type="checkbox"] {
-    /* Make checkbox larger and more touch-friendly */
-    width: 25px !important;
-    height: 25px !important;
-    min-width: 25px !important;
-    min-height: 25px !important;
-    margin-right: var(--le-padding-s, 0.75em) !important;
-    /* Add visual enhancement */
-    transform: scale(1.2) !important;
-    cursor: pointer !important;
-  }
-
-  /* Target labels that contain checkboxes - multiple selectors for maximum compatibility */
-  .form-label-shared[for*="Checkbox"],
-  .form-label-shared[for*="checkbox"] {
-    font-size: var(--le-font-size-small, 0.8em) !important;
-    min-height: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-
-  /* More general selector - any form-label-shared containing checkbox input */
-  .form-label-shared:has(input[type="checkbox"]) {
-    font-size: var(--le-font-size-small, 0.8em) !important;
-    min-height: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-
-  /* Fallback for browsers that don't support :has() - use specific ID */
-  #useExistingTeamLabel {
-    font-size: var(--le-font-size-small, 0.8em) !important;
-    min-height: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-  }
-
   /* Input fields on mobile */
   .form-input-shared, .form-select-shared {
     min-height: 44px; /* Standard mobile touch target */
@@ -403,22 +365,23 @@ export const modalStyles = `
 
   .modal-shared-content {
     background-color: var(--le-background-color-panel, #fff);
-    margin: var(--le-modal-margin-top, 10%) auto; /* Default to 10% from top, centered */
-    padding: 0; /* Remove padding, header/body/footer will handle it */
+    margin: 10% auto; /* Default to 10% from top, centered */
+    padding: 0;
     border: 1px solid var(--le-border-color-dark, #ccc);
-    width: var(--le-modal-width, 90%); /* Increased width for mobile */
-    max-width: var(--le-modal-max-width, 600px);
+    max-width: 600px;
     border-radius: var(--le-border-radius-large, 8px);
     box-shadow: var(--le-shadow-modal, 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19));
     display: flex;
     flex-direction: column;
   }
 
-  /* Specific styles for mobile-view class, used by leagueMatch.js */
+  /* Specific styles for modal mobile-view class */
   .modal-shared-content.mobile-view {
+    width: 90% !important; /* Override any fixed width from shared styles */
     margin: 5% auto; /* Less margin from top on mobile */
-    width: var(--le-modal-width-mobile, 95%); /* Even wider on mobile */
-    max-width: var(--le-modal-max-width-mobile, 650px); /* Increased max-width for mobile */
+    max-width: 90% !important;
+    font-size: var(--le-font-size-small, 0.8em);
+    min-width: 280px !important;
   }
 
   .modal-shared-header {
@@ -437,7 +400,7 @@ export const modalStyles = `
 
   .modal-shared-header .close-button-shared { /* Specific styling for a close button if needed */
     color: var(--le-text-color-secondary, #aaa);
-    font-size: var(--le-font-size-xxlarge, 1.8em); /* Increased size */
+    font-size: var(--le-font-size-xlarge, 1.8em); /* Increased size */
     font-weight: bold;
     background: none;
     border: none;
@@ -509,7 +472,6 @@ export const formStyles = `
     display: flex; /* Changed to flex for better alignment */
     align-items: center;
     font-weight: normal; /* Typically labels for checkboxes are not bold by default */
-    font-size: var(--le-font-size-label, var(--le-font-size-small, 1.15em)); /* Use variable with fallback */
     color: var(--le-text-color-primary, #333);
   }
 
@@ -722,7 +684,7 @@ export const listStyles = `
   /* Example of a text part within a list item that should grow */
   .list-item .list-item-text-primary {
     flex-grow: 1;
-    font-size: var(--le-font-size-small, 1.2em);
+    font-size: var(--le-font-size-medium, 1.2em);
     text-align: left; /* Ensure text is left-aligned */
     display: flex;
     align-items: center; /* Center text vertically within its container */

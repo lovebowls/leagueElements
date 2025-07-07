@@ -308,21 +308,22 @@ class LeagueDashboard extends HTMLElement {
     const pointsForLoss = settings.pointsForLoss || 0;
     
     // Match format
-    const timesTeamsPlayEachOther = settings.timesTeamsPlayEachOther || 1;
-    const formatText = timesTeamsPlayEachOther === 1 ? 'Single Round Robin' : 
-                      timesTeamsPlayEachOther === 2 ? 'Double Round Robin' : 
-                      `${timesTeamsPlayEachOther}× Round Robin`;
+    const timesTeamsPlayOther = settings.timesTeamsPlayOther || 1;
+    const formatText = timesTeamsPlayOther === 1 ? 'Single Round Robin' :
+                      timesTeamsPlayOther === 2 ? 'Double Round Robin' :
+                      `${timesTeamsPlayOther}× Round Robin`;
     
     // Rink configuration
-    const maxRinksPerSession = settings.maxRinksPerSession || 'Not set';
+    const maxRinksPerSession = settings.maxRinksPerSession;
+    const maxRinksText = maxRinksPerSession ? `${maxRinksPerSession} rinks per session` : 'Not set';
     
     // Promotion/Relegation
-    const hasPromotionRelegation = settings.promotionRelegation || false;
+    const hasPromotionRelegation = settings.promotionPositions || settings.relegationPositions;
     const promRelText = hasPromotionRelegation ? 'Enabled' : 'Disabled';
     
     return `
       <div class="dashboard-section league-settings">
-        <h3 class="section-title">League Settings Summary</h3>
+        <h3 class="section-title">Settings Summary</h3>
         <div class="info-cards">
           <div class="info-card">
             <div class="card-label">Points System</div>
@@ -334,7 +335,7 @@ class LeagueDashboard extends HTMLElement {
           </div>
           <div class="info-card">
             <div class="card-label">Rink Configuration</div>
-            <div class="card-value">Max ${maxRinksPerSession} rinks per session</div>
+            <div class="card-value">${maxRinksText}</div>
           </div>
           <div class="info-card">
             <div class="card-label">Promotion Relegation</div>

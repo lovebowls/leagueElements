@@ -2,13 +2,13 @@ import { panelStyles, buttonStyles, modalStyles, formStyles, listStyles, tabStyl
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
-      ${panelStyles}   /* ADDED SHARED STYLE */
-      ${buttonStyles}  /* ADDED SHARED STYLE */
-      ${modalStyles}   /* ADDED SHARED MODAL STYLE */
-      ${formStyles}    /* ADDED SHARED FORM STYLE */
-      ${listStyles} /* ADDED SHARED LIST ITEM STYLE */
-      ${tabStyles}
-      ${dropdownStyles} /* ADDED SHARED DROPDOWN STYLE - now includes dropdown menu styles */
+      ${panelStyles}   /* ADDED SHARED panelStyles */
+      ${buttonStyles}  /* ADDED SHARED buttonStyles */
+      ${modalStyles}   /* ADDED SHARED modalStyles */
+      ${formStyles}    /* ADDED SHARED formStyles */
+      ${listStyles} /* ADDED SHARED listStyles */
+      ${tabStyles} /* ADDED SHARED tabStyles */
+      ${dropdownStyles} /* ADDED SHARED dropdownStyles */
       :host {
         display: block;
         border: 1px solid var(--swal-border-color-medium, #ccc); 
@@ -132,7 +132,7 @@ const BASE_STYLES = `
         gap: var(--swal-padding-s);
       }
 
-      /* Special styling for View Table button */
+      /* Special styling for Table button */
       #view-table-button {
         background: linear-gradient(135deg, var(--swal-text-color-accent, #007bff) 0%, var(--swal-text-color-accent-hover, #0056b3) 100%);
         color: var(--swal-text-color-on-primary, #fff);
@@ -158,53 +158,6 @@ const BASE_STYLES = `
         gap: var(--swal-padding-s); 
         flex-wrap: wrap; 
         margin-bottom: var(--swal-padding-m);
-      }
-      .modal {
-        display: none; 
-        position: fixed; 
-        z-index: 1000; 
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto; 
-        background-color: rgba(0,0,0,0.4); 
-      }
-      .modal-content {
-        background-color: var(--swal-background-color-panel);
-        margin: 10% auto; 
-        padding: var(--swal-padding-l);
-        border: 1px solid var(--swal-border-color-dark);
-        width: 80%; 
-        max-width: 600px; 
-        border-radius: var(--swal-border-radius-large);
-        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-      }
-      .modal-header {
-        background-color: var(--swal-background-color-modal-header);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--le-padding-s, 0.5em) var(--le-padding-m, 1em);
-        border-bottom: 1px solid var(--le-border-color-medium, #eee);
-        font-weight: bold;
-      }
-      .modal-body {
-        padding: var(--swal-padding-m);
-      }
-      .modal-footer {
-        padding: var(--swal-padding-s) var(--swal-padding-m);
-        text-align: right;
-        border-top: 1px solid var(--swal-border-color-medium);
-      }
-      .modal-footer button {
-         margin-left: var(--swal-padding-s); /* Keep specific margin */
-      }
-
-      .modal-league-name-section {
-        margin-bottom: var(--swal-padding-m);
-        padding-bottom: var(--swal-padding-m);
-        border-bottom: 1px solid var(--swal-border-color-light);
       }
 
       /* Form group grid for better layout */
@@ -413,7 +366,7 @@ const BASE_STYLES = `
         border-radius: var(--swal-border-radius-mobile-panel);
         background: var(--swal-background-color-panel);
         box-shadow: var(--swal-shadow-mobile-panel);
-        padding: var(--swal-padding-s) 0;
+        padding: 0;
         margin: 0 0 var(--swal-padding-m) 0;
         width: 100%;
         box-sizing: border-box;
@@ -428,7 +381,7 @@ const BASE_STYLES = `
         margin-bottom: var(--swal-padding-s);
         background: none; /* Keep transparent background */
         border: none; /* Keep no border */
-        padding: var(--swal-padding-xs);
+        padding: var(--swal-padding-s);
       }
       .panel-header button { /* Add Team button */
         padding: var(--swal-padding-s) var(--swal-padding-m); /* Keep existing padding */
@@ -436,6 +389,10 @@ const BASE_STYLES = `
         margin-left: var(--swal-padding-s); /* Add some left margin if needed, or rely on space-between */
       }
       
+      .list-container, .panel-content {
+        padding: 0 var(--swal-padding-s) var(--swal-padding-s);
+      }
+
       .match-item { /* For items within Matches panel in mobile */
         padding: var(--swal-padding-s) var(--swal-padding-xs);
       }
@@ -473,7 +430,7 @@ const BASE_STYLES = `
       .league-list-container {
         flex-shrink: 0; 
       }
-      .league-action-button { /* View Table, Actions buttons in league list for desktop */
+      .league-action-button { /* Table, Actions buttons in league list for desktop */
         padding: var(--swal-padding-xs) var(--swal-padding-s);
       }
         bottom: 100%; 
@@ -483,7 +440,7 @@ const BASE_STYLES = `
     `;
 
   // Base HTML template (placeholders will be filled by render logic)
-  export const TEMPLATE_CONTENT = `
+  export const DESKTOP_TEMPLATE = `
     <div class="header">
       <div id="main-title">League Admin</div>
       <div class="header-actions">
@@ -513,10 +470,10 @@ const BASE_STYLES = `
           <!-- League Dashboard Panel -->
           <div id="league-dashboard-panel" class="panel" style="display:none;">
             <div class="panel-header panel-header-shared">
-              <span>League Dashboard</span>
+              <span>Dashboard</span>
               <div class="panel-header-actions">
-                <button id="edit-league-button" class="button-shared">Edit..</button>
-                <button id="view-table-button" class="button-shared">View Table ↗️</button>
+                <button id="edit-league-button" class="button-shared">Rules..</button>
+                <button id="view-table-button" class="button-shared">Table ↗️</button>
               </div>
             </div>
             <div class="panel-content">
@@ -575,6 +532,101 @@ const BASE_STYLES = `
       </div>
       
     <!-- Team modal is now handled by the league-teams component -->
+
+    <!-- Modal for Add/Edit Match -->
+    <league-match id="match-modal-instance" is-admin-context="true"></league-match>
+    `;
+
+  export const MOBILE_TEMPLATE = `
+    <div class="header">
+      <div id="main-title">League Admin</div>
+      <div class="header-actions">
+      </div>
+    </div>
+    <div id="error-message" class="error" style="display: none;"></div>
+    <div class="content-area">
+      <div class="columns">
+        <div class="column column-leagues">
+          <div class="list-panel">
+            <div class="panel-header panel-header-shared">
+              <span>Leagues</span>
+              <div class="panel-header-actions">
+                <button id="new-league-button" class="button-shared">New</button>
+                <button id="copy-league-button" class="button-shared" disabled>Copy</button>
+              </div>
+            </div>
+            <div class="list-container">
+              <ul class="list" id="league-list"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="resizer" id="resizer"></div>
+
+        <div class="column column-details">
+          <!-- League Dashboard Panel -->
+          <div id="league-dashboard-panel" class="panel" style="display:none;">
+            <div class="panel-header panel-header-shared">
+              <span>Dashboard</span>
+            </div>
+            <div class="panel-header-actions">
+              <button id="edit-league-button" class="button-shared">Rules..</button>
+              <button id="view-table-button" class="button-shared">Table ↗️</button>
+            </div>            
+            <div class="panel-content">
+              <league-dashboard id="admin-league-dashboard"></league-dashboard>
+            </div>
+          </div>
+
+          <div id="teams-panel" class="panel" style="display:none;">
+            <div class="panel-header panel-header-shared"> 
+              <span>Teams</span>
+              <button id="add-team-button" class="button-shared">Manage</button>
+          </div>
+            <div class="list-container">
+              <ul class="list" id="teams-list"></ul>
+            </div>
+          </div>
+
+          <!-- LeagueMatchesAttention moved here, directly under Teams panel -->
+          <div id="admin-matches-attention-container" class="panel" style="margin-bottom: var(--swal-padding-m);">
+              <div class="panel-header panel-header-shared">
+                <span>Requiring Attention</span> 
+              </div>
+              <div class="panel-content">
+                <league-matches-attention id="admin-attention-matches" data-league-id=""></league-matches-attention>
+              </div>
+          </div>
+
+          <!-- League Schedule panel -->
+          <div id="league-schedule-panel" class="panel" style="display:none;">
+              <div class="panel-header panel-header-shared">
+                <span>Schedule</span>
+              </div>
+              <div class="panel-content">
+                <league-schedule id="admin-league-schedule"></league-schedule>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+      
+    <!-- Modal for New/Edit League -->
+    <div id="league-modal" class="modal-shared-overlay">
+        <div class="modal-shared-content mobile-view">
+          <div class="modal-shared-header">
+            <span id="league-modal-title">New League</span>
+            <span class="close-button close-button-shared" id="close-league-modal">&times;</span>
+          </div>
+          <div class="modal-shared-body" id="league-modal-body">
+            <!-- Form content will be injected here by JS -->
+          </div>
+          <div class="modal-shared-footer">
+            <button id="save-league-button" class="button-shared">Save</button>
+            <button id="cancel-league-button" class="button-shared">Cancel</button>
+          </div>
+        </div>
+    </div>
 
     <!-- Modal for Add/Edit Match -->
     <league-match id="match-modal-instance" is-admin-context="true"></league-match>
