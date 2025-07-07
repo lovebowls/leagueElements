@@ -490,7 +490,7 @@ class LeagueAdminElement extends HTMLElement {
     if (!this._leagues || this._leagues.length === 0) {
       const li = document.createElement('li');
       li.classList.add('list-item');
-      li.textContent = 'No leagues available.';
+      li.textContent = 'No leagues available. Click New to create one.';
       listElement.appendChild(li);
       return;
     }
@@ -636,6 +636,7 @@ class LeagueAdminElement extends HTMLElement {
     const actions = [
       { value: 'view', label: 'Table ↗️' },
       { value: 'edit', label: 'Rules..' },
+      { value: 'teams', label: 'Teams..' },
       { value: 'reset', label: 'Reset..' },
       { value: 'delete', label: 'Delete..' },
     ];
@@ -665,6 +666,9 @@ class LeagueAdminElement extends HTMLElement {
             break;
           case 'reset':
             this._handleResetLeague();
+            break;
+          case 'teams':
+            this._handleAddTeam();
             break;
         }
         
@@ -1871,17 +1875,17 @@ class LeagueAdminElement extends HTMLElement {
         <legend>Match Points</legend>
         <div class="form-group-grid">
           <div class="form-group">
-            <label for="pointsForWin">Points for Win</label>
+            <label for="pointsForWin">for Win</label>
             <input type="number" id="pointsForWin" value="${settings.pointsForWin !== undefined ? settings.pointsForWin : 3}" min="0">
           </div>
           <div class="form-group">
-            <label for="pointsForDraw">Points for Draw</label>
+            <label for="pointsForDraw">for Draw</label>
             <input type="number" id="pointsForDraw" value="${settings.pointsForDraw !== undefined ? settings.pointsForDraw : 1}" min="0">
           </div>
-        </div>
-        <div class="form-group">
-          <label for="pointsForLoss">Points for Loss</label>
-          <input type="number" id="pointsForLoss" value="${settings.pointsForLoss !== undefined ? settings.pointsForLoss : 0}" min="0">
+          <div class="form-group">
+            <label for="pointsForLoss">for Loss</label>
+            <input type="number" id="pointsForLoss" value="${settings.pointsForLoss !== undefined ? settings.pointsForLoss : 0}" min="0">
+          </div>
         </div>
       </fieldset>
       
@@ -1896,17 +1900,17 @@ class LeagueAdminElement extends HTMLElement {
         <div id="rinkPointsSettingsArea" class="rink-points-settings ${!rinkPoints.enabled ? 'disabled' : ''}" style="display: ${rinkPoints.enabled ? 'block' : 'none'};">
           <div class="form-group-grid">
             <div class="form-group">
-              <label for="pointsPerRinkWin">Points per Rink Win</label>
+              <label for="pointsPerRinkWin">for Rink Win</label>
               <input type="number" id="pointsPerRinkWin" value="${rinkPoints.pointsPerRinkWin !== undefined ? rinkPoints.pointsPerRinkWin : 2}" min="0">
             </div>
             <div class="form-group">
-              <label for="pointsPerRinkDraw">Points per Rink Draw</label>
+              <label for="pointsPerRinkDraw">for Rink Draw</label>
               <input type="number" id="pointsPerRinkDraw" value="${rinkPoints.pointsPerRinkDraw !== undefined ? rinkPoints.pointsPerRinkDraw : 1}" min="0">
             </div>
-          </div>
-          <div class="form-group">
-            <label for="defaultRinks">Default Rinks per Match</label>
-            <input type="number" id="defaultRinks" value="${rinkPoints.defaultRinks !== undefined ? rinkPoints.defaultRinks : 4}" min="1">
+            <div class="form-group">
+              <label for="defaultRinks">Rinks per Match</label>
+              <input type="number" id="defaultRinks" value="${rinkPoints.defaultRinks !== undefined ? rinkPoints.defaultRinks : 4}" min="1">
+            </div>
           </div>
         </div>
       </fieldset>

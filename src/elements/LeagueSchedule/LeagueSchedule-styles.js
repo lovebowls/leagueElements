@@ -425,8 +425,7 @@ export const MOBILE_STYLES = `
   .card-row {
     display: flex;
     align-items: center;
-    padding: 0.4rem 0;
-    min-height: 2.2rem;
+    padding: 0;
     line-height: 1.4;
   }
   

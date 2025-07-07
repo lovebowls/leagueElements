@@ -18,7 +18,8 @@ const elements = [
   'leagueTeams',
   'LeagueCalendar',
   'LeagueSchedule',
-  'leagueResetModal'
+  'leagueResetModal',
+  'leagueDashboard'
 ];
 
 // Define common globals for all bundles

@@ -208,7 +208,7 @@ const BASE_STYLES = `
 export const MOBILE_STYLES = (fontScale = 1.0) => `
   ${getMobileStyles(fontScale)}
   ${BASE_STYLES}
-  
+
   .dashboard-sections {
     gap: var(--le-padding-s, 0.75rem);
   }

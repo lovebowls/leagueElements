@@ -278,7 +278,7 @@ export const panelStyles = `
 
 export const buttonStyles = `
   .button-shared {
-    padding: 2px 8px;
+    padding: 4px 8px;
     border: 1px solid var(--le-border-color-medium, #ccc);
     background-color: var(--le-background-color-button, #f0f0f0);
     color: var(--le-text-color-primary, #333); /* Ensure text color contrasts with button background */
@@ -420,7 +420,7 @@ export const modalStyles = `
   }
 
   .modal-shared-footer {
-    padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
+    padding: var(--le-padding-m, 1.25em);
     text-align: right;
     border-top: 1px solid var(--le-border-color-medium, #eee);
     background-color: var(--le-background-color-header, #f9f9f9); /* Optional: footer background */
@@ -1034,7 +1034,7 @@ export const tabStyles = `
     border-radius: var(--le-border-radius-standard);
     transition: opacity 0.3s ease;
   }
-
+    
   .tab-content .rink-points-settings.disabled {
     opacity: 0.6;
   }

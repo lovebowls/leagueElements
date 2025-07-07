@@ -88,9 +88,10 @@ const BASE_STYLES = `
 
         --le-border-radius-standard: var(--swal-border-radius-standard);
         
-        /* No font size mappings needed - use le- variables directly throughout */
-        /* --- End Mappings --- */
-
+        #leagueName {
+          font-size: var(--le-font-size-medium);
+        }
+          
       }
       .header {
         font-weight: bold;
@@ -191,12 +192,6 @@ const BASE_STYLES = `
       }
       .form-group input[type="checkbox"] {
         margin-right: var(--swal-padding-s);
-      }
-      .rink-points-settings {
-        border: 1px dashed var(--swal-border-color-rink-settings);
-        padding: var(--swal-padding-s);
-        margin-top: var(--swal-padding-s);
-        background-color: var(--swal-background-color-rink-settings);
       }
       .error {
         color: var(--swal-text-color-error);
@@ -383,11 +378,6 @@ const BASE_STYLES = `
         border: none; /* Keep no border */
         padding: var(--swal-padding-s);
       }
-      .panel-header button { /* Add Team button */
-        padding: var(--swal-padding-s) var(--swal-padding-m); /* Keep existing padding */
-        margin-top: 0; /* Remove top margin */
-        margin-left: var(--swal-padding-s); /* Add some left margin if needed, or rely on space-between */
-      }
       
       .list-container, .panel-content {
         padding: 0 var(--swal-padding-s) var(--swal-padding-s);
@@ -406,6 +396,11 @@ const BASE_STYLES = `
       .match-status {
         align-self: center; 
       }
+
+      /* On mobile the buttons are on their own row, so we need to add some padding */
+      #league-actions-panel {
+        padding: 8px;
+      }      
     `;
 
   // Desktop-specific styles
@@ -424,7 +419,6 @@ const BASE_STYLES = `
         padding: var(--swal-padding-s); 
       }
       .panel-header button { /* Add Team/Match on Desktop */
-        padding: var(--swal-padding-xs) var(--swal-padding-s);
         margin-left: auto; /* Push to the right */
       }
       .league-list-container {
@@ -471,7 +465,7 @@ const BASE_STYLES = `
           <div id="league-dashboard-panel" class="panel" style="display:none;">
             <div class="panel-header panel-header-shared">
               <span>Dashboard</span>
-              <div class="panel-header-actions">
+              <div id="league-actions-panel" class="panel-header-actions">
                 <button id="edit-league-button" class="button-shared">Rules..</button>
                 <button id="view-table-button" class="button-shared">Table ↗️</button>
               </div>
@@ -569,7 +563,7 @@ const BASE_STYLES = `
             <div class="panel-header panel-header-shared">
               <span>Dashboard</span>
             </div>
-            <div class="panel-header-actions">
+            <div id="league-actions-panel" class="panel-header-actions">
               <button id="edit-league-button" class="button-shared">Rules..</button>
               <button id="view-table-button" class="button-shared">Table ↗️</button>
             </div>            
