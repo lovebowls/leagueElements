@@ -27,6 +27,13 @@ class LeagueDashboard extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.league = null;
+    
+    // Panel visibility state - only Overview is expanded by default
+    this.panelStates = {
+      overview: true,
+      matchStatistics: false,
+      leagueSettings: false
+    };
   }
 
   static get observedAttributes() {
@@ -47,11 +54,71 @@ class LeagueDashboard extends HTMLElement {
   }
 
   setupEventListeners() {
-    //
+    // Add click handlers for collapsible panels
+    this.shadow.addEventListener('click', (e) => {
+      if (e.target.classList.contains('section-title') || e.target.closest('.section-title')) {
+        const section = e.target.closest('.dashboard-section');
+        if (section) {
+          this.togglePanel(section);
+        }
+      }
+    });
   }
 
   disconnectedCallback() {
     // Clean up event listeners if needed
+  }
+
+  /**
+   * Toggles the visibility of a dashboard panel
+   * @param {HTMLElement} sectionElement - The section element to toggle
+   */
+  togglePanel(sectionElement) {
+    const sectionClass = Array.from(sectionElement.classList).find(cls => 
+      cls === 'league-overview' || cls === 'match-statistics' || cls === 'league-settings'
+    );
+    
+    if (!sectionClass) return;
+    
+    // Map section class to state key
+    const stateKey = sectionClass === 'league-overview' ? 'overview' :
+                    sectionClass === 'match-statistics' ? 'matchStatistics' :
+                    sectionClass === 'league-settings' ? 'leagueSettings' : null;
+    
+    if (!stateKey) return;
+    
+    // Toggle the state
+    this.panelStates[stateKey] = !this.panelStates[stateKey];
+    
+    // Update the UI
+    this.updatePanelVisibility(sectionElement, this.panelStates[stateKey]);
+  }
+
+  /**
+   * Updates the visibility of a panel
+   * @param {HTMLElement} sectionElement - The section element
+   * @param {boolean} isVisible - Whether the panel should be visible
+   */
+  updatePanelVisibility(sectionElement, isVisible) {
+    const content = sectionElement.querySelector('.section-content');
+    const title = sectionElement.querySelector('.section-title');
+    
+    if (content) {
+      content.style.display = isVisible ? 'block' : 'none';
+      // Update margin on title based on content visibility
+      if (title) {
+        const marginValue = this._isMobile ? 'var(--le-padding-s, 0.75rem)' : 'var(--le-padding-m, 1rem)';
+        title.style.marginBottom = isVisible ? marginValue : '0';
+      }
+    }
+    
+    if (title) {
+      const icon = title.querySelector('.collapse-icon');
+      if (icon) {
+        icon.textContent = isVisible ? '▼' : '▶';
+        icon.setAttribute('aria-label', isVisible ? 'Collapse section' : 'Expand section');
+      }
+    }
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -185,28 +252,36 @@ class LeagueDashboard extends HTMLElement {
       statusText = 'Active';
     }
     
+    const isExpanded = this.panelStates.overview;
+    const marginValue = this._isMobile ? 'var(--le-padding-s, 0.75rem)' : 'var(--le-padding-m, 1rem)';
+    
     return `
       <div class="dashboard-section league-overview">
-        <h3 class="section-title">Overview</h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-label">League Name</div>
-            <div class="card-value">${this.escapeHtml(league.name || 'Unnamed League')}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Season Status</div>
-            <div class="card-value">
-              <span class="status-indicator ${statusIndicator}"></span>
-              ${statusText}
+        <h3 class="section-title" style="margin-bottom: ${isExpanded ? marginValue : '0'};">
+          <span class="collapse-icon" aria-label="${isExpanded ? 'Collapse section' : 'Expand section'}">${isExpanded ? '▼' : '▶'}</span>
+          Overview
+        </h3>
+        <div class="section-content" style="display: ${isExpanded ? 'block' : 'none'};">
+          <div class="info-cards">
+            <div class="info-card">
+              <div class="card-label">League Name</div>
+              <div class="card-value">${this.escapeHtml(league.name || 'Unnamed League')}</div>
             </div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">League Type</div>
-            <div class="card-value">${leagueType}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Total Teams</div>
-            <div class="card-value">${teams.length}</div>
+            <div class="info-card">
+              <div class="card-label">Season Status</div>
+              <div class="card-value">
+                <span class="status-indicator ${statusIndicator}"></span>
+                ${statusText}
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">League Type</div>
+              <div class="card-value">${leagueType}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Total Teams</div>
+              <div class="card-value">${teams.length}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -243,51 +318,60 @@ class LeagueDashboard extends HTMLElement {
     
     // Get last updated timestamp
     const lastUpdated = new Date().toLocaleString('en-GB', dateFormat);
+    
+    const isExpanded = this.panelStates.matchStatistics;
+    const marginValue = this._isMobile ? 'var(--le-padding-s, 0.75rem)' : 'var(--le-padding-m, 1rem)';
+    
     return `
       <div class="dashboard-section match-statistics">
-        <h3 class="section-title">Match Statistics</h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-label">Total Scheduled</div>
-            <div class="card-value">${totalMatches}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Played</div>
-            <div class="card-value">${playedMatches.length}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Remaining</div>
-            <div class="card-value">${remainingMatches}</div>
-          </div>
-        </div>
-        <div class="progress-section">
-          <div class="progress-label">Completion Progress</div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${completionPercentage}%"></div>
-          </div>
-          <div class="progress-percentage">${completionPercentage}%</div>
-        </div>
-        <div class="info-cards">
-          <div class="info-card ${attentionMatches.length > 0 ? 'attention-highlight' : ''}">
-            <div class="card-label">Requiring Attention</div>
-            <div class="card-value">
-              ${attentionMatches.length > 0 ? 
-                `<span class="attention-count">${attentionMatches.length}</span>` : 
-                '0'
-              }
+        <h3 class="section-title" style="margin-bottom: ${isExpanded ? marginValue : '0'};">
+          <span class="collapse-icon" aria-label="${isExpanded ? 'Collapse section' : 'Expand section'}">${isExpanded ? '▼' : '▶'}</span>
+          Match Statistics
+        </h3>
+        <div class="section-content" style="display: ${isExpanded ? 'block' : 'none'};">
+          <div class="info-cards">
+            <div class="info-card">
+              <div class="card-label">Total Scheduled</div>
+              <div class="card-value">${totalMatches}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Played</div>
+              <div class="card-value">${playedMatches.length}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Remaining</div>
+              <div class="card-value">${remainingMatches}</div>
             </div>
           </div>
-          <div class="info-card">
-            <div class="card-label">Next Match</div>
-            <div class="card-value">${nextMatchDate}</div>
+          <div class="progress-section">
+            <div class="progress-label">Completion Progress</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${completionPercentage}%"></div>
+            </div>
+            <div class="progress-percentage">${completionPercentage}%</div>
           </div>
-          <div class="info-card">
-            <div class="card-label">Last Result</div>
-            <div class="card-value">${lastResultDate}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Last Updated</div>
-            <div class="card-value">${lastUpdated}</div>
+          <div class="info-cards">
+            <div class="info-card ${attentionMatches.length > 0 ? 'attention-highlight' : ''}">
+              <div class="card-label">Requiring Attention</div>
+              <div class="card-value">
+                ${attentionMatches.length > 0 ? 
+                  `<span class="attention-count">${attentionMatches.length}</span>` : 
+                  '0'
+                }
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Next Match</div>
+              <div class="card-value">${nextMatchDate}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Last Result</div>
+              <div class="card-value">${lastResultDate}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Last Updated</div>
+              <div class="card-value">${lastUpdated}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -321,25 +405,33 @@ class LeagueDashboard extends HTMLElement {
     const hasPromotionRelegation = settings.promotionPositions || settings.relegationPositions;
     const promRelText = hasPromotionRelegation ? 'Enabled' : 'Disabled';
     
+    const isExpanded = this.panelStates.leagueSettings;
+    const marginValue = this._isMobile ? 'var(--le-padding-s, 0.75rem)' : 'var(--le-padding-m, 1rem)';
+    
     return `
       <div class="dashboard-section league-settings">
-        <h3 class="section-title">Settings Summary</h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-label">Points System</div>
-            <div class="card-value">Win: ${pointsForWin}, Draw: ${pointsForDraw}, Loss: ${pointsForLoss}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Match Format</div>
-            <div class="card-value">${formatText}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Rink Configuration</div>
-            <div class="card-value">${maxRinksText}</div>
-          </div>
-          <div class="info-card">
-            <div class="card-label">Promotion Relegation</div>
-            <div class="card-value">${promRelText}</div>
+        <h3 class="section-title" style="margin-bottom: ${isExpanded ? marginValue : '0'};">
+          <span class="collapse-icon" aria-label="${isExpanded ? 'Collapse section' : 'Expand section'}">${isExpanded ? '▼' : '▶'}</span>
+          Settings Summary
+        </h3>
+        <div class="section-content" style="display: ${isExpanded ? 'block' : 'none'};">
+          <div class="info-cards">
+            <div class="info-card">
+              <div class="card-label">Points System</div>
+              <div class="card-value">Win: ${pointsForWin}, Draw: ${pointsForDraw}, Loss: ${pointsForLoss}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Match Format</div>
+              <div class="card-value">${formatText}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Rink Configuration</div>
+              <div class="card-value">${maxRinksText}</div>
+            </div>
+            <div class="info-card">
+              <div class="card-label">Promotion Relegation</div>
+              <div class="card-value">${promRelText}</div>
+            </div>
           </div>
         </div>
       </div>

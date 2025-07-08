@@ -42,6 +42,41 @@ const BASE_STYLES = `
     color: var(--le-text-color-primary, #333);
     border-bottom: 2px solid var(--le-border-color-light, #f0f0f0);
     padding-bottom: var(--le-padding-s, 0.5rem);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
+    transition: color 0.2s ease, background-color 0.2s ease;
+    border-radius: var(--le-border-radius-small, 3px);
+    padding: var(--le-padding-s, 0.5rem);
+    margin: 0 0 var(--le-padding-m, 1rem) 0;
+  }
+
+  .section-title:hover {
+    color: var(--le-text-color-accent, #2196f3);
+    background-color: var(--le-background-color-hover, #f8f9fa);
+  }
+
+  .section-title:active {
+    background-color: var(--le-background-color-button-hover, #e9ecef);
+  }
+
+  .collapse-icon {
+    font-size: 0.8em;
+    color: var(--le-text-color-secondary, #666);
+    transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+  }
+
+  .section-title:hover .collapse-icon {
+    color: var(--le-text-color-accent, #2196f3);
+  }
+
+  .section-content {
+    transition: opacity 0.3s ease;
   }
 
   .info-cards {
@@ -220,6 +255,12 @@ export const MOBILE_STYLES = (fontScale = 1.0) => `
   .section-title {
     font-size: var(--le-font-size-medium, 1.0em);
     margin-bottom: var(--le-padding-s, 0.75rem);
+    min-height: 44px; /* Ensure touch target is large enough */
+    padding: var(--le-padding-s, 0.75rem);
+  }
+
+  .collapse-icon {
+    font-size: 0.9em; /* Slightly larger on mobile for better touch targets */
   }
 
   .info-cards {
@@ -280,6 +321,7 @@ export const DESKTOP_STYLES = (fontScale = 1.0) => `
   .section-title {
     font-size: var(--le-font-size-large, 1.2em);
     margin-bottom: var(--le-padding-m, 1rem);
+    padding: var(--le-padding-s, 0.5rem);
   }
 
   .info-cards {
@@ -316,6 +358,10 @@ export const DESKTOP_STYLES = (fontScale = 1.0) => `
   /* Desktop hover effects */
   .dashboard-section:hover .section-title {
     color: var(--le-text-color-accent, #2196f3);
+  }
+
+  .section-title:hover .collapse-icon {
+    transform: scale(1.1);
   }
 `;
 
