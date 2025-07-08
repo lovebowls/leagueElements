@@ -3174,10 +3174,12 @@ class LeagueElementConfig {
       if (!container) {
         throw new Error(`Container element not found: ${this.container}`);
       }
+      
+      // Clear the container first to remove loading state
+      container.innerHTML = '';
       container.appendChild(this.element);
 
-      // Hide loading and call success callback
-      this._hideLoading();
+      // Call success callback
       this.onLoad(this.element, data);
 
     } catch (error) {
@@ -3363,7 +3365,7 @@ class LeagueElementConfig {
    * @private
    */
   _hideLoading() {
-    // Loading state is automatically replaced when element is added
+    // Loading state is cleared when container.innerHTML is set to '' before adding the element
   }
 
   /**

@@ -265,9 +265,10 @@
     <div class="content">
       <div class="api-info">
         <h4>API Configuration</h4>
-        <p>CDN: <span class="api-url">https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements/dist/browser/leagueElement.bundle.min.js</span></p>
+        <p>CDN: <span class="api-url">https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements@latest/dist/browser/leagueElement.bundle.min.js</span></p>
         <p>Default League ID: <span class="api-url">755ab2f2-20eb-a28a-6f0f-d8fd9b4046e8</span></p>
         <p>API Endpoint: <span class="api-url">https://www.lovebowls.co.uk/_functions/League?id=xxx</span></p>
+        <p id="mockStatus" style="margin-top: 10px; font-weight: bold; color: #e67e22;">Mock Mode: <span id="mockStatusText">Disabled</span></p>
       </div>
       
       <div class="controls">
@@ -280,6 +281,11 @@
           <div class="control-row">
             <label for="apiBaseUrl">API Base URL:</label>
             <input type="text" id="apiBaseUrl" value="https://www.lovebowls.co.uk/_functions" placeholder="API base URL">
+          </div>
+          <div class="control-row">
+            <label for="mockEndpoint">Mock Endpoint:</label>
+            <input type="checkbox" id="mockEndpoint" style="margin: 0;">
+            <span style="color: #666; font-size: 14px;">Use mock data instead of real API calls</span>
           </div>
         </div>
         
@@ -330,11 +336,321 @@
   </div>
 
   <!-- Load the league element from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements/dist/browser/leagueElement.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements@latest/dist/browser/leagueElement.bundle.min.js"></script>
   
   <script>
     let leagueConfig = null;
     let eventLogCounter = 0;
+    
+    // Mock API response data
+    const mockApiResponse = {
+      "status": 200,
+      "headers": {
+        "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+        "charset": "utf-8",
+        "content-length": "5761",
+        "content-security-policy": "default-src 'self'; script-src 'nonce-20c412e9-fdfa-4619-97f8-035f41a496f6'",
+        "content-type": "text/calendar; charset=utf-8",
+        "date": "Tue, 08 Jul 2025 07:52:55 GMT",
+        "glb-x-seen-by": "wMMTADooq5AJ3cFomJ/MuXOQWGce7NCZXKms1ErOpBs=",
+        "server": "Pepyaka",
+        "strict-transport-security": "max-age=120 ; includeSubDomains",
+        "via": "1.1 google",
+        "x-content-type-options": "nosniff",
+        "x-seen-by": "GilIRCy+Ky2nI9KZaDKzWLxkNjrXdwdgtu6E0yACibU=,m0j2EEknGIVUW/liY8BLLlPVSO1QPQ7KlY+JzrfjmCLV0TBmJ+uLPQ4OZPC1VSMH,qYxvFa0bBL43z6b6TutC4QnyXr0qgTLOz1RENYVceRMs1Tx9NtWu5mkoMiVppS6xErWKkVeoX4tBqMSi/Z0s1A==,pmLOvFUH0C4tG2Y6Ckb8liSOA+nC7OTAsdOEZa3GGu4=,F8o6Y3HcNYwTAFShvBTacl8BWTwXC3fqq2Xjv80NCNxqCyWRQPaWGp5lJ3PBtJNt+YUY9RKvhYF9ED4yNc8uQH2JzErJ8ZPrQMNW10je6Sg=,XQz4BWTkaIEoz0A1TYYDxZxHSdzlstCUUJsccb2FfRg=,wLeTeVGgkrQCFpIbmiMHmgvCn+ARQDaqnr/JXmVpgjrp2JO+UBV0Ua37eHf3jJiH/K3aK33/h00jpqykUzRL/5AZpAlN4Qr1+gOMkjAKqMU=,c2FX7mUocL421H/ZDSvkz51TFMbL9q5YnmksK2i6ZbP+0LoOGLBGRHIG60ZM3dSi,3h6zdoeTDYlwgjQoBu5YkQ==",
+        "x-wix-request-id": "1751961162.62231409533061766561"
+      },
+      "body": {
+        "league": {
+          "_id": "755ab2f2-20eb-a28a-6f0f-d8fd9b4046e8",
+          "name": "test",
+          "teams": [
+            {
+              "_id": "Red",
+              "name": "Red",
+              "createdAt": "2025-07-07T17:33:37.269Z",
+              "updatedAt": "2025-07-07T17:33:37.269Z"
+            },
+            {
+              "_id": "Green",
+              "name": "Green",
+              "createdAt": "2025-07-07T17:33:37.269Z",
+              "updatedAt": "2025-07-07T17:33:37.269Z"
+            },
+            {
+              "_id": "Yellow",
+              "name": "Yellow",
+              "createdAt": "2025-07-07T17:33:37.269Z",
+              "updatedAt": "2025-07-07T17:33:37.269Z"
+            },
+            {
+              "_id": "Purple",
+              "name": "Purple",
+              "createdAt": "2025-07-07T17:33:37.269Z",
+              "updatedAt": "2025-07-07T17:33:37.269Z"
+            }
+          ],
+          "matches": [
+            {
+              "_id": "match_1751910222124_1",
+              "homeTeam": {
+                "_id": "Yellow",
+                "name": "Yellow",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Purple",
+                "name": "Purple",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-07-11T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.063Z",
+              "updatedAt": "2025-07-07T17:43:42.063Z"
+            },
+            {
+              "_id": "match_1751910222124_2",
+              "homeTeam": {
+                "_id": "Red",
+                "name": "Red",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Purple",
+                "name": "Purple",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-07-18T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.063Z",
+              "updatedAt": "2025-07-07T17:43:42.063Z"
+            },
+            {
+              "_id": "match_1751910222124_3",
+              "homeTeam": {
+                "_id": "Green",
+                "name": "Green",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Yellow",
+                "name": "Yellow",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-07-18T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.063Z",
+              "updatedAt": "2025-07-07T17:33:37.269Z"
+            },
+            {
+              "_id": "match_1751910222124_5",
+              "homeTeam": {
+                "_id": "Red",
+                "name": "Red",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Green",
+                "name": "Green",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-07-25T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.063Z",
+              "updatedAt": "2025-07-07T17:43:42.063Z"
+            },
+            {
+              "_id": "match_1751910222124_6",
+              "homeTeam": {
+                "_id": "Purple",
+                "name": "Purple",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Green",
+                "name": "Green",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-08-01T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.063Z",
+              "updatedAt": "2025-07-07T17:43:42.063Z"
+            },
+            {
+              "_id": "match_1751910222124_8",
+              "homeTeam": {
+                "_id": "Yellow",
+                "name": "Yellow",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Red",
+                "name": "Red",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-08-08T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            },
+            {
+              "_id": "match_1751910222124_11",
+              "homeTeam": {
+                "_id": "Purple",
+                "name": "Purple",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Yellow",
+                "name": "Yellow",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-08-15T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            },
+            {
+              "_id": "match_1751910222124_12",
+              "homeTeam": {
+                "_id": "Purple",
+                "name": "Purple",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Red",
+                "name": "Red",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-08-22T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            },
+            {
+              "_id": "match_1751910222124_13",
+              "homeTeam": {
+                "_id": "Yellow",
+                "name": "Yellow",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Green",
+                "name": "Green",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-08-22T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            },
+            {
+              "_id": "match_1751910222124_15",
+              "homeTeam": {
+                "_id": "Green",
+                "name": "Green",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Red",
+                "name": "Red",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-08-29T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            },
+            {
+              "_id": "match_1751910222124_16",
+              "homeTeam": {
+                "_id": "Green",
+                "name": "Green",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Purple",
+                "name": "Purple",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-09-05T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            },
+            {
+              "_id": "match_1751910222124_18",
+              "homeTeam": {
+                "_id": "Red",
+                "name": "Red",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "awayTeam": {
+                "_id": "Yellow",
+                "name": "Yellow",
+                "createdAt": "2025-07-07T17:33:37.269Z",
+                "updatedAt": "2025-07-07T17:33:37.269Z"
+              },
+              "date": "2025-09-12T00:00:00.000Z",
+              "rink": null,
+              "result": null,
+              "createdAt": "2025-07-07T17:43:42.064Z",
+              "updatedAt": "2025-07-07T17:43:42.064Z"
+            }
+          ],
+          "settings": {
+            "pointsForWin": 3,
+            "pointsForDraw": 1,
+            "pointsForLoss": 0,
+            "promotionPositions": 0,
+            "relegationPositions": 0,
+            "timesTeamsPlayOther": 2,
+            "rinkPoints": {
+              "pointsPerRinkWin": 2,
+              "pointsPerRinkDraw": 1,
+              "defaultRinks": 4,
+              "enabled": false
+            }
+          },
+          "createdAt": "2025-07-07T15:42:55.423Z",
+          "updatedAt": "2025-07-07T15:42:55.423Z"
+        }
+      }
+    };
     
     // Global functions for the buttons
     window.loadLeague = async function() {
@@ -387,8 +703,28 @@
           }
         });
         
+        // Override the _fetchLeagueData method if mock mode is enabled
+        const useMock = document.getElementById('mockEndpoint').checked;
+        if (useMock) {
+          logEvent('Mock mode enabled - using mock data instead of API call');
+          leagueConfig._fetchLeagueData = async function() {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Return mock data
+            return {
+              canEdit: true,
+              league: mockApiResponse.body.league
+            };
+          };
+        }
+        
         showStatus('Loading league data...', 'info');
-        logEvent(`Loading league data from ${apiBaseUrl}/League?id=${leagueId}`);
+        if (useMock) {
+          logEvent(`Loading mock league data for ID: ${leagueId}`);
+        } else {
+          logEvent(`Loading league data from ${apiBaseUrl}/League?id=${leagueId}`);
+        }
         
         await leagueConfig.load();
         
@@ -530,6 +866,20 @@
     setTimeout(() => {
       logEvent('Keyboard shortcuts: Ctrl+L (Load), Ctrl+R (Reload), Ctrl+D (Destroy)');
     }, 1000);
+    
+    // Update mock status when checkbox changes
+    document.getElementById('mockEndpoint').addEventListener('change', (e) => {
+      const mockStatusText = document.getElementById('mockStatusText');
+      if (e.target.checked) {
+        mockStatusText.textContent = 'Enabled';
+        mockStatusText.style.color = '#e67e22';
+        logEvent('Mock endpoint enabled');
+      } else {
+        mockStatusText.textContent = 'Disabled';
+        mockStatusText.style.color = '#27ae60';
+        logEvent('Mock endpoint disabled');
+      }
+    });
   </script>
 </body>
 </html> 
