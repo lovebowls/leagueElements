@@ -79,7 +79,7 @@
     }
     
     .control-row input[type="text"] {
-      width: 200px;
+      width: 600px;
     }
     
     .button-group {
@@ -276,11 +276,16 @@
           <h3>League Configuration</h3>
           <div class="control-row">
             <label for="leagueId">League ID:</label>
-            <input type="text" id="leagueId" value="755ab2f2-20eb-a28a-6f0f-d8fd9b4046e8" placeholder="Enter league ID">
+            <input type="text" id="leagueId" value="755ab2f2-20eb-a28a-6f0f-d8fd9b4046e8" placeholder="Enter league ID" style="width: 420px;">
           </div>
           <div class="control-row">
             <label for="apiBaseUrl">API Base URL:</label>
-            <input type="text" id="apiBaseUrl" value="https://www.lovebowls.co.uk/_functions" placeholder="API base URL">
+            <input type="text" id="apiBaseUrl" value="https://www.lovebowls.co.uk/_functions" placeholder="API base URL" style="width: 420px;">
+          </div>
+          <div class="control-row">
+            <label for="cdnUrl">CDN URL:</label>
+            <input type="text" id="cdnUrl" value="https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements@latest/dist/browser/leagueElement.bundle.min.js" placeholder="CDN URL" style="width: 420px;">
+            <button class="btn btn-primary" id="loadCdnBtn" type="button">Load CDN</button>
           </div>
           <div class="control-row">
             <label for="mockEndpoint">Mock Endpoint:</label>
@@ -336,11 +341,31 @@
   </div>
 
   <!-- Load the league element from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements@latest/dist/browser/leagueElement.bundle.min.js"></script>
-  
   <script>
     let leagueConfig = null;
     let eventLogCounter = 0;
+    
+    let cdnScriptLoaded = false;
+    let cdnScriptTag = null;
+
+    function loadCdnScript(url, callback) {
+      if (cdnScriptTag) {
+        cdnScriptTag.remove();
+        cdnScriptLoaded = false;
+      }
+      cdnScriptTag = document.createElement('script');
+      cdnScriptTag.src = url;
+      cdnScriptTag.onload = () => {
+        cdnScriptLoaded = true;
+        logEvent(`CDN script loaded: ${url}`, 'success');
+        if (callback) callback();
+      };
+      cdnScriptTag.onerror = () => {
+        logEvent(`Failed to load CDN script: ${url}`, 'error');
+        showStatus('Error loading CDN script. Check the URL.', 'error');
+      };
+      document.body.appendChild(cdnScriptTag);
+    }
     
     // Mock API response data
     const mockApiResponse = {
@@ -828,19 +853,139 @@
       }
     });
     
-    // Auto-load the default league on page load
-    window.addEventListener('load', () => {
-      logEvent('Page loaded, LeagueElementConfig API test harness ready');
-      
-      // Check if LeagueElementConfig is available
-      if (typeof LeagueElementConfig === 'undefined') {
-        showStatus('Error: LeagueElementConfig not found. Check CDN URL.', 'error');
-        logEvent('Error: LeagueElementConfig class not available', 'error');
-      } else {
+    // On page load, load the default CDN script
+    window.addEventListener('DOMContentLoaded', () => {
+      const cdnUrlInput = document.getElementById('cdnUrl');
+      const loadCdnBtn = document.getElementById('loadCdnBtn');
+      const defaultCdnUrl = cdnUrlInput.value;
+      loadCdnScript(defaultCdnUrl, () => {
         logEvent('LeagueElementConfig class loaded successfully');
         showStatus('Ready to test LeagueElementConfig API', 'info');
+        detectVersionInfo();
+      });
+      loadCdnBtn.addEventListener('click', () => {
+        loadCdnScript(cdnUrlInput.value, () => {
+          logEvent('LeagueElementConfig class loaded successfully');
+          showStatus('Ready to test LeagueElementConfig API', 'info');
+          detectVersionInfo();
+        });
+      });
+
+      // 1. Make the three input fields wider
+      // 2. Add logic to disable API Base URL when Mock Endpoint is checked
+
+      // --- HTML: Make input fields wider ---
+      // In the .control-row input[type="text"] CSS, change width from 200px to 420px
+      // <input type="text" id="leagueId" ... style="width: 420px;">
+      // <input type="text" id="apiBaseUrl" ... style="width: 420px;">
+      // <input type="text" id="cdnUrl" ... style="width: 420px;">
+
+      // --- JS: Disable API Base URL when Mock Endpoint is checked ---
+      const apiBaseUrlInput = document.getElementById('apiBaseUrl');
+      const mockEndpoint = document.getElementById('mockEndpoint');
+      function updateApiBaseUrlDisabled() {
+        apiBaseUrlInput.disabled = mockEndpoint.checked;
       }
+      mockEndpoint.addEventListener('change', updateApiBaseUrlDisabled);
+      // Set initial state
+      updateApiBaseUrlDisabled();
     });
+    
+    // Update all functions that use LeagueElementConfig to check cdnScriptLoaded first
+    function ensureCdnLoaded(fn) {
+      return function(...args) {
+        if (!cdnScriptLoaded || typeof LeagueElementConfig === 'undefined') {
+          showStatus('CDN script not loaded yet. Please wait or reload.', 'error');
+          logEvent('CDN script not loaded yet.', 'error');
+          return;
+        }
+        return fn(...args);
+      };
+    }
+    window.loadLeague = ensureCdnLoaded(window.loadLeague);
+    window.reloadLeague = ensureCdnLoaded(window.reloadLeague);
+    window.updateConfig = ensureCdnLoaded(window.updateConfig);
+    window.destroyLeague = ensureCdnLoaded(window.destroyLeague);
+    
+    // Function to detect version information from the loaded package
+    function detectVersionInfo() {
+      try {
+        // Method 1: Check if there's a version property on the class
+        if (LeagueElementConfig.version) {
+          logEvent(`Package version: ${LeagueElementConfig.version}`, 'success');
+        }
+        
+        // Method 2: Check if there's a version on the LeagueElement class
+        if (window.customElements && window.customElements.get('league-element')) {
+          const LeagueElementClass = window.customElements.get('league-element');
+          if (LeagueElementClass && LeagueElementClass.version) {
+            logEvent(`LeagueElement version: ${LeagueElementClass.version}`, 'success');
+          }
+        }
+        
+        // Method 3: Check for any global version variables
+        if (window.LeagueElementsVersion) {
+          logEvent(`Global version: ${window.LeagueElementsVersion}`, 'success');
+        }
+        
+        // Method 4: Try to extract version from script tags or fetch the script if using @latest
+        const scripts = document.querySelectorAll('script[src*="leagueelements"]');
+        scripts.forEach(script => {
+          const src = script.src;
+          logEvent(`Loaded script: ${src}`, 'info');
+          
+          // Try to extract version from URL
+          const versionMatch = src.match(/@(\d+\.\d+\.\d+)/);
+          if (versionMatch) {
+            logEvent(`Detected version from URL: ${versionMatch[1]}`, 'success');
+          } else {
+            // If URL is "latest", fetch the script and extract from comment
+            fetch(src)
+              .then(resp => resp.text())
+              .then(text => {
+                const commentMatch = text.match(/@lovebowls\/leagueelements@([0-9.]+)\/dist/);
+                if (commentMatch) {
+                  logEvent(`Extracted version from bundle comment: ${commentMatch[1]}`, 'success');
+                } else {
+                  logEvent('Could not extract version from bundle comment', 'warn');
+                }
+              })
+              .catch(err => {
+                logEvent(`Error fetching script for version: ${err.message}`, 'error');
+              });
+          }
+        });
+        
+        // Method 5: Check for package.json or similar in the global scope
+        if (window.__LEAGUE_ELEMENTS_VERSION__) {
+          logEvent(`Package version (global): ${window.__LEAGUE_ELEMENTS_VERSION__}`, 'success');
+        }
+        
+        // Method 6: Try to detect from the class constructor or prototype
+        if (LeagueElementConfig.prototype && LeagueElementConfig.prototype.constructor) {
+          const constructorStr = LeagueElementConfig.prototype.constructor.toString();
+          const versionMatch = constructorStr.match(/version[:\s]*['\"`]?(\d+\.\d+\.\d+)['\"`]?/i);
+          if (versionMatch) {
+            logEvent(`Detected version from constructor: ${versionMatch[1]}`, 'success');
+          }
+        }
+        
+        // Method 7: Try to detect from the CDN response headers (if available)
+        if (window.performance && window.performance.getEntriesByType) {
+          const resourceEntries = window.performance.getEntriesByType('resource');
+          const cdnEntry = resourceEntries.find(entry => 
+            entry.name.includes('leagueelements') && entry.name.includes('cdn.jsdelivr.net')
+          );
+          if (cdnEntry) {
+            logEvent(`CDN resource loaded: ${cdnEntry.name}`, 'info');
+            logEvent(`CDN load time: ${Math.round(cdnEntry.duration)}ms`, 'info');
+          }
+        }
+        
+      } catch (error) {
+        logEvent(`Version detection error: ${error.message}`, 'error');
+      }
+    }
     
     // Add keyboard shortcuts
     document.addEventListener('keydown', (e) => {
