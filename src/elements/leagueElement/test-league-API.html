@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test LeagueElementConfig API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: #3498db;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .content {
+      padding: 20px;
+    }
+    
+    .controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .control-group {
+      margin-bottom: 15px;
+      padding: 10px;
+      background: white;
+      border-radius: 3px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .control-group h3 {
+      margin: 0 0 10px 0;
+      color: #495057;
+      font-size: 16px;
+    }
+    
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .control-row label {
+      font-weight: bold;
+      min-width: 120px;
+      color: #495057;
+    }
+    
+    .control-row input, .control-row select {
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .control-row input[type="number"] {
+      width: 80px;
+    }
+    
+    .control-row input[type="text"] {
+      width: 200px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+    
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #229954;
+    }
+    
+    .btn-warning {
+      background: #f39c12;
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background: #e67e22;
+    }
+    
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+    
+    .btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      margin: 15px 0;
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      border: 1px solid;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border-color: #c3e6cb;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border-color: #f5c6cb;
+    }
+    
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-color: #bee5eb;
+    }
+    
+    .status.warning {
+      background: #fff3cd;
+      color: #856404;
+      border-color: #ffeaa7;
+    }
+    
+    .league-container {
+      min-height: 500px;
+      border: 2px solid #dee2e6;
+      border-radius: 5px;
+      background: #fafafa;
+      position: relative;
+    }
+    
+    .league-container.loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .event-log {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .event-log h3 {
+      margin: 0 0 10px 0;
+      color: #495057;
+    }
+    
+    .event-entry {
+      padding: 5px 0;
+      border-bottom: 1px solid #e9ecef;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .event-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .event-time {
+      color: #6c757d;
+      font-size: 11px;
+    }
+    
+    .event-message {
+      color: #495057;
+    }
+    
+    .event-error {
+      color: #dc3545;
+    }
+    
+    .event-success {
+      color: #28a745;
+    }
+    
+    .api-info {
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .api-info h4 {
+      margin: 0 0 5px 0;
+      color: #1976d2;
+    }
+    
+    .api-info p {
+      margin: 0;
+      font-size: 14px;
+      color: #424242;
+    }
+    
+    .api-url {
+      font-family: monospace;
+      background: #f5f5f5;
+      padding: 2px 4px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>LeagueElementConfig API Test Harness</h1>
+      <p>Test the configuration wrapper for easy league hosting</p>
+    </div>
+    
+    <div class="content">
+      <div class="api-info">
+        <h4>API Configuration</h4>
+        <p>CDN: <span class="api-url">https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements/dist/browser/leagueElement.bundle.min.js</span></p>
+        <p>Default League ID: <span class="api-url">755ab2f2-20eb-a28a-6f0f-d8fd9b4046e8</span></p>
+        <p>API Endpoint: <span class="api-url">https://www.lovebowls.co.uk/_functions/League?id=xxx</span></p>
+      </div>
+      
+      <div class="controls">
+        <div class="control-group">
+          <h3>League Configuration</h3>
+          <div class="control-row">
+            <label for="leagueId">League ID:</label>
+            <input type="text" id="leagueId" value="755ab2f2-20eb-a28a-6f0f-d8fd9b4046e8" placeholder="Enter league ID">
+          </div>
+          <div class="control-row">
+            <label for="apiBaseUrl">API Base URL:</label>
+            <input type="text" id="apiBaseUrl" value="https://www.lovebowls.co.uk/_functions" placeholder="API base URL">
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <h3>Display Settings</h3>
+          <div class="control-row">
+            <label for="isMobile">Mobile Mode:</label>
+            <select id="isMobile">
+              <option value="false">Desktop</option>
+              <option value="true">Mobile</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label for="fontScale">Font Scale:</label>
+            <input type="number" id="fontScale" value="1.0" min="0.5" max="2.0" step="0.1">
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <h3>Actions</h3>
+          <div class="button-group">
+            <button class="btn btn-primary" onclick="loadLeague()" id="loadBtn">Load League</button>
+            <button class="btn btn-success" onclick="reloadLeague()" id="reloadBtn" disabled>Reload</button>
+            <button class="btn btn-warning" onclick="updateConfig()" id="updateBtn" disabled>Update Config</button>
+            <button class="btn btn-danger" onclick="destroyLeague()" id="destroyBtn" disabled>Destroy</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="status" class="status info">
+        Ready to test LeagueElementConfig API. Enter a league ID and click "Load League".
+      </div>
+      
+      <div id="leagueContainer" class="league-container">
+        <!-- League element will be loaded here -->
+      </div>
+      
+      <div class="event-log">
+        <h3>Event Log</h3>
+        <div id="eventLog">
+          <div class="event-entry">
+            <span class="event-time">[Ready]</span>
+            <span class="event-message">Test harness initialized</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load the league element from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@lovebowls/leagueelements/dist/browser/leagueElement.bundle.min.js"></script>
+  
+  <script>
+    let leagueConfig = null;
+    let eventLogCounter = 0;
+    
+    // Global functions for the buttons
+    window.loadLeague = async function() {
+      const leagueId = document.getElementById('leagueId').value.trim();
+      const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+      const isMobile = document.getElementById('isMobile').value === 'true';
+      const fontScale = parseFloat(document.getElementById('fontScale').value);
+      
+      if (!leagueId) {
+        showStatus('Please enter a league ID', 'error');
+        logEvent('Error: No league ID provided', 'error');
+        return;
+      }
+      
+      if (!apiBaseUrl) {
+        showStatus('Please enter an API base URL', 'error');
+        logEvent('Error: No API base URL provided', 'error');
+        return;
+      }
+      
+      try {
+        // Destroy existing config if any
+        if (leagueConfig) {
+          leagueConfig.destroy();
+        }
+        
+        logEvent(`Creating LeagueElementConfig with league ID: ${leagueId}`);
+        
+        // Create new config
+        leagueConfig = new LeagueElementConfig({
+          leagueId: leagueId,
+          container: '#leagueContainer',
+          isMobile: isMobile,
+          fontScale: fontScale,
+          apiBaseUrl: apiBaseUrl,
+          onError: (error) => {
+            showStatus(`Error: ${error.message}`, 'error');
+            logEvent(`Config Error: ${error.message}`, 'error');
+            updateButtons(false);
+          },
+          onLoad: (element, data) => {
+            showStatus(`League loaded successfully! Can edit: ${data.canEdit}`, 'success');
+            logEvent(`League loaded successfully - Can edit: ${data.canEdit}`, 'success');
+            updateButtons(true);
+            
+            // Log league data summary
+            if (data.league) {
+              logEvent(`League: "${data.league.name}" with ${data.league.teams?.length || 0} teams, ${data.league.matches?.length || 0} matches`);
+            }
+          }
+        });
+        
+        showStatus('Loading league data...', 'info');
+        logEvent(`Loading league data from ${apiBaseUrl}/League?id=${leagueId}`);
+        
+        await leagueConfig.load();
+        
+      } catch (error) {
+        showStatus(`Configuration error: ${error.message}`, 'error');
+        logEvent(`Configuration Error: ${error.message}`, 'error');
+      }
+    };
+    
+    window.reloadLeague = async function() {
+      if (leagueConfig) {
+        showStatus('Reloading league data...', 'info');
+        logEvent('Reloading league data...');
+        await leagueConfig.reload();
+      }
+    };
+    
+    window.updateConfig = function() {
+      if (!leagueConfig) {
+        showStatus('No league config to update', 'warning');
+        return;
+      }
+      
+      const isMobile = document.getElementById('isMobile').value === 'true';
+      const fontScale = parseFloat(document.getElementById('fontScale').value);
+      
+      logEvent(`Updating config - Mobile: ${isMobile}, Font Scale: ${fontScale}`);
+      
+      leagueConfig.updateConfig({
+        isMobile: isMobile,
+        fontScale: fontScale
+      });
+      
+      showStatus('Configuration updated', 'success');
+    };
+    
+    window.destroyLeague = function() {
+      if (leagueConfig) {
+        leagueConfig.destroy();
+        leagueConfig = null;
+        showStatus('League destroyed', 'info');
+        logEvent('League destroyed');
+        updateButtons(false);
+      }
+    };
+    
+    function showStatus(message, type) {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+    
+    function updateButtons(enabled) {
+      document.getElementById('reloadBtn').disabled = !enabled;
+      document.getElementById('updateBtn').disabled = !enabled;
+      document.getElementById('destroyBtn').disabled = !enabled;
+    }
+    
+    function logEvent(message, type = 'info') {
+      const eventLog = document.getElementById('eventLog');
+      const timestamp = new Date().toLocaleTimeString();
+      const eventClass = type === 'error' ? 'event-error' : type === 'success' ? 'event-success' : 'event-message';
+      
+      const eventEntry = document.createElement('div');
+      eventEntry.className = 'event-entry';
+      eventEntry.innerHTML = `
+        <span class="event-time">[${timestamp}]</span>
+        <span class="${eventClass}">${message}</span>
+      `;
+      
+      eventLog.appendChild(eventEntry);
+      eventLog.scrollTop = eventLog.scrollHeight;
+      
+      // Keep only last 50 events
+      while (eventLog.children.length > 50) {
+        eventLog.removeChild(eventLog.firstChild);
+      }
+    }
+    
+    // Set up global event listeners for league events
+    document.addEventListener('league-config-event', (event) => {
+      const { type, league, error, config, leagueId } = event.detail;
+      
+      switch (type) {
+        case 'requestSaveLeague':
+          logEvent(`League save requested for: ${league?.name || 'Unknown'}`);
+          showStatus('League save requested - implement your save logic here', 'info');
+          break;
+        case 'requestAdminView':
+          logEvent(`Admin view requested for league: ${leagueId}`);
+          showStatus('Admin view requested', 'info');
+          break;
+        case 'matchClick':
+          logEvent(`Match clicked: ${event.detail.match?.homeTeam?.name || 'Unknown'} vs ${event.detail.match?.awayTeam?.name || 'Unknown'}`);
+          break;
+        case 'teamSelectedForSchedule':
+          logEvent(`Team selected for schedule: ${event.detail.teamName} (${event.detail.teamId})`);
+          break;
+        default:
+          logEvent(`League event: ${type}`, 'info');
+      }
+    });
+    
+    // Auto-load the default league on page load
+    window.addEventListener('load', () => {
+      logEvent('Page loaded, LeagueElementConfig API test harness ready');
+      
+      // Check if LeagueElementConfig is available
+      if (typeof LeagueElementConfig === 'undefined') {
+        showStatus('Error: LeagueElementConfig not found. Check CDN URL.', 'error');
+        logEvent('Error: LeagueElementConfig class not available', 'error');
+      } else {
+        logEvent('LeagueElementConfig class loaded successfully');
+        showStatus('Ready to test LeagueElementConfig API', 'info');
+      }
+    });
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'l':
+            e.preventDefault();
+            loadLeague();
+            break;
+          case 'r':
+            e.preventDefault();
+            reloadLeague();
+            break;
+          case 'd':
+            e.preventDefault();
+            destroyLeague();
+            break;
+        }
+      }
+    });
+    
+    // Log keyboard shortcuts
+    setTimeout(() => {
+      logEvent('Keyboard shortcuts: Ctrl+L (Load), Ctrl+R (Reload), Ctrl+D (Destroy)');
+    }, 1000);
+  </script>
+</body>
+</html> 

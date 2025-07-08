@@ -3098,9 +3098,382 @@ class LeagueElement extends HTMLElement {
   }
 }
 
+/**
+ * Configuration wrapper class that provides a simple API for hosting LeagueElement
+ * with just a league ID. This abstracts the complex attribute management and data fetching.
+ */
+class LeagueElementConfig {
+  /**
+   * Creates a new LeagueElementConfig instance
+   * @param {Object} options - Configuration options
+   * @param {string} options.leagueId - The league ID to load
+   * @param {string} options.container - CSS selector for the container element
+   * @param {boolean} [options.isMobile=false] - Whether to render in mobile mode
+   * @param {number} [options.fontScale=1.0] - Font scale factor (0.5 to 2.0)
+   * @param {string} [options.apiBaseUrl='https://www.lovebowls.co.uk/_functions'] - Base URL for API calls
+   * @param {Function} [options.onError] - Error callback function
+   * @param {Function} [options.onLoad] - Success callback function
+   */
+  constructor(options = {}) {
+    this.leagueId = options.leagueId;
+    this.container = options.container;
+    this.isMobile = options.isMobile || false;
+    this.fontScale = Math.max(0.5, Math.min(2.0, options.fontScale || 1.0));
+    this.apiBaseUrl = options.apiBaseUrl || 'https://www.lovebowls.co.uk/_functions';
+    this.onError = options.onError || this._defaultErrorHandler;
+    this.onLoad = options.onLoad || this._defaultLoadHandler;
+    
+    this.element = null;
+    this.isLoading = false;
+    this.error = null;
+    
+    if (!this.leagueId) {
+      throw new Error('leagueId is required');
+    }
+    
+    if (!this.container) {
+      throw new Error('container selector is required');
+    }
+  }
+
+  /**
+   * Loads the league data and renders the element
+   * @returns {Promise<void>}
+   */
+  async load() {
+    if (this.isLoading) {
+      console.warn('LeagueElementConfig: Already loading, ignoring duplicate call');
+      return;
+    }
+
+    this.isLoading = true;
+    this.error = null;
+
+    try {
+      // Clear any existing element
+      this._clearContainer();
+
+      // Show loading state
+      this._showLoading();
+
+      // Fetch league data
+      const data = await this._fetchLeagueData();
+
+      // Create and configure the element
+      this.element = document.createElement('league-element');
+      this.element.setAttribute('data', JSON.stringify(data.league));
+      this.element.setAttribute('can-edit', data.canEdit.toString());
+      this.element.setAttribute('is-mobile', this.isMobile.toString());
+      this.element.setAttribute('font-scale', this.fontScale.toString());
+
+      // Add event listeners
+      this._setupEventListeners();
+
+      // Add to container
+      const container = document.querySelector(this.container);
+      if (!container) {
+        throw new Error(`Container element not found: ${this.container}`);
+      }
+      container.appendChild(this.element);
+
+      // Hide loading and call success callback
+      this._hideLoading();
+      this.onLoad(this.element, data);
+
+    } catch (error) {
+      this.error = error;
+      this._hideLoading();
+      this._showError(error.message);
+      this.onError(error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  /**
+   * Reloads the league data
+   * @returns {Promise<void>}
+   */
+  async reload() {
+    return this.load();
+  }
+
+  /**
+   * Destroys the element and cleans up
+   */
+  destroy() {
+    if (this.element) {
+      this.element.remove();
+      this.element = null;
+    }
+    this._clearContainer();
+    this.isLoading = false;
+    this.error = null;
+  }
+
+  /**
+   * Gets the current league element instance
+   * @returns {LeagueElement|null}
+   */
+  getElement() {
+    return this.element;
+  }
+
+  /**
+   * Gets the current loading state
+   * @returns {boolean}
+   */
+  getLoadingState() {
+    return this.isLoading;
+  }
+
+  /**
+   * Gets the last error, if any
+   * @returns {Error|null}
+   */
+  getError() {
+    return this.error;
+  }
+
+  /**
+   * Updates the configuration and reloads if needed
+   * @param {Object} options - New configuration options
+   */
+  updateConfig(options = {}) {
+    let needsReload = false;
+
+    if (options.leagueId && options.leagueId !== this.leagueId) {
+      this.leagueId = options.leagueId;
+      needsReload = true;
+    }
+
+    if (options.isMobile !== undefined && options.isMobile !== this.isMobile) {
+      this.isMobile = options.isMobile;
+      needsReload = true;
+    }
+
+    if (options.fontScale !== undefined) {
+      this.fontScale = Math.max(0.5, Math.min(2.0, options.fontScale));
+      if (this.element) {
+        this.element.setAttribute('font-scale', this.fontScale.toString());
+      }
+    }
+
+    if (options.container && options.container !== this.container) {
+      this.container = options.container;
+      needsReload = true;
+    }
+
+    if (options.apiBaseUrl) {
+      this.apiBaseUrl = options.apiBaseUrl;
+    }
+
+    if (options.onError) {
+      this.onError = options.onError;
+    }
+
+    if (options.onLoad) {
+      this.onLoad = options.onLoad;
+    }
+
+    if (needsReload) {
+      this.load();
+    }
+  }
+
+  /**
+   * Fetches league data from the API
+   * @private
+   * @returns {Promise<Object>}
+   */
+  async _fetchLeagueData() {
+    const url = `${this.apiBaseUrl}/League?id=${encodeURIComponent(this.leagueId)}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch league data: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(`API Error: ${data.error}`);
+    }
+
+    if (!data.league) {
+      throw new Error('Invalid league data received from API');
+    }
+
+    return data;
+  }
+
+  /**
+   * Clears the container element
+   * @private
+   */
+  _clearContainer() {
+    const container = document.querySelector(this.container);
+    if (container) {
+      container.innerHTML = '';
+    }
+  }
+
+  /**
+   * Shows loading state in the container
+   * @private
+   */
+  _showLoading() {
+    const container = document.querySelector(this.container);
+    if (container) {
+      container.innerHTML = `
+        <div style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 200px;
+          font-family: Arial, sans-serif;
+          color: #666;
+        ">
+          <div style="text-align: center;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              border: 4px solid #f3f3f3;
+              border-top: 4px solid #3498db;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 10px;
+            "></div>
+            <div>Loading league data...</div>
+          </div>
+        </div>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      `;
+    }
+  }
+
+  /**
+   * Hides loading state
+   * @private
+   */
+  _hideLoading() {
+    // Loading state is automatically replaced when element is added
+  }
+
+  /**
+   * Shows error state in the container
+   * @private
+   * @param {string} message - Error message to display
+   */
+  _showError(message) {
+    const container = document.querySelector(this.container);
+    if (container) {
+      container.innerHTML = `
+        <div style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 200px;
+          font-family: Arial, sans-serif;
+          color: #e74c3c;
+          text-align: center;
+          padding: 20px;
+        ">
+          <div>
+            <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
+            <div style="font-weight: bold; margin-bottom: 5px;">Error Loading League</div>
+            <div style="font-size: 14px; color: #666;">${this.escapeHtml(message)}</div>
+            <button onclick="location.reload()" style="
+              margin-top: 15px;
+              padding: 8px 16px;
+              background: #3498db;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+            ">Retry</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Sets up event listeners for the league element
+   * @private
+   */
+  _setupEventListeners() {
+    if (!this.element) return;
+
+    // Listen for league events and re-dispatch them with additional context
+    this.element.addEventListener('league-event', (event) => {
+      // Re-dispatch with config context
+      const enhancedEvent = new CustomEvent('league-config-event', {
+        detail: {
+          ...event.detail,
+          config: this,
+          leagueId: this.leagueId
+        },
+        bubbles: true,
+        composed: true
+      });
+      
+      document.dispatchEvent(enhancedEvent);
+    });
+  }
+
+  /**
+   * Default error handler
+   * @private
+   * @param {Error} error - The error object
+   */
+  _defaultErrorHandler(error) {
+    console.error('LeagueElementConfig Error:', error);
+  }
+
+  /**
+   * Default load handler
+   * @private
+   * @param {LeagueElement} element - The created league element
+   * @param {Object} data - The loaded league data
+   */
+  _defaultLoadHandler(element, data) {
+    console.log('LeagueElementConfig: League loaded successfully', {
+      leagueId: this.leagueId,
+      canEdit: data.canEdit,
+      element: element
+    });
+  }
+
+  /**
+   * Basic HTML escaping for error messages
+   * @private
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped text
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
+
+// Add the config class to the global scope for easy access
+if (typeof window !== 'undefined') {
+  window.LeagueElementConfig = LeagueElementConfig;
+}
+
 import { safeDefine } from '../../utils/elementRegistry.js';
 
 // Register the custom element
 safeDefine('league-element', LeagueElement);
 
-export default LeagueElement; 
+export default LeagueElement;
+export { LeagueElementConfig }; 
