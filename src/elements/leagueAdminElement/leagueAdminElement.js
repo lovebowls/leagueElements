@@ -806,6 +806,12 @@ class LeagueAdminElement extends HTMLElement {
     if (teamsPanel) {
       teamsPanel.style.display = 'none';
       
+      // Reset the teams panel header
+      const teamsPanelHeader = this.shadow.querySelector('#teams-panel .panel-header span');
+      if (teamsPanelHeader) {
+        teamsPanelHeader.textContent = 'Teams';
+      }
+      
       // Clear and reset the teams list
       const teamsList = this.shadow.querySelector('#teams-list');
       if (teamsList) {
@@ -847,6 +853,12 @@ class LeagueAdminElement extends HTMLElement {
     teamsList.innerHTML = ''; // Clear existing items
     
     const teams = selectedLeague.teams || [];
+    
+    // Update the teams panel header to include the count
+    const teamsPanelHeader = this.shadow.querySelector('#teams-panel .panel-header span');
+    if (teamsPanelHeader) {
+      teamsPanelHeader.textContent = `Teams (${teams.length})`;
+    }
     
     if (teams.length === 0) {
       const li = document.createElement('li');
