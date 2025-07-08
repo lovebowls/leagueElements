@@ -1,6 +1,6 @@
 # League Element Configuration Wrapper
 
-The `LeagueElementConfig` class provides a simple JavaScript API for hosting the LeagueElement with just a league ID. This abstracts the complex attribute management and data fetching, making it easy for end users to embed leagues in their applications.
+The `LeagueElementConfig` class provides a simple JavaScript API for hosting the LeagueElement with just a league ID. This abstracts attribute management and data fetching, making it easy for end users to embed leagues in their applications.
 
 ## Quick Start
 
@@ -14,15 +14,14 @@ The `LeagueElementConfig` class provides a simple JavaScript API for hosting the
 </head>
 <body>
     <div id="league-container"></div>
-    
     <script type="module">
         import './leagueElement.js';
-        
+
         const config = new LeagueElementConfig({
             leagueId: 'your-league-id-here',
             container: '#league-container'
         });
-        
+
         config.load();
     </script>
 </body>
@@ -56,15 +55,15 @@ config.destroy();
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `leagueId` | string | **required** | The league ID to load from your API |
-| `container` | string | **required** | CSS selector for the container element |
-| `isMobile` | boolean | `false` | Whether to render in mobile mode |
-| `fontScale` | number | `1.0` | Font scale factor (0.5 to 2.0) |
-| `apiBaseUrl` | string | `'https://www.lovebowls.co.uk/_functions'` | Base URL for API calls |
-| `onError` | function | `console.error` | Error callback function |
-| `onLoad` | function | `console.log` | Success callback function |
+| Option         | Type       | Default                                    | Description                                 |
+|----------------|------------|--------------------------------------------|---------------------------------------------|
+| `leagueId`     | string     | **required**                               | The league ID to load from your API         |
+| `container`    | string     | **required**                               | CSS selector for the container element      |
+| `isMobile`     | boolean    | `false`                                    | Whether to render in mobile mode            |
+| `fontScale`    | number     | `1.0`                                      | Font scale factor (0.5 to 2.0)              |
+| `apiBaseUrl`   | string     | `'https://www.lovebowls.co.uk/_functions'` | Base URL for API calls                      |
+| `onError`      | function   | `console.error`                            | Error callback function                     |
+| `onLoad`       | function   | `console.log`                              | Success callback function                   |
 
 ## API Methods
 
@@ -127,7 +126,7 @@ The configuration wrapper automatically sets up event listeners and re-dispatche
 ```javascript
 document.addEventListener('league-config-event', (event) => {
     const { type, league, error, config, leagueId } = event.detail;
-    
+
     switch (type) {
         case 'requestSaveLeague':
             // Handle league save requests
@@ -180,10 +179,6 @@ Your API endpoint should return data in this format:
     }
 }
 ```
-
-## Example Implementation
-
-See `example-usage.html` for a complete working example with controls for testing different configurations.
 
 ## Browser Support
 
