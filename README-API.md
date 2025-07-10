@@ -205,13 +205,3 @@ For older browsers, you may need to include polyfills.
 3. **"Invalid league data received"**
    - Ensure your API returns the expected format
    - Check that the `league` property is present in the response
-
-### Debug Mode
-
-Enable debug logging by setting:
-
-```javascript
-window.LeagueElementConfig.debug = true;
-```
-
-This will log additional information about the loading process. 
