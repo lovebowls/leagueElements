@@ -234,8 +234,7 @@ const BASE_STYLES = `
       .column-leagues {
         width: 30%; 
         min-width: 250px; 
-        border-right: 1px solid var(--swal-border-color-medium);
-        padding-right: var(--swal-padding-s); 
+        padding: 0; /* Reset padding, let panels handle their own */
       }
       .column-details {
         flex-grow: 1; 
@@ -335,7 +334,6 @@ const BASE_STYLES = `
         width: 100%; /* Make columns full width */
         min-width: 0;
         border: none; /* Remove borders specific to desktop layout */
-        padding: 0; /* Reset padding, let panels handle their own */
       }
       .left-panel,
       .right-panel {

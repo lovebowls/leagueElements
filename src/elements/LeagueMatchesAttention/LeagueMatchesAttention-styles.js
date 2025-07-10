@@ -34,11 +34,6 @@ const BASE_STYLES = `
       .warning-icon {
         flex-shrink: 0;
       }
-      .no-matches {
-        padding: var(--le-padding-m, 1rem);
-        text-align: center;
-        color: var(--le-text-color-secondary, #666);
-      }
     `;
 
 export const  MOBILE_STYLES = `

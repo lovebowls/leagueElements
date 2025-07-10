@@ -945,7 +945,7 @@ class LeagueSchedule extends HTMLElement {
             </div>
           </div>
         ` : `
-          <div class="no-matches">
+          <div class="no-data">
             No matches found.
           </div>
         `}
@@ -1134,7 +1134,7 @@ class LeagueSchedule extends HTMLElement {
             </div>
           </div>
         ` : `
-          <div class="no-matches">
+          <div class="no-data">
             No matches found.
           </div>
         `}

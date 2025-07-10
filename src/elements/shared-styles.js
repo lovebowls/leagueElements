@@ -35,7 +35,13 @@ export const getMobileStyles = (fontScale = 1.0) => `
     --le-font-size-xxlarge: 1.6em;
     
     ${getFontSizeElementVariables(true)}
-    
+
+  .no-data
+    padding: var(--le-padding-m, 1rem);
+    color: var(--le-text-color-secondary, #666);
+    background-color: transparent;
+    border: none;
+  }
   .controls-panel {
     gap: var(--le-padding-s, 0.5rem);
   }
@@ -98,6 +104,12 @@ export const getDesktopStyles = (fontScale = 1.0) => `
 
     ${getFontSizeElementVariables(false)}
 
+    .no-data
+      padding: var(--le-padding-m, 1rem);
+      color: var(--le-text-color-secondary, #666);
+      background-color: transparent;
+      border: none;
+    }
     /* Desktop-specific dropdown styling */
     .controls-panel .filter-controls .dropdown-shared {
       width: auto;

@@ -1373,9 +1373,9 @@ class LeagueElement extends HTMLElement {
         // Update "Select All" checkbox state after adding all team checkboxes
         this._updateSelectAllCheckboxState();
     } else {
-        legendDiv.innerHTML = '<p>No teams available for legend.</p>';
+        legendDiv.innerHTML = '<p>No teams found for legend.</p>';
         // If no teams at all, SVG also can reflect this, though earlier checks might catch it.
-        svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams available in data.</text>';
+        svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams found in data.</text>';
         return; // Nothing further to draw if no teams
     }
 
@@ -1851,8 +1851,8 @@ class LeagueElement extends HTMLElement {
         // Update "Select All" checkbox state after adding all team checkboxes
         this._updateSelectAllCheckboxState();
     } else {
-        legendDiv.innerHTML = '<p>No teams available for legend.</p>';
-        svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams available in data.</text>';
+        legendDiv.innerHTML = '<p>No teams found for legend.</p>';
+        svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">No teams found in data.</text>';
         return;
     }
 
@@ -2869,7 +2869,7 @@ class LeagueElement extends HTMLElement {
     const { teams, teamMatches } = matrixData;
     
     if (!teams || teams.length === 0) {
-      return '<p>No teams available for matrix view.</p>';
+      return '<p>No teams found for matrix view.</p>';
     }
 
     const numTeams = teams.length;

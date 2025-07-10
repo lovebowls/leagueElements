@@ -370,11 +370,13 @@ class LeagueAdminElement extends HTMLElement {
       const noSelection = !this._selectedLeagueId;
       if (leftPanel && rightPanel && resizer) {
         if (noLeagues || noSelection) {
+          console.log('[Splitter Debug] Hiding right panel and resizer, expanding left panel');
           leftPanel.style.width = '100%';
           leftPanel.style.flex = '1 1 100%';
           rightPanel.style.display = 'none';
           resizer.style.display = 'none';
         } else {
+          console.log('[Splitter Debug] Showing right panel and resizer, restoring split layout');
           leftPanel.style.width = '';
           leftPanel.style.flex = '';
           rightPanel.style.display = '';
@@ -509,6 +511,28 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       let teamModal = this.shadow.querySelector('league-teams');
       if (teamModal) teamModal.remove();
+    }
+
+    // --- Ensure splitter and right panel are always correct after DOM update (desktop only) ---
+    if (!this._isMobile) {
+      const leftPanel = this.shadow.querySelector('.column-leagues');
+      const rightPanel = this.shadow.querySelector('.column-details');
+      const resizer = this.shadow.querySelector('#resizer');
+      const noLeagues = !this._leagues || this._leagues.length === 0;
+      const noSelection = !this._selectedLeagueId;
+      if (leftPanel && rightPanel && resizer) {
+        if (noLeagues || noSelection) {
+          leftPanel.style.width = '100%';
+          leftPanel.style.flex = '1 1 100%';
+          rightPanel.style.display = 'none';
+          resizer.style.display = 'none';
+        } else {
+          leftPanel.style.width = '';
+          leftPanel.style.flex = '';
+          rightPanel.style.display = '';
+          resizer.style.display = '';
+        }
+      }
     }
   }
   
@@ -647,6 +671,7 @@ class LeagueAdminElement extends HTMLElement {
     }
     
     this._updateButtonStates();
+    this.render();
   }
 
   _createAndAppendLeagueActions(container, leagueId) {
@@ -663,14 +688,19 @@ class LeagueAdminElement extends HTMLElement {
     dropdownMenu.classList.add('dropdown-menu');
     dropdownMenu.style.display = 'none';
     
+    // Find the league object
+    const league = this._leagues.find(l => (l._id || l.name) === leagueId);
+
     // Add action options
     const actions = [
       { value: 'view', label: 'Table ↗️' },
       { value: 'edit', label: 'Edit..' },
       { value: 'teams', label: 'Teams..' },
-      { value: 'reset', label: 'Reset..' },
-      { value: 'delete', label: 'Delete..' },
     ];
+    if (league && Array.isArray(league.teams) && league.teams.length >= 2) {
+      actions.push({ value: 'reset', label: 'Reset..' });
+    }
+    actions.push({ value: 'delete', label: 'Delete..' });
 
     actions.forEach(action => {
       const menuItem = document.createElement('div');
@@ -894,7 +924,7 @@ class LeagueAdminElement extends HTMLElement {
     if (teams.length === 0) {
       const li = document.createElement('li');
       li.classList.add('list-item');
-      li.textContent = 'No teams available.';
+      li.textContent = 'No teams found.';
       teamsList.appendChild(li);
       return;
     }

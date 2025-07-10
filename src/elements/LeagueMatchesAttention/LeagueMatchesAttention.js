@@ -165,7 +165,7 @@ class LeagueMatchesAttention extends HTMLElement {
    */
   renderAttentionMatches() {
     if (!this.league || typeof this.league.getMatchesRequiringAttention !== 'function') {
-      return '<div class="no-matches">No league data available</div>';
+      return '<div class="no-data">No league data available</div>';
     }
     
     const matches = this.league.getMatchesRequiringAttention();
@@ -173,9 +173,9 @@ class LeagueMatchesAttention extends HTMLElement {
     const pageItems = matches.slice(start, start + this.itemsPerPage);
     if (pageItems.length === 0) {
       if (matches.length > 0) {
-        return '<div class="no-matches">None</div>';
+        return '<div class="no-data">None</div>';
       }
-      return '<div class="no-matches">None</div>';
+      return '<div class="no-data">None</div>';
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);

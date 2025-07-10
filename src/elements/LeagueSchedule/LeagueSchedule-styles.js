@@ -246,14 +246,6 @@ const BASE_STYLES = `
     opacity: 0.6;
   }
   
-  .no-matches {
-    padding: var(--le-padding-m, 1rem);
-    text-align: center;
-    color: var(--le-text-color-secondary, #666);
-    background-color: transparent;
-    border: none;
-  }
-  
   .error {
     color: var(--le-text-color-error, #ff0000);
     padding: var(--le-padding-s, 0.5rem);
