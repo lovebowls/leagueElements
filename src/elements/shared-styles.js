@@ -667,11 +667,11 @@ export const listStyles = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--le-padding-m, 1rem);
+    padding: var(--le-padding-xs) var(--le-padding-s);
     border-bottom: 1px solid var(--le-border-color-light, #eee);
     cursor: pointer;
     transition: background-color 0.2s ease;
-    min-height: 3.5rem; /* Ensure consistent height for action buttons */
+    min-height: 2.5rem; /* Ensure consistent height for action buttons */
     box-sizing: border-box;
   }
   .list-panel.disabled .list-item {
