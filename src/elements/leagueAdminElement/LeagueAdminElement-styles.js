@@ -95,10 +95,25 @@ const BASE_STYLES = `
       }
       /* Highlighted glow for New button when no leagues exist */
       .highlight-glow {
-        box-shadow: 0 0 8px 2px #4fc3f7, 0 0 0 4px #e3f2fd;
-        background-color: #e3f2fd !important;
+        box-shadow: 0 0 8px 2px #66bb6a, 0 0 0 4px #e8f5e9;
+        background-color: #e8f5e9 !important;
         transition: box-shadow 0.3s, background-color 0.3s;
         z-index: 1;
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+      @keyframes pulse-glow {
+        0% {
+          box-shadow: 0 0 8px 2px #66bb6a, 0 0 0 4px #e8f5e9;
+          background-color: #e8f5e9;
+        }
+        50% {
+          box-shadow: 0 0 16px 6px #43a047, 0 0 0 8px #d0f8ce;
+          background-color: #d0f8ce;
+        }
+        100% {
+          box-shadow: 0 0 8px 2px #66bb6a, 0 0 0 4px #e8f5e9;
+          background-color: #e8f5e9;
+        }
       }
       .header {
         font-weight: bold;
