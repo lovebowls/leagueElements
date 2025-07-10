@@ -351,6 +351,37 @@ class LeagueAdminElement extends HTMLElement {
       </style>
       ${this._isMobile ? MOBILE_TEMPLATE : DESKTOP_TEMPLATE}
     `;
+    // Highlight the New button if no leagues exist
+    const btnNew = this.shadow.querySelector('#new-league-button');
+    if (btnNew) {
+      if (!this._leagues || this._leagues.length === 0) {
+        btnNew.classList.add('highlight-glow');
+      } else {
+        btnNew.classList.remove('highlight-glow');
+      }
+    }
+
+    // Desktop: Expand left panel and hide right panel/resizer if no leagues or none selected
+    if (!this._isMobile) {
+      const leftPanel = this.shadow.querySelector('.column-leagues');
+      const rightPanel = this.shadow.querySelector('.column-details');
+      const resizer = this.shadow.querySelector('#resizer');
+      const noLeagues = !this._leagues || this._leagues.length === 0;
+      const noSelection = !this._selectedLeagueId;
+      if (leftPanel && rightPanel && resizer) {
+        if (noLeagues || noSelection) {
+          leftPanel.style.width = '100%';
+          leftPanel.style.flex = '1 1 100%';
+          rightPanel.style.display = 'none';
+          resizer.style.display = 'none';
+        } else {
+          leftPanel.style.width = '';
+          leftPanel.style.flex = '';
+          rightPanel.style.display = '';
+          resizer.style.display = '';
+        }
+      }
+    }
     // Setup resizer
     this._setupResizer();
     // Initial UI setup that happens after main template is in place
@@ -490,7 +521,7 @@ class LeagueAdminElement extends HTMLElement {
     if (!this._leagues || this._leagues.length === 0) {
       const li = document.createElement('li');
       li.classList.add('list-item');
-      li.textContent = 'No leagues available. Click New to create one.';
+      li.textContent = '❗ No leagues available. Click New to create one.';
       listElement.appendChild(li);
       return;
     }

@@ -93,6 +93,13 @@ const BASE_STYLES = `
         }
           
       }
+      /* Highlighted glow for New button when no leagues exist */
+      .highlight-glow {
+        box-shadow: 0 0 8px 2px #4fc3f7, 0 0 0 4px #e3f2fd;
+        background-color: #e3f2fd !important;
+        transition: box-shadow 0.3s, background-color 0.3s;
+        z-index: 1;
+      }
       .header {
         font-weight: bold;
         background: var(--swal-background-color-header);
