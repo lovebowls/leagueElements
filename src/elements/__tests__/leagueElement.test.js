@@ -1,5 +1,5 @@
 // Import the component and test data
-import LeagueElement from '../leagueElement/leagueElement.js';
+import { LeagueElement } from '../leagueElement/leagueElement.js';
 import { jest } from '@jest/globals';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js';
 import { League } from '@lovebowls/leaguejs';

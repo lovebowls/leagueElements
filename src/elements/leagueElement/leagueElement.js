@@ -3477,5 +3477,4 @@ import { safeDefine } from '../../utils/elementRegistry.js';
 // Register the custom element
 safeDefine('league-element', LeagueElement);
 
-export default LeagueElement;
-export { LeagueElementConfig }; 
+export { LeagueElement, LeagueElementConfig }; 
