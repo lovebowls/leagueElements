@@ -696,14 +696,7 @@ class LeagueTeams extends HTMLElement {
       }
     } else if (teamNameInput && teamNameInput.value.trim()) {
       teamName = teamNameInput.value.trim();
-      
-      // If we're editing a Lovebowls team and converting it to a basic team,
-      // generate a new GUID to avoid reusing the Lovebowls team ID
-      if (this._editorMode === 'edit' && this._editingTeam && this._isLovebowlsTeam(this._editingTeam._id)) {
-        teamId = crypto.randomUUID();
-      } else {
-        teamId = teamName;
-      }
+      teamId = teamName;
     } else {
       this._showEditorError('Team Name is required, either by typing a new name or selecting an existing team.');
       return;
