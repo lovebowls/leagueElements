@@ -93,7 +93,17 @@ class LeagueSchedule extends HTMLElement {
       this.selectedTeamId = newValue || null;
       this.currentPage = 1; // Reset to first page when filter changes
       this.saveFilterState(); // Save the filter state when set externally
+      
+      // Render first, then update calendar (calendar element will exist after render)
       this.renderWithoutReset();
+      
+      // Update calendar with filtered matches after render completes
+      setTimeout(() => {
+        const calendarElement = this.shadow.querySelector('#mobile-schedule-calendar, #desktop-schedule-calendar');
+        if (calendarElement) {
+          this._updateCalendarMatches(calendarElement);
+        }
+      }, 0);
     }
   }
 
@@ -554,6 +564,12 @@ class LeagueSchedule extends HTMLElement {
     // Save filter state whenever it changes
     this.saveFilterState();
     
+    // Update calendar with filtered matches
+    const calendarElement = this.shadow.querySelector('#mobile-schedule-calendar, #desktop-schedule-calendar');
+    if (calendarElement) {
+      this._updateCalendarMatches(calendarElement);
+    }
+    
     // Navigate to next future match when filter changes
     this.navigateToNextFutureMatch();
     
@@ -570,6 +586,12 @@ class LeagueSchedule extends HTMLElement {
     
     // Clear saved filter state
     this.clearFilterState();
+    
+    // Update calendar with all matches when filters are cleared
+    const calendarElement = this.shadow.querySelector('#mobile-schedule-calendar, #desktop-schedule-calendar');
+    if (calendarElement) {
+      this._updateCalendarMatches(calendarElement);
+    }
     
     // Remove the filter-date attribute to notify parent component
     this.removeAttribute('filter-date');
@@ -1148,10 +1170,8 @@ class LeagueSchedule extends HTMLElement {
     // Calendar event handling
     const calendarElement = this.shadow.querySelector('#mobile-schedule-calendar, #desktop-schedule-calendar');
     if (calendarElement) {
-      // Configure calendar with matches data
-      if (this.matches && this.matches.length > 0) {
-        calendarElement.setAttribute('matches', JSON.stringify(this.matches));
-      }
+      // Configure calendar with appropriate matches data based on team filter
+      this._updateCalendarMatches(calendarElement);
       
       // Set current filter date if exists
       if (this.filterDate) {
@@ -1246,6 +1266,35 @@ class LeagueSchedule extends HTMLElement {
         }
       });
     });
+  }
+
+  /**
+   * Updates the calendar with appropriate matches based on current team filter
+   * @param {HTMLElement} calendarElement - The calendar element to update
+   * @private
+   */
+  _updateCalendarMatches(calendarElement) {
+    if (!calendarElement) return;
+    
+    let matchesToShow = [];
+    
+    if (this.selectedTeamId) {
+      // If a team is selected, show only matches for that team
+      matchesToShow = this.matches.filter(match => 
+        match.homeTeam._id === this.selectedTeamId || 
+        match.awayTeam._id === this.selectedTeamId
+      );
+    } else {
+      // If no team is selected (All Teams), show all matches
+      matchesToShow = this.matches;
+    }
+    
+    // Update the calendar with the filtered matches
+    if (matchesToShow && matchesToShow.length > 0) {
+      calendarElement.setAttribute('matches', JSON.stringify(matchesToShow));
+    } else {
+      calendarElement.setAttribute('matches', JSON.stringify([]));
+    }
   }
 }
 

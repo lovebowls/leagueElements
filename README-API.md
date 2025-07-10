@@ -169,7 +169,7 @@ Your API endpoint should return data in this format:
 
 ```json
 {
-    "canEdit": true,
+    "canEdit": bool,
     "league": {
         // Your league data object
         "name": "My League",
