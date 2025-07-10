@@ -398,7 +398,7 @@ class LeagueResetModal extends HTMLElement {
             style="display: ${this._open ? 'flex' : 'none'};">
           ${attentionBannerHTML} 
           <div class="modal-shared-header">
-            <span id="reset-modal-title">Reset Matches</span>
+            <span id="reset-modal-title">Reset Schedule</span>
             <button class="close-button-shared" id="close-reset-modal" aria-label="Close dialog">&times;</button>          
           </div>
           <div class="modal-shared-body">
@@ -472,7 +472,7 @@ class LeagueResetModal extends HTMLElement {
             <div id="reset-modal-error" class="footer-error" style="display: none;"></div>
             <div class="footer-buttons">
               <button type="button" class="button-shared" id="cancel-reset-button">Cancel</button>
-              <button type="button" class="button-shared button-primary" id="confirm-reset-button">Reset Matches</button>
+              <button type="button" class="button-shared button-primary" id="confirm-reset-button">Reset Schedule</button>
             </div>
           </div>
         </div>

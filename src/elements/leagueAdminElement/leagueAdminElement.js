@@ -2026,23 +2026,18 @@ class LeagueAdminElement extends HTMLElement {
         </div>
       `,
       icon: 'success',
-      showCancelButton: true,
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Close',
-      preConfirm: () => {
-        return document.getElementById('setupTeams').checked;
-      }
+      showCancelButton: false,
+      confirmButtonText: 'OK'
     }).then((result) => {
       if (result.isConfirmed) {
-        const shouldSetupTeams = result.value;
-        
+        // Always select the new league and update UI
+        this._selectedLeagueId = newLeague._id || newLeague.name;
+        this._updateButtonStates();
+        this.render(); // Re-render to show the selected league and right panel
+
+        // Only open the teams modal if checked
+        const shouldSetupTeams = document.getElementById('setupTeams')?.checked;
         if (shouldSetupTeams) {
-          // Select the newly created league first
-          this._selectedLeagueId = newLeague._id || newLeague.name;
-          this._updateButtonStates();
-          this.render(); // Re-render to show the selected league
-          
-          // Open the teams modal instead of the reset modal with new league workflow flag
           this.openTeamModal(null, 'manage', { fromNewLeagueWorkflow: true });
         }
       }
