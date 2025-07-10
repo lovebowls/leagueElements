@@ -473,7 +473,7 @@ const BASE_STYLES = `
             <div class="panel-header panel-header-shared">
               <span>Dashboard</span>
               <div id="league-actions-panel" class="panel-header-actions">
-                <button id="edit-league-button" class="button-shared">Rules..</button>
+                <button id="edit-league-button" class="button-shared">Edit..</button>
                 <button id="view-table-button" class="button-shared">Table ↗️</button>
               </div>
             </div>
@@ -571,7 +571,7 @@ const BASE_STYLES = `
               <span>Dashboard</span>
             </div>
             <div id="league-actions-panel" class="panel-header-actions">
-              <button id="edit-league-button" class="button-shared">Rules..</button>
+              <button id="edit-league-button" class="button-shared">Edit..</button>
               <button id="view-table-button" class="button-shared">Table ↗️</button>
             </div>            
             <div class="panel-content">

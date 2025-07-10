@@ -666,7 +666,7 @@ class LeagueAdminElement extends HTMLElement {
     // Add action options
     const actions = [
       { value: 'view', label: 'Table ↗️' },
-      { value: 'edit', label: 'Rules..' },
+      { value: 'edit', label: 'Edit..' },
       { value: 'teams', label: 'Teams..' },
       { value: 'reset', label: 'Reset..' },
       { value: 'delete', label: 'Delete..' },
