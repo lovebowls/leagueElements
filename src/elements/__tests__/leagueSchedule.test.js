@@ -1,5 +1,6 @@
-import { LeagueSchedule } from '../LeagueSchedule/LeagueSchedule.js';
+import LeagueSchedule from '../LeagueSchedule/LeagueSchedule.js';
 import { League } from '@lovebowls/leaguejs';
+import { jest } from '@jest/globals';
 
 // Mock the LeagueCalendar component
 class MockLeagueCalendar extends HTMLElement {
@@ -27,7 +28,9 @@ jest.mock('../../utils/elementRegistry.js', () => ({
 }));
 
 // Register the mock calendar component
-customElements.define('league-calendar', MockLeagueCalendar);
+if (!customElements.get('league-calendar')) {
+  customElements.define('league-calendar', MockLeagueCalendar);
+}
 
 describe('LeagueSchedule Calendar Filtering', () => {
   let element;
@@ -69,7 +72,6 @@ describe('LeagueSchedule Calendar Filtering', () => {
     };
 
     element = new LeagueSchedule();
-    element.attachShadow({ mode: 'open' });
     document.body.appendChild(element);
   });
 
@@ -93,8 +95,8 @@ describe('LeagueSchedule Calendar Filtering', () => {
       expect(calendarElement).toBeTruthy();
       
       // Check that all matches are shown in the calendar
-      expect(calendarElement.matches).toHaveLength(3);
-      expect(calendarElement.matches.map(m => m._id)).toEqual(['match1', 'match2', 'match3']);
+      expect(calendarElement._matches).toHaveLength(3);
+      expect(calendarElement._matches.map(m => m._id)).toEqual(['match1', 'match2', 'match3']);
     });
 
     it('should show only team-specific matches in calendar when a team is selected', () => {
@@ -112,11 +114,11 @@ describe('LeagueSchedule Calendar Filtering', () => {
       element._updateCalendarMatches(calendarElement);
       
       // Check that only Team A's matches are shown in the calendar
-      expect(calendarElement.matches).toHaveLength(2);
-      expect(calendarElement.matches.map(m => m._id)).toEqual(['match1', 'match2']);
+      expect(calendarElement._matches).toHaveLength(2);
+      expect(calendarElement._matches.map(m => m._id)).toEqual(['match1', 'match2']);
       
       // Verify the matches are for Team A (either home or away)
-      calendarElement.matches.forEach(match => {
+      calendarElement._matches.forEach(match => {
         expect(match.homeTeam._id === 'team1' || match.awayTeam._id === 'team1').toBe(true);
       });
     });
@@ -134,15 +136,15 @@ describe('LeagueSchedule Calendar Filtering', () => {
       element._updateCalendarMatches(calendarElement);
       
       // Verify only Team A's matches are shown
-      expect(calendarElement.matches).toHaveLength(2);
+      expect(calendarElement._matches).toHaveLength(2);
       
       // Clear the team filter
       element.selectedTeamId = null;
       element._updateCalendarMatches(calendarElement);
       
       // Verify all matches are shown again
-      expect(calendarElement.matches).toHaveLength(3);
-      expect(calendarElement.matches.map(m => m._id)).toEqual(['match1', 'match2', 'match3']);
+      expect(calendarElement._matches).toHaveLength(3);
+      expect(calendarElement._matches.map(m => m._id)).toEqual(['match1', 'match2', 'match3']);
     });
 
     it('should handle team filter changes via attribute', () => {
@@ -161,11 +163,11 @@ describe('LeagueSchedule Calendar Filtering', () => {
         expect(calendarElement).toBeTruthy();
         
         // Check that only Team B's matches are shown
-        expect(calendarElement.matches).toHaveLength(2);
-        expect(calendarElement.matches.map(m => m._id)).toEqual(['match1', 'match3']);
+        expect(calendarElement._matches).toHaveLength(2);
+        expect(calendarElement._matches.map(m => m._id)).toEqual(['match1', 'match3']);
         
         // Verify the matches are for Team B
-        calendarElement.matches.forEach(match => {
+        calendarElement._matches.forEach(match => {
           expect(match.homeTeam._id === 'team2' || match.awayTeam._id === 'team2').toBe(true);
         });
       }, 10);
