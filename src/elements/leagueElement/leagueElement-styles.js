@@ -1026,15 +1026,6 @@ const BASE_STYLES = `
         margin-bottom: var(--le-padding-s); 
         color: var(--le-text-color-primary); 
       }
-      .resizer {
-        width: 5px;
-        background: var(--le-border-color-medium); 
-        cursor: col-resize;
-        transition: background 0.2s;
-      }
-      .resizer:hover {
-        background: var(--le-text-color-secondary); 
-      }
       .title { /* Main title in the left panel (Table/Matrix/Trends) */
         padding: var(--le-padding-xs); 
       }

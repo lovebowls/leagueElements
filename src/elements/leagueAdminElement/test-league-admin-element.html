@@ -19,6 +19,7 @@
   <h1>Test: &lt;league-admin-element&gt;</h1>
   <div>
     <button id="reset-data-btn" style="margin-bottom: 1em; padding: 0.5em; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset to Default Data</button>
+    <button id="test-error-btn" style="margin-bottom: 1em; margin-left: 1em; padding: 0.5em; background: #ff8c00; color: white; border: none; border-radius: 4px; cursor: pointer;">Test Save Error</button>
   </div>
   <!-- Removed hardcoded data attribute; we'll set it via JavaScript after checking session storage -->
   <league-admin-element id="test-league-admin" current-league-id="">
@@ -146,6 +147,9 @@
       const updatedLeague = e.detail.leagueData;
       const currentData = loadLeagueData();
       
+      // Simulate a 3-second delay for testing visual effects
+      setTimeout(() => {
+      
       // Check if this is a new league (no _id) or an existing league
       if (!updatedLeague._id) {
         // New league - generate an ID and add to the array
@@ -181,6 +185,8 @@
         
         logEvent(`League "${updatedLeague.name}" updated and saved`);
       }
+      
+      }, 3000); // 3-second delay to test visual effects
     });
     
     // Handle league delete events
@@ -197,6 +203,13 @@
       saveLeagueData(updatedLeagues);
       el.setAttribute('data', JSON.stringify(updatedLeagues));
       logEvent(`League with ID ${leagueId} deleted`);
+    });
+    
+    // Handle test error button
+    document.getElementById('test-error-btn').addEventListener('click', () => {
+      // Simulate a save error by calling the handleSaveError method
+      el.handleSaveError('This is a simulated save error for testing purposes.');
+      logEvent('Simulated save error triggered');
     });
 
     // Note: Individual league reset is now handled internally by the LeagueAdminElement

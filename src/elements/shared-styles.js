@@ -84,6 +84,11 @@ export const getMobileStyles = (fontScale = 1.0) => `
     font-size: var(--le-font-size-small, 1.0em);
     margin-bottom: var(--le-padding-s, 0.75rem);
   }
+
+  .resizer {
+    display: none !important;
+  }
+
 }
 `;
 
@@ -120,6 +125,21 @@ export const getDesktopStyles = (fontScale = 1.0) => `
       min-width: 160px;
       width: auto;
     }
+
+    .resizer {
+      width: 5px;
+      min-width: 5px;
+      cursor: col-resize;
+      background-color: var(--swal-background-color-header);
+      border-left: 1px solid var(--swal-border-color-light);
+      border-right: 1px solid var(--swal-border-color-light);
+      z-index: 10;
+    }
+
+    .resizer:hover {
+      background: var(--le-text-color-secondary); 
+    }
+
   }
 `;
 

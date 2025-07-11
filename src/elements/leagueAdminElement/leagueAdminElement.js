@@ -62,7 +62,11 @@ class LeagueAdminElement extends HTMLElement {
     this._pendingNewLeagueData = null; // Store league data for post-creation confirmation
     this._isWaitingForNewLeagueConfirmation = false;
 
-
+    // New properties for loading state management
+    this._isNewLeagueLoading = false; // Track if New league operation is in progress
+    this._isCopyLeagueLoading = false; // Track if Copy league operation is in progress
+    this._loadingTimeout = null; // Timeout for showing error if operation takes too long
+    this._rightPanelWasVisible = false; // Track previous right panel visibility
   }
 
   get _isMobile() {
@@ -148,6 +152,12 @@ class LeagueAdminElement extends HTMLElement {
     if (this._documentClickHandlerBound) {
       document.removeEventListener('click', this._documentClickHandlerBound);
       this._documentClickHandlerBound = null;
+    }
+    
+    // Clear any pending timeouts
+    if (this._loadingTimeout) {
+      clearTimeout(this._loadingTimeout);
+      this._loadingTimeout = null;
     }
   }
 
@@ -258,6 +268,11 @@ class LeagueAdminElement extends HTMLElement {
         errorObj: error 
       }));
       this._selectedLeagueId = null; // Also clear on error
+      
+      // If we were waiting for a league operation, handle it as an error
+      if (this._isWaitingForNewLeagueConfirmation) {
+        this._handleLeagueOperationError('Failed to save league due to data parsing error.');
+      }
     }
 
     // Apply current league ID selection after data is loaded
@@ -313,7 +328,37 @@ class LeagueAdminElement extends HTMLElement {
     if (selectionChanged) {
       this._updateButtonStates(); // This should be called if selection changes
     }
-    return selectionChanged; // Return whether selection actually changed
+    // Do not return here, we want to proceed with render logic
+    console.log('--- PANEL RESIZE DEBUG ---');
+    console.log(`State at start: _rightPanelWasVisible = ${this._rightPanelWasVisible}`);
+    console.log(`Current selection: _selectedLeagueId = ${this._selectedLeagueId}`);
+    console.log(`Right panel should be visible? ${!(noLeagues || noSelection)}`);
+    if (leftPanel && rightPanel && resizer) {
+      console.log(`Before logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
+      if (noLeagues || noSelection) {
+        console.log('Branch: HIDING right panel.');
+        leftPanel.style.width = '100%';
+        leftPanel.style.flex = '1 1 100%';
+        rightPanel.style.display = 'none';
+        resizer.style.display = 'none';
+      } else {
+        console.log('Branch: SHOWING right panel.');
+        if (!this._rightPanelWasVisible) {
+          console.log('Condition met: _rightPanelWasVisible was false. Resetting panel width.');
+          leftPanel.style.width = '';
+          leftPanel.style.flex = '';
+        } else {
+          console.log('Condition NOT met: _rightPanelWasVisible was true. Preserving panel width.');
+        }
+        rightPanel.style.display = '';
+        resizer.style.display = '';
+      }
+      console.log(`After logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
+      this._rightPanelWasVisible = !(noLeagues || noSelection);
+      console.log(`State at end: _rightPanelWasVisible set to ${this._rightPanelWasVisible}`);
+      console.log('--- END PANEL RESIZE DEBUG ---');
+    }
+    return selectionChanged;
   }
 
   showError(message) {
@@ -368,20 +413,38 @@ class LeagueAdminElement extends HTMLElement {
       const resizer = this.shadow.querySelector('#resizer');
       const noLeagues = !this._leagues || this._leagues.length === 0;
       const noSelection = !this._selectedLeagueId;
+
+      console.log('--- PANEL RESIZE DEBUG ---');
+      console.log(`State at start: _rightPanelWasVisible = ${this._rightPanelWasVisible}`);
+      console.log(`Current selection: _selectedLeagueId = ${this._selectedLeagueId}`);
+      console.log(`Right panel should be visible? ${!(noLeagues || noSelection)}`);
+      
       if (leftPanel && rightPanel && resizer) {
+        console.log(`Before logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
         if (noLeagues || noSelection) {
-          console.log('[Splitter Debug] Hiding right panel and resizer, expanding left panel');
+          console.log('Branch: HIDING right panel.');
           leftPanel.style.width = '100%';
           leftPanel.style.flex = '1 1 100%';
           rightPanel.style.display = 'none';
           resizer.style.display = 'none';
         } else {
-          console.log('[Splitter Debug] Showing right panel and resizer, restoring split layout');
-          leftPanel.style.width = '';
-          leftPanel.style.flex = '';
+          console.log('Branch: SHOWING right panel.');
+          // Only reset width/flex if right panel was previously hidden
+          if (!this._rightPanelWasVisible) {
+            console.log('Condition met: _rightPanelWasVisible was false. Resetting panel width.');
+            leftPanel.style.width = '';
+            leftPanel.style.flex = '';
+          } else {
+            console.log('Condition NOT met: _rightPanelWasVisible was true. Preserving panel width.');
+          }
           rightPanel.style.display = '';
           resizer.style.display = '';
         }
+        console.log(`After logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
+        // Update tracker for next render
+        this._rightPanelWasVisible = !(noLeagues || noSelection);
+        console.log(`State at end: _rightPanelWasVisible set to ${this._rightPanelWasVisible}`);
+        console.log('--- END PANEL RESIZE DEBUG ---');
       }
     }
     // Setup resizer
@@ -511,28 +574,6 @@ class LeagueAdminElement extends HTMLElement {
     } else {
       let teamModal = this.shadow.querySelector('league-teams');
       if (teamModal) teamModal.remove();
-    }
-
-    // --- Ensure splitter and right panel are always correct after DOM update (desktop only) ---
-    if (!this._isMobile) {
-      const leftPanel = this.shadow.querySelector('.column-leagues');
-      const rightPanel = this.shadow.querySelector('.column-details');
-      const resizer = this.shadow.querySelector('#resizer');
-      const noLeagues = !this._leagues || this._leagues.length === 0;
-      const noSelection = !this._selectedLeagueId;
-      if (leftPanel && rightPanel && resizer) {
-        if (noLeagues || noSelection) {
-          leftPanel.style.width = '100%';
-          leftPanel.style.flex = '1 1 100%';
-          rightPanel.style.display = 'none';
-          resizer.style.display = 'none';
-        } else {
-          leftPanel.style.width = '';
-          leftPanel.style.flex = '';
-          rightPanel.style.display = '';
-          resizer.style.display = '';
-        }
-      }
     }
   }
   
@@ -671,7 +712,7 @@ class LeagueAdminElement extends HTMLElement {
     }
     
     this._updateButtonStates();
-    this.render();
+    //this.render(); // This was causing the full re-render and resetting the panel width
   }
 
   _createAndAppendLeagueActions(container, leagueId) {
@@ -778,13 +819,33 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _showLeagueSpecificPanels() {
-  
     const selectedLeague = this._getSelectedLeague();
     if (!selectedLeague) {
       this._hideLeagueSpecificPanels();
       return;
     }
   
+    // --- Desktop Layout Adjustments ---
+    // This logic is now responsible for showing the right panel and resizer
+    // since render() is no longer called on selection change.
+    if (!this._isMobile) {
+      const detailsColumn = this.shadow.querySelector('.column-details');
+      const resizer = this.shadow.querySelector('#resizer');
+      if (detailsColumn) detailsColumn.style.display = '';
+      if (resizer) resizer.style.display = '';
+
+      // If the right panel was previously hidden, we need to reset the left panel
+      // to its default flex state so the resizer can work.
+      if (!this._rightPanelWasVisible) {
+        const leftPanel = this.shadow.querySelector('.column-leagues');
+        if (leftPanel) {
+          leftPanel.style.width = '';
+          leftPanel.style.flex = '';
+        }
+      }
+      this._rightPanelWasVisible = true; // Update state tracker
+    }
+
     // Show the dashboard panel and update it
     const dashboardPanel = this.shadow.querySelector('#league-dashboard-panel');
     if (dashboardPanel) {
@@ -834,7 +895,22 @@ class LeagueAdminElement extends HTMLElement {
   }
 
   _hideLeagueSpecificPanels() {
-    
+    // --- Desktop Layout Adjustments ---
+    // This logic now hides the right panel and resizer and expands the left panel.
+    if (!this._isMobile) {
+      const leftPanel = this.shadow.querySelector('.column-leagues');
+      const detailsColumn = this.shadow.querySelector('.column-details');
+      const resizer = this.shadow.querySelector('#resizer');
+
+      if (detailsColumn) detailsColumn.style.display = 'none';
+      if (resizer) resizer.style.display = 'none';
+      if (leftPanel) {
+        leftPanel.style.width = '100%';
+        leftPanel.style.flex = '1 1 100%';
+      }
+      this._rightPanelWasVisible = false; // Update state tracker
+    }
+
     // Hide the dashboard panel
     const dashboardPanel = this.shadow.querySelector('#league-dashboard-panel');
     if (dashboardPanel) {
@@ -893,15 +969,41 @@ class LeagueAdminElement extends HTMLElement {
   
 
   _updateButtonStates() {
-    const btnCopy = this.shadow.querySelector('#copy-league-button');
-    const btnUpdate = this.shadow.querySelector('#update-league-button');
-    const btnDelete = this.shadow.querySelector('#delete-league-button');
-
     const isLeagueSelected = !!this._selectedLeagueId;
-
-    if (btnCopy) btnCopy.disabled = !isLeagueSelected;
-    if (btnUpdate) btnUpdate.disabled = !isLeagueSelected;
-    if (btnDelete) btnDelete.disabled = !isLeagueSelected;
+    
+    // Update New button state
+    const btnNew = this.shadow.querySelector('#new-league-button');
+    if (btnNew) {
+      btnNew.disabled = this._isNewLeagueLoading || this._isCopyLeagueLoading;
+      if (this._isNewLeagueLoading) {
+        btnNew.innerHTML = '<span class="loading-spinner"></span> Creating...';
+      } else {
+        btnNew.innerHTML = 'New';
+      }
+    }
+    
+    // Update Copy button state
+    const btnCopy = this.shadow.querySelector('#copy-league-button');
+    if (btnCopy) {
+      btnCopy.disabled = !isLeagueSelected || this._isNewLeagueLoading || this._isCopyLeagueLoading;
+      if (this._isCopyLeagueLoading) {
+        btnCopy.innerHTML = '<span class="loading-spinner"></span> Copying...';
+      } else {
+        btnCopy.innerHTML = 'Copy';
+      }
+    }
+    
+    // Update Edit button state (if it exists)
+    const btnEdit = this.shadow.querySelector('#edit-league-button');
+    if (btnEdit) btnEdit.disabled = !isLeagueSelected;
+    
+    // Update Add Team button state (if it exists)
+    const btnAddTeam = this.shadow.querySelector('#add-team-button');
+    if (btnAddTeam) btnAddTeam.disabled = !isLeagueSelected;
+    
+    // Update View Table button state (if it exists)
+    const btnViewTable = this.shadow.querySelector('#view-table-button');
+    if (btnViewTable) btnViewTable.disabled = !isLeagueSelected;
   }
 
   _renderTeamsList() {
@@ -1808,6 +1910,21 @@ class LeagueAdminElement extends HTMLElement {
     if (this._modalMode === 'new' || this._modalMode === 'copy') {
       this._pendingNewLeagueData = leagueData;
       this._isWaitingForNewLeagueConfirmation = true;
+      
+      // Set loading state based on modal mode
+      if (this._modalMode === 'new') {
+        this._isNewLeagueLoading = true;
+      } else if (this._modalMode === 'copy') {
+        this._isCopyLeagueLoading = true;
+      }
+      
+      // Update button states to show loading
+      this._updateButtonStates();
+      
+      // Set a timeout to show error if operation takes too long (10 seconds)
+      this._loadingTimeout = setTimeout(() => {
+        this._handleLeagueOperationTimeout();
+      }, 10000);
     }
     
     this.dispatchEvent(new LeagueAdminElementEvent('requestSaveLeague', { leagueData }));
@@ -2011,6 +2128,63 @@ class LeagueAdminElement extends HTMLElement {
   /**
    * Check if we need to show new league confirmation dialog
    */
+  _handleLeagueOperationTimeout() {
+    // Clear the timeout reference
+    this._loadingTimeout = null;
+    
+    // Reset loading states
+    this._isNewLeagueLoading = false;
+    this._isCopyLeagueLoading = false;
+    this._isWaitingForNewLeagueConfirmation = false;
+    this._pendingNewLeagueData = null;
+    
+    // Update button states
+    this._updateButtonStates();
+    
+    // Show error dialog
+    Swal.default.fire({
+      customClass: this._getSwalCustomClasses(),
+      title: 'Operation Timeout',
+      text: 'The league operation is taking longer than expected. Please try again or check your connection.',
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  }
+
+  _handleLeagueOperationError(errorMessage = 'Failed to save league. Please try again.') {
+    // Clear the timeout reference
+    if (this._loadingTimeout) {
+      clearTimeout(this._loadingTimeout);
+      this._loadingTimeout = null;
+    }
+    
+    // Reset loading states
+    this._isNewLeagueLoading = false;
+    this._isCopyLeagueLoading = false;
+    this._isWaitingForNewLeagueConfirmation = false;
+    this._pendingNewLeagueData = null;
+    
+    // Update button states
+    this._updateButtonStates();
+    
+    // Show error dialog
+    Swal.default.fire({
+      customClass: this._getSwalCustomClasses(),
+      title: 'Save Failed',
+      text: errorMessage,
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  }
+
+  /**
+   * Public method to handle save errors from parent component
+   * @param {string} errorMessage - The error message to display
+   */
+  handleSaveError(errorMessage) {
+    this._handleLeagueOperationError(errorMessage);
+  }
+
   _checkForNewLeagueConfirmation() {
     if (!this._isWaitingForNewLeagueConfirmation || !this._pendingNewLeagueData) {
       return;
@@ -2023,10 +2197,21 @@ class LeagueAdminElement extends HTMLElement {
     );
 
     if (newLeague) {
+      // Clear the timeout since operation completed successfully
+      if (this._loadingTimeout) {
+        clearTimeout(this._loadingTimeout);
+        this._loadingTimeout = null;
+      }
+      
       // Reset the waiting state
       this._isWaitingForNewLeagueConfirmation = false;
+      this._isNewLeagueLoading = false;
+      this._isCopyLeagueLoading = false;
       const leagueDataBeforeConfirmation = this._pendingNewLeagueData;
       this._pendingNewLeagueData = null;
+      
+      // Update button states
+      this._updateButtonStates();
       
       // Show the confirmation dialog
       this._showNewLeagueConfirmationDialog(newLeague, leagueDataBeforeConfirmation);

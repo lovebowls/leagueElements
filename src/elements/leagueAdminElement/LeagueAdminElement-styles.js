@@ -115,6 +115,34 @@ const BASE_STYLES = `
           background-color: #e8f5e9;
         }
       }
+      
+      /* Loading spinner for buttons */
+      .loading-spinner {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Disabled button styling */
+      .button-shared:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      
+      .button-shared:disabled .loading-spinner {
+        opacity: 0.8;
+      }
       .header {
         font-weight: bold;
         background: var(--swal-background-color-header);
@@ -153,6 +181,26 @@ const BASE_STYLES = `
         display: flex;
         align-items: center;
         gap: var(--swal-padding-s);
+        flex-shrink: 0; /* Prevent shrinking */
+        flex-wrap: nowrap; /* Prevent wrapping */
+      }
+      
+      /* Ensure buttons in panel headers maintain proper sizing */
+      .panel-header-shared .button-shared {
+        flex-shrink: 0; /* Prevent buttons from shrinking */
+        min-height: auto !important; /* Override any min-height from mobile styles */
+        height: auto !important; /* Allow natural height */
+      }
+      
+      /* Override mobile-specific button styles for panel headers */
+      @media (max-width: 768px) {
+        .panel-header-shared .button-shared {
+          min-height: auto !important; /* Override mobile min-height for panel header buttons */
+        }
+        
+        .panel-header-shared .panel-header-actions {
+          flex-wrap: nowrap !important; /* Ensure buttons stay on same line */
+        }
       }
 
       /* Special styling for Table button */
@@ -238,15 +286,7 @@ const BASE_STYLES = `
       }
       .column-details {
         flex-grow: 1; 
-        padding-left: var(--swal-padding-s); 
-      }
-      .resizer {
-        width: 10px;
-        cursor: col-resize;
-        background-color: var(--swal-background-color-header);
-        border-left: 1px solid var(--swal-border-color-light);
-        border-right: 1px solid var(--swal-border-color-light);
-        z-index: 10;
+        padding: 0 0 0 var(--swal-padding-s);
       }
       .panel { /* This class is used on #teams-panel and #matches-panel */
         margin-bottom: var(--swal-padding-m);
@@ -311,6 +351,27 @@ const BASE_STYLES = `
       .swal2-cancel {
         background-color: var(--le-color-primary, #3085d6) !important;
       }
+
+      /* --- Panel header flexbox layout fix --- */
+      .panel-header-shared {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+      }
+      .panel-header-shared span {
+        flex: 1 1 0%;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .panel-header-actions {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: var(--swal-padding-s);
+      }
     `;
 
   // Mobile-specific styles
@@ -345,9 +406,6 @@ const BASE_STYLES = `
         padding: 0;
         margin: 0;
         display: block;
-      }
-      .resizer {
-        display: none !important;
       }
       .content-area {
         padding: var(--swal-padding-s) var(--swal-padding-xs);
