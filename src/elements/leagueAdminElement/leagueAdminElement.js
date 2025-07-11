@@ -328,36 +328,6 @@ class LeagueAdminElement extends HTMLElement {
     if (selectionChanged) {
       this._updateButtonStates(); // This should be called if selection changes
     }
-    // Do not return here, we want to proceed with render logic
-    console.log('--- PANEL RESIZE DEBUG ---');
-    console.log(`State at start: _rightPanelWasVisible = ${this._rightPanelWasVisible}`);
-    console.log(`Current selection: _selectedLeagueId = ${this._selectedLeagueId}`);
-    console.log(`Right panel should be visible? ${!(noLeagues || noSelection)}`);
-    if (leftPanel && rightPanel && resizer) {
-      console.log(`Before logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
-      if (noLeagues || noSelection) {
-        console.log('Branch: HIDING right panel.');
-        leftPanel.style.width = '100%';
-        leftPanel.style.flex = '1 1 100%';
-        rightPanel.style.display = 'none';
-        resizer.style.display = 'none';
-      } else {
-        console.log('Branch: SHOWING right panel.');
-        if (!this._rightPanelWasVisible) {
-          console.log('Condition met: _rightPanelWasVisible was false. Resetting panel width.');
-          leftPanel.style.width = '';
-          leftPanel.style.flex = '';
-        } else {
-          console.log('Condition NOT met: _rightPanelWasVisible was true. Preserving panel width.');
-        }
-        rightPanel.style.display = '';
-        resizer.style.display = '';
-      }
-      console.log(`After logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
-      this._rightPanelWasVisible = !(noLeagues || noSelection);
-      console.log(`State at end: _rightPanelWasVisible set to ${this._rightPanelWasVisible}`);
-      console.log('--- END PANEL RESIZE DEBUG ---');
-    }
     return selectionChanged;
   }
 
@@ -414,37 +384,23 @@ class LeagueAdminElement extends HTMLElement {
       const noLeagues = !this._leagues || this._leagues.length === 0;
       const noSelection = !this._selectedLeagueId;
 
-      console.log('--- PANEL RESIZE DEBUG ---');
-      console.log(`State at start: _rightPanelWasVisible = ${this._rightPanelWasVisible}`);
-      console.log(`Current selection: _selectedLeagueId = ${this._selectedLeagueId}`);
-      console.log(`Right panel should be visible? ${!(noLeagues || noSelection)}`);
-      
       if (leftPanel && rightPanel && resizer) {
-        console.log(`Before logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
         if (noLeagues || noSelection) {
-          console.log('Branch: HIDING right panel.');
           leftPanel.style.width = '100%';
           leftPanel.style.flex = '1 1 100%';
           rightPanel.style.display = 'none';
           resizer.style.display = 'none';
         } else {
-          console.log('Branch: SHOWING right panel.');
           // Only reset width/flex if right panel was previously hidden
           if (!this._rightPanelWasVisible) {
-            console.log('Condition met: _rightPanelWasVisible was false. Resetting panel width.');
             leftPanel.style.width = '';
             leftPanel.style.flex = '';
-          } else {
-            console.log('Condition NOT met: _rightPanelWasVisible was true. Preserving panel width.');
           }
           rightPanel.style.display = '';
           resizer.style.display = '';
         }
-        console.log(`After logic: leftPanel.style.width = "${leftPanel.style.width}", leftPanel.style.flex = "${leftPanel.style.flex}"`);
         // Update tracker for next render
         this._rightPanelWasVisible = !(noLeagues || noSelection);
-        console.log(`State at end: _rightPanelWasVisible set to ${this._rightPanelWasVisible}`);
-        console.log('--- END PANEL RESIZE DEBUG ---');
       }
     }
     // Setup resizer
