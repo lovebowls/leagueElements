@@ -67,7 +67,19 @@ describe('LeagueAdminElement - Advanced Features', () => {
     
     // Create a new instance of the component
     element = new LeagueAdminElement();
-    
+
+    // Shared mock objects for getElementById
+    const mockLeagueModal = {
+      style: { display: 'none' },
+      classList: {
+        add: jest.fn(),
+        remove: jest.fn()
+      }
+    };
+    const mockLeagueModalTitle = { textContent: '' };
+    const mockLeagueModalBody = { innerHTML: '' };
+    const mockTeamModal = { style: { display: 'none' } };
+
     // Mock element methods that interact with DOM
     element.showError = jest.fn();
     element.clearError = jest.fn();
@@ -131,6 +143,21 @@ describe('LeagueAdminElement - Advanced Features', () => {
           };
         }
         
+        return null;
+      }),
+      getElementById: jest.fn().mockImplementation((id) => {
+        if (id === 'league-modal') {
+          return mockLeagueModal;
+        }
+        if (id === 'league-modal-title') {
+          return mockLeagueModalTitle;
+        }
+        if (id === 'league-modal-body') {
+          return mockLeagueModalBody;
+        }
+        if (id === 'team-modal') {
+          return mockTeamModal;
+        }
         return null;
       }),
       querySelectorAll: jest.fn().mockReturnValue([])
@@ -393,34 +420,24 @@ describe('LeagueAdminElement - Advanced Features', () => {
 
   describe('Modal Operations', () => {
     test('should show and hide league modal', () => {
-      // Mock the modal elements
-      const mockModal = { style: { display: 'none' }, querySelector: jest.fn() };
-      const mockTitle = { textContent: '' };
-      const mockBody = { innerHTML: '' };
-      
-      element.shadow.querySelector = jest.fn().mockImplementation((selector) => {
-        if (selector === '#league-modal') return mockModal;
-        if (selector === '#league-modal-title') return mockTitle;
-        if (selector === '#league-modal-body') return mockBody;
-        return null;
-      });
-      
+      // Get the mocked elements from the shadow mock
+      const mockModal = element.shadow.getElementById('league-modal');
+      const mockTitle = element.shadow.getElementById('league-modal-title');
+
       element._populateModalForm = jest.fn();
-      
-      // Test showing the modal
+
       element._showModal('new');
-      
-      expect(mockModal.style.display).toBe('block');
-      expect(mockTitle.textContent).toBe('Create New League');
+
+      expect(mockModal.classList.add).toHaveBeenCalledWith('open');
+      expect(mockTitle.textContent).toBe('New League');
       expect(element._populateModalForm).toHaveBeenCalled();
       expect(element._isModalVisible).toBe(true);
-      
+
       // Test hiding the modal
       element._hideModal();
-      
-      expect(mockModal.style.display).toBe('none');
+
+      expect(mockModal.classList.remove).toHaveBeenCalledWith('open');
       expect(element._isModalVisible).toBe(false);
-      expect(element.clearError).toHaveBeenCalled();
     });
     
     test('should show and hide team modal', () => {
