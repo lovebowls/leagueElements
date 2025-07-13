@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, dropdownStyles, getMobileStyles, getDesktopStyles, tabStyles, formStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles, getMobileStyles, getDesktopStyles, tabStyles, formStyles, helpBannerStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -7,6 +7,7 @@ const BASE_STYLES = `
       ${dropdownStyles}
       ${tabStyles}
       ${formStyles}
+      ${helpBannerStyles}
       :host {
         display: block;
         border: 1px solid var(--le-border-color-medium, #ccc); 
@@ -1169,6 +1170,7 @@ const BASE_STYLES = `
 
   // Mobile layout template
   export const MOBILE_TEMPLATE = `
+      <div class="help-banner-shared"><a href="https://lovebowls-leagues.netlify.app/#/league-admin-element" target="_blank" rel="noopener noreferrer">Help & Documentation</a></div>
       <div class="dashboard-mobile">
         <div class="left-panel">
           <div class="tab-bar">
@@ -1231,6 +1233,7 @@ const BASE_STYLES = `
 
   // Desktop layout template
   export const DESKTOP_TEMPLATE = `
+      <div class="help-banner-shared"><a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a></div>
       <div class="dashboard">
         <div class="left-panel">
           <div class="tab-bar">

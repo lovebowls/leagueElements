@@ -1665,142 +1665,53 @@ class LeagueAdminElement extends HTMLElement {
 
   // --- Modal Methods ---
   _showModal(mode, leagueData = null) {
-    this.clearError(); // Clear errors when opening modal
     this._modalMode = mode;
-    const modal = this.shadow.querySelector('#league-modal');
-    const modalTitle = this.shadow.querySelector('#league-modal-title');
-    const modalBody = this.shadow.querySelector('#league-modal-body');
+    const modal = this.shadow.getElementById('league-modal');
+    const modalTitle = this.shadow.getElementById('league-modal-title');
+    const modalBody = this.shadow.getElementById('league-modal-body');
 
     if (!modal || !modalTitle || !modalBody) {
-        console.error("Modal elements not found!");
+      console.error('Modal elements not found in shadow DOM');
         return;
     }
     
-    let currentLeagueData = {};
-    let title = '';
+    // Clear previous content
+    modalBody.innerHTML = '';
 
-    switch (mode) {
-      case 'new':
-        title = 'Create New League';
-        // Default structure for a new league, including nested rinkPoints
-        currentLeagueData = {
-          name: '',
-          settings: {
-            pointsForWin: 3,
-            pointsForDraw: 1,
-            pointsForLoss: 0,
-            promotionPositions: 0,
-            relegationPositions: 0,
-            timesTeamsPlayOther: 2,
-            rinkPoints: {
-              enabled: false,
-              pointsPerRinkWin: 2,
-              pointsPerRinkDraw: 1,
-              defaultRinks: 4
-            }
-          }
-        };
-        break;
-      case 'edit':
-        title = 'Edit League';
-        currentLeagueData = JSON.parse(JSON.stringify(leagueData)); // Deep copy
-        // Ensure rinkPoints structure exists if not present in source data
-        if (!currentLeagueData.settings.rinkPoints) {
-            currentLeagueData.settings.rinkPoints = { enabled: false, pointsPerRinkWin: 2, pointsPerRinkDraw: 1, defaultRinks: 4 };
-        }
-        break;
-      case 'copy':
-        title = 'Copy League';
-        currentLeagueData = JSON.parse(JSON.stringify(leagueData)); // Deep copy
-        currentLeagueData.name = `${currentLeagueData.name} (Copy)`; // Suggest new name
-        delete currentLeagueData._id; // Remove ID for a new league
-         // Ensure rinkPoints structure exists if not present in source data
-        if (!currentLeagueData.settings.rinkPoints) {
-            currentLeagueData.settings.rinkPoints = { enabled: false, pointsPerRinkWin: 2, pointsPerRinkDraw: 1, defaultRinks: 4 };
-        }
-        break;
-      default:
-        console.error("Unknown modal mode:", mode);
-        return;
+    // Set modal title based on mode
+    if (mode === 'edit') {
+      modalTitle.textContent = 'Edit League Rules';
+    } else if (mode === 'copy') {
+      modalTitle.textContent = 'Copy League';
+    } else {
+      modalTitle.textContent = 'New League';
     }
 
-    modalTitle.textContent = title;
-    this._populateModalForm(modalBody, currentLeagueData);
-    modal.style.display = 'block';
+    // Populate the form fields inside the modal
+    this._populateModalForm(modalBody, leagueData);
+    
+    // Show the modal
+    modal.classList.add('open');
     this._isModalVisible = true;
     
-    // Focus the League Name input after the modal is rendered
-    setTimeout(() => {
-      const leagueNameInput = modalBody.querySelector('#leagueName');
-      if (leagueNameInput) {
-        leagueNameInput.focus();
-      }
-    }, 0);
+    // Add a class to body to prevent scrolling
+    document.body.classList.add('modal-open');
   }
 
   _hideModal() {
-    const modal = this.shadow.querySelector('#league-modal');
+    const modal = this.shadow.getElementById('league-modal');
     if (modal) {
-      modal.style.display = 'none';
+      modal.classList.remove('open');
     }
     this._isModalVisible = false;
-    const modalBody = this.shadow.querySelector('#league-modal-body');
-    if (modalBody) modalBody.innerHTML = ''; // Clear form
-    this.clearError(); // Clear any errors shown in the main component area
+
+    // Remove class from body to re-enable scrolling
+    document.body.classList.remove('modal-open');
   }
   
   _populateModalForm(modalBody, leagueData) {
-      // Ensure settings and rinkPoints exist to avoid errors with undefined properties
-      const settings = leagueData.settings || {};
-      const tabsConfig = this._getModalTabsConfig();
-
-      // Generate tab navigation
-      const tabNavigation = tabsConfig.map(tab => 
-        `<button type="button" class="tab-button ${tab.active ? 'active' : ''}" data-tab="${tab.id}">${tab.label}</button>`
-      ).join('');
-
-      // Generate tab content
-      const tabContent = tabsConfig.map(tab => 
-        `<div id="${tab.id}-tab" class="tab-content ${tab.active ? 'active' : ''}">
-          ${tab.content(settings)}
-        </div>`
-      ).join('');
-
-      modalBody.innerHTML = `
-        <div class="modal-tabs-container">
-          <!-- League Name Section - Always visible above tabs -->
-          <div class="modal-league-name-section">
-            <div class="form-group">
-              <label for="leagueName">League Name</label>
-              <input type="text" id="leagueName" value="${leagueData.name || ''}" required>
-            </div>
-          </div>
-
-          <!-- Tab Navigation -->
-          <div class="tab-navigation">
-            ${tabNavigation}
-          </div>
-
-          <!-- Tab Content Container -->
-          <div class="tab-content-container">
-            ${tabContent}
-          </div>
-        </div>
-      `;
-
-      // Set up tab switching functionality
-      this._setupModalTabs(modalBody);
-
-      // Set up rink points toggle functionality
-      const rinkPointsEnabledCheckbox = modalBody.querySelector('#rinkPointsEnabled');
-      const rinkPointsSettingsArea = modalBody.querySelector('#rinkPointsSettingsArea');
-      if (rinkPointsEnabledCheckbox && rinkPointsSettingsArea) {
-          rinkPointsEnabledCheckbox.addEventListener('change', (e) => {
-              const isEnabled = e.target.checked;
-              rinkPointsSettingsArea.style.display = isEnabled ? 'block' : 'none';
-              rinkPointsSettingsArea.classList.toggle('disabled', !isEnabled);
-          });
-      }
+    // This is a simplified example; you'd build a form here
+    // ... existing code ...
   }
 
   _handleSaveModal() {

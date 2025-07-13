@@ -1,4 +1,4 @@
-import { panelStyles, buttonStyles, modalStyles, formStyles, listStyles, tabStyles, dropdownStyles} from '../shared-styles.js';
+import { panelStyles, buttonStyles, modalStyles, formStyles, listStyles, tabStyles, dropdownStyles, helpBannerStyles} from '../shared-styles.js';
 
 // Base styles shared between mobile and desktop layouts
 const BASE_STYLES = `
@@ -9,6 +9,7 @@ const BASE_STYLES = `
       ${listStyles} /* ADDED SHARED listStyles */
       ${tabStyles} /* ADDED SHARED tabStyles */
       ${dropdownStyles} /* ADDED SHARED dropdownStyles */
+      ${helpBannerStyles} /* ADDED SHARED helpBannerStyles */
       :host {
         display: block;
         border: 1px solid var(--swal-border-color-medium, #ccc); 
@@ -513,6 +514,7 @@ const BASE_STYLES = `
 
   // Base HTML template (placeholders will be filled by render logic)
   export const DESKTOP_TEMPLATE = `
+    <div class="help-banner-shared"><a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a></div>
     <div class="header">
       <div id="main-title">League Admin</div>
       <div class="header-actions">
@@ -610,6 +612,7 @@ const BASE_STYLES = `
     `;
 
   export const MOBILE_TEMPLATE = `
+    <div class="help-banner-shared"><a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a></div>
     <div class="header">
       <div id="main-title">League Admin</div>
       <div class="header-actions">

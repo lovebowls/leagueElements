@@ -393,6 +393,13 @@ export const modalStyles = `
     height: 100%;
     overflow: auto;
     background-color: var(--le-background-color-modal-overlay, rgba(0,0,0,0.4));
+    padding-top: 5%;
+    padding-bottom: 5%;
+  }
+
+  .modal-shared-overlay.open {
+    display: flex;
+    justify-content: center;
   }
 
   .modal-shared-content {
@@ -405,14 +412,14 @@ export const modalStyles = `
     box-shadow: var(--le-shadow-modal, 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19));
     display: flex;
     flex-direction: column;
+    align-self: flex-start;
   }
 
   /* Specific styles for modal mobile-view class */
   .modal-shared-content.mobile-view {
-    width: 90% !important; /* Override any fixed width from shared styles */
-    margin: 5% auto; /* Less margin from top on mobile */
-    max-width: 90% !important;
-    font-size: var(--le-font-size-small, 0.8em);
+    width: 90%; /* Override any fixed width from shared styles */
+    margin: 0; /* Less margin from top on mobile */
+    max-width: 90%;
     min-width: 280px !important;
   }
 
@@ -475,7 +482,7 @@ export const formStyles = `
     margin-bottom: var(--le-padding-xs, 0.4em); /* Increased margin */
     font-weight: bold;
     color: var(--le-text-color-primary, #333);
-    font-size: var(--le-font-size-label, var(--le-font-size-small, 1.15em)); /* Use variable with fallback */
+    font-size: var(--le-font-size-label, 1em)); /* Use variable with fallback */
   }
 
   .form-input-shared,
@@ -486,7 +493,7 @@ export const formStyles = `
     border: 1px solid var(--le-border-color-dark, #ccc);
     border-radius: var(--le-border-radius-standard, 4px);
     box-sizing: border-box;
-    font-size: var(--le-font-size-input, var(--le-font-size-medium, 1.15em)); /* Use variable with fallback */
+    font-size: var(--le-font-size-input, 1em)); /* Use variable with fallback */
     color: var(--le-text-color-primary, #333);
     background-color: var(--le-background-color-panel, #fff);
   }
@@ -1087,6 +1094,27 @@ export const tabStyles = `
     .tab-content fieldset {
       padding: var(--le-padding-s);
     }
+  }
+`;
+
+export const helpBannerStyles = `
+  /* Help Banner Styles */
+  .help-banner-shared {
+    background-color: var(--le-background-color-header, #f8f9fa);
+    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 1rem);
+    text-align: right;
+    font-size: var(--le-font-size-xs, 0.75em);
+    border-bottom: 1px solid var(--le-border-color-medium, #eee);
+  }
+
+  .help-banner-shared a {
+    color: var(--le-text-color-accent, #2196f3);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .help-banner-shared a:hover {
+    text-decoration: underline;
   }
 `;
 

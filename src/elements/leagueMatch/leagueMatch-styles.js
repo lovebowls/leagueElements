@@ -31,15 +31,14 @@ export const BASE_STYLES = `
         display: flex;
         align-items: center;
         gap: var(--le-padding-s, 0.5em);
+        flex-wrap: wrap;
       }
       .score-inputs label {
-        /* flex-basis: auto; */ /* If they were form-label-shared they'd be block */
          margin-bottom: 0; /* Override if needed */
       }
       .score-inputs input[type="number"] {
         width: 80px; /* Increased from 60px to show placeholders better */
-        min-width: 80px; /* Ensure minimum width even on small screens */
-        /* padding: var(--le-padding-xs, 0.25em); Already form-input-shared */
+        flex: 1 1 60px;
       }
       /* Remove spinner buttons from number inputs */
       .score-inputs input[type="number"]::-webkit-inner-spin-button,
@@ -62,10 +61,10 @@ export const BASE_STYLES = `
       
       .rink-results-header, .rink-result-row, .rink-results-totals, .rink-points-totals {
         display: grid;
-        grid-template-columns: 1.5fr 2fr 2fr; /* Rink Label, Home, Away */
-        gap: 0.5rem;
+        grid-template-columns: 2fr 1.5fr 1.5fr; /* Rink Label, Home, Away */
+        gap: 0.4rem;
         align-items: center;
-        padding: 0.5rem 0;
+        padding: 0.3rem 0;
       }
 
       .rink-results-header div,
@@ -75,15 +74,21 @@ export const BASE_STYLES = `
       }
 
       .rink-results-header .rink-header-label {
-        text-align: left; /* Rink label in header to the left */
+        text-align: center; /* Rink label in header to the left */
       }
 
       .rink-results-totals .rink-total-label,
-      .rink-points-totals .rink-points-label {
-        text-align: left; /* Total labels to the left */
+      .rink-points-totals .rink-points-label,
+      .match-points-totals .rink-points-label,
+      .final-total-points-totals .rink-points-label {
+        text-align: center; /* Total labels to the left */
         font-weight: normal;
+        font-size: var(--le-font-size-small, 0.8em);
       }
-      
+      .final-total-points-totals {
+        font-weight: bold;
+        font-size: var(--le-font-size-medium, 1em);
+      }
       .rink-results-header {
         font-weight: bold;
         border-bottom: 1px solid var(--le-border-color, #ddd);
@@ -103,17 +108,18 @@ export const BASE_STYLES = `
         margin-top: 0.75rem;
         padding-top: 0.75rem;
         border-top: 1px solid var(--le-border-color, #ccc);
-        font-weight: bold;
+        text-align: left;
       }
       
       .rink-points-totals, .match-points-totals {
+        text-align: left;
         border-top: 1px dashed var(--le-border-color-light, #eee); /* Lighter top border for points total */
         margin-top: 0.25rem;
         padding-top: 0.25rem;
       }
 
       .rink-result-row .rink-number { /* Style for the Rink X label in data rows */
-        text-align: left;
+        text-align: center;
         padding-left: 0.25rem;
       }
       
@@ -128,7 +134,6 @@ export const BASE_STYLES = `
       @media (max-width: 480px) {
         .rink-results-header, .rink-result-row, .rink-results-totals, .rink-points-totals {
           grid-template-columns: 1fr 1.5fr 1.5fr; /* Adjust fr units for mobile */
-          font-size: 0.9rem;
           gap: 0.3rem;
         }
         
@@ -147,106 +152,9 @@ export const BASE_STYLES = `
       
       /* Rink number input styling */
       #rinkNumber {
-        width: 120px;
-        max-width: 120px;
+        width: 50%;
       }
       
-      /* Responsive adjustment for mobile */
-      @media (max-width: 480px) {
-        .modal-shared-content {
-          width: 90% !important; /* Override any fixed width from shared styles */
-          max-width: 90% !important;
-          margin: 10px auto;
-        }
-        .modal-shared-header {
-          padding: 15px;
-        }
-        .modal-shared-body {
-          padding: 15px;
-        }
-        .modal-shared-footer {
-          padding: 15px;
-        }
-        .form-label-shared {
-          margin-bottom: 8px;
-        }
-        .form-input-shared, 
-        .form-select-shared {
-          padding: 10px !important;
-          height: auto !important;
-        }
-        .score-inputs {
-          gap: 10px;
-        }
-        .score-inputs input[type="number"] {
-          width: 90px; /* Wider on mobile for touch targets */
-          min-width: 90px;
-          padding: 10px !important;
-        }
-        .score-inputs span {
-          font-weight: bold;
-        }
-        #rinkNumber {
-          width: 100% !important;
-          max-width: 100% !important;
-          padding: 10px !important;
-        }
-        .button-shared {
-          padding: 10px 15px !important;
-          min-height: 44px; /* Better touch target */
-          margin: 5px;
-        }
-        #error-message-match-modal {
-          padding: 10px;
-        }
-        .attention-banner {
-          padding: 10px;
-        }
-      }
-      
-      .mobile-view .modal-shared-header {
-        padding: 15px;
-      }
-      .mobile-view .modal-shared-body {
-        padding: 15px;
-      }
-      .mobile-view .modal-shared-footer {
-        padding: 15px;
-      }
-      .mobile-view .form-label-shared {
-        margin-bottom: 10px;
-      }
-      .mobile-view .form-input-shared, 
-      .mobile-view .form-select-shared {
-        padding: 12px !important;
-        height: auto !important;
-        border-radius: 6px !important;
-      }
-      .mobile-view .score-inputs {
-        gap: 15px;
-        margin-top: 10px;
-      }
-      .mobile-view .score-inputs input[type="number"] {
-        width: 100px; /* Wider on mobile for touch targets */
-        min-width: 100px;
-        padding: 12px !important;
-        border-radius: 6px !important;
-      }
-      .mobile-view .score-inputs span {
-        font-weight: bold;
-      }
-      .mobile-view .button-shared {
-        padding: 12px 20px !important;
-        min-height: 50px; /* Better touch target */
-        margin: 5px;
-        border-radius: 6px !important;
-      }
-      .mobile-view #error-message-match-modal {
-        padding: 12px;
-      }
-      .mobile-view .attention-banner {
-        padding: 12px;
-      }
       #error-message-match-modal {
         color: var(--le-text-color-error, #D8000C);
         background-color: var(--le-background-color-error, #FFD2D2);

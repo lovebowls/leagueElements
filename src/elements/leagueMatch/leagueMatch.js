@@ -498,18 +498,18 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
               </div>
               <div class="rink-results-totals rink-points-totals">
                 <div class="rink-points-label">Rink Points</div>
-                <div id="homeRinkPoints">0.0</div>
-                <div id="awayRinkPoints">0.0</div>
+                <div id="homeRinkPoints">0</div>
+                <div id="awayRinkPoints">0</div>
               </div>
               <div class="rink-results-totals match-points-totals">
                 <div class="rink-points-label">Match Points</div>
-                <div id="homeMatchPoints">0.0</div>
-                <div id="awayMatchPoints">0.0</div>
+                <div id="homeMatchPoints">0</div>
+                <div id="awayMatchPoints">0</div>
               </div>
               <div class="rink-results-totals final-total-points-totals">
                 <div class="rink-points-label">Total Points</div>
-                <div id="homeFinalTotalPoints">0.0</div>
-                <div id="awayFinalTotalPoints">0.0</div>
+                <div id="homeFinalTotalPoints">0</div>
+                <div id="awayFinalTotalPoints">0</div>
               </div>
             </div>
           ` : `
@@ -720,7 +720,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
             <div class="rink-number">${rinkNumber}</div>
             <div class="rink-home">
               <input type="number" 
-                     class="rink-input" 
+                     class="rink-input form-input-shared" 
                      min="0" 
                      value="${homeValue}" 
                      data-rink="${rinkNumber}"
@@ -729,7 +729,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
             </div>
             <div class="rink-away">
               <input type="number" 
-                     class="rink-input" 
+                     class="rink-input form-input-shared" 
                      min="0" 
                      value="${awayValue}" 
                      data-rink="${rinkNumber}"
@@ -742,6 +742,19 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       .join('');
   }
   
+  /**
+   * Formats a number for display, removing trailing `.0`.
+   * @param {number} num The number to format.
+   * @returns {string} The formatted number as a string.
+   */
+  _formatNumber(num) {
+    if (typeof num !== 'number') {
+      return num;
+    }
+    // Converts to string with 1 decimal place, then removes it if it's '.0'
+    return num.toFixed(1).replace(/\.0$/, '');
+  }
+
   /**
    * Updates the total shots and points based on rink results
    */
@@ -825,12 +838,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     const elementsToUpdate = [
       { id: 'homeTotalShots', value: homeTotalShots },
       { id: 'awayTotalShots', value: awayTotalShots },
-      { id: 'homeRinkPoints', value: homeRinkPoints.toFixed(1) },
-      { id: 'awayRinkPoints', value: awayRinkPoints.toFixed(1) },
-      { id: 'homeMatchPoints', value: homeMatchPoints.toFixed(1) },
-      { id: 'awayMatchPoints', value: awayMatchPoints.toFixed(1) },
-      { id: 'homeFinalTotalPoints', value: homeFinalTotalPoints.toFixed(1) },
-      { id: 'awayFinalTotalPoints', value: awayFinalTotalPoints.toFixed(1) }
+      { id: 'homeRinkPoints', value: this._formatNumber(homeRinkPoints) },
+      { id: 'awayRinkPoints', value: this._formatNumber(awayRinkPoints) },
+      { id: 'homeMatchPoints', value: this._formatNumber(homeMatchPoints) },
+      { id: 'awayMatchPoints', value: this._formatNumber(awayMatchPoints) },
+      { id: 'homeFinalTotalPoints', value: this._formatNumber(homeFinalTotalPoints) },
+      { id: 'awayFinalTotalPoints', value: this._formatNumber(awayFinalTotalPoints) }
     ];
     
     elementsToUpdate.forEach(({ id, value }) => {
@@ -845,12 +858,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     console.debug('[LeagueMatch] All rink totals updated in DOM.', {
       homeTotalShots,
       awayTotalShots,
-      homeRinkPoints: homeRinkPoints.toFixed(1),
-      awayRinkPoints: awayRinkPoints.toFixed(1),
-      homeMatchPoints: homeMatchPoints.toFixed(1),
-      awayMatchPoints: awayMatchPoints.toFixed(1),
-      homeFinalTotalPoints: homeFinalTotalPoints.toFixed(1),
-      awayFinalTotalPoints: awayFinalTotalPoints.toFixed(1),
+      homeRinkPoints: this._formatNumber(homeRinkPoints),
+      awayRinkPoints: this._formatNumber(awayRinkPoints),
+      homeMatchPoints: this._formatNumber(homeMatchPoints),
+      awayMatchPoints: this._formatNumber(awayMatchPoints),
+      homeFinalTotalPoints: this._formatNumber(homeFinalTotalPoints),
+      awayFinalTotalPoints: this._formatNumber(awayFinalTotalPoints),
     });
   } 
   
