@@ -13,7 +13,6 @@ const getFontSizeElementVariables = (isMobile = false) => `
   --le-font-size-input: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-table-header: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-table-cell: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
-  --le-font-size-paging: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-dropdown: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-padding-xs: 0.25rem;
   --le-padding-s: 0.6rem;
@@ -81,7 +80,6 @@ export const getMobileStyles = (fontScale = 1.0) => `
   }
 
   .form-label-shared {
-    font-size: var(--le-font-size-small, 1.0em);
     margin-bottom: var(--le-padding-s, 0.75rem);
   }
 
@@ -955,7 +953,6 @@ export const tabStyles = `
     border-bottom: none;
     padding: var(--le-padding-s) var(--le-padding-m);
     cursor: pointer;
-    font-size: var(--le-font-size-medium);
     font-weight: 500;
     color: var(--le-text-color-secondary);
     border-radius: var(--le-border-radius-standard) var(--le-border-radius-standard) 0 0;
@@ -1016,7 +1013,7 @@ export const tabStyles = `
     font-weight: 600;
     color: var(--le-text-color-primary);
     padding: 0 var(--le-padding-s);
-    font-size: var(--le-font-size-medium);
+    font-size: var(--le-font-size-small, 0.8em);
   }
 
   .tab-content fieldset:last-child {
@@ -1037,6 +1034,7 @@ export const tabStyles = `
     margin-bottom: var(--le-padding-xs);
     font-weight: 500;
     color: var(--le-text-color-primary);
+    font-size: var(--le-font-size-small, 0.8em);
   }
 
   .tab-content .form-group input[type="text"],
@@ -1094,6 +1092,7 @@ export const tabStyles = `
     .tab-content fieldset {
       padding: var(--le-padding-s);
     }
+    
   }
 `;
 
@@ -1125,6 +1124,10 @@ export const pagingStyles = `
     justify-content: flex-end;
     gap: var(--le-padding-s, 0.5rem);
     margin-top: var(--le-padding-s, 0.5rem);
+    padding: var(--le-padding-xs, 0.25rem) 0;
+    background-color: transparent;
+    border: none;
+    font-size: var(--le-font-size-xs, 0.75em);
   }
 
   .paging-btn {
@@ -1133,7 +1136,6 @@ export const pagingStyles = `
     border-radius: var(--le-border-radius-small, 3px);
     padding: var(--le-padding-xs, 0.2rem) var(--le-padding-s, 0.7rem);
     cursor: pointer;
-    font-size: var(--le-font-size-paging, var(--le-font-size-medium, 1em));
     color: var(--le-text-color-primary, #333);
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
     user-select: none;

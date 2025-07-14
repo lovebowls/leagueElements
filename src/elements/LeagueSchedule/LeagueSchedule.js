@@ -901,18 +901,6 @@ class LeagueSchedule extends HTMLElement {
             <div class="paging-info">
               Showing ${startIndex + 1}-${endIndex} of ${totalMatches} matches
             </div>
-            <div class="paging-settings">
-              <label for="items-per-page-input">Items per page:</label>
-              <input 
-                type="number" 
-                id="items-per-page-input" 
-                min="10" 
-                max="1000" 
-                step="1" 
-                value="${this.itemsPerPage}"
-                title="Number of matches to show per page (10-1000)"
-              />
-            </div>
             <div class="paging-buttons">
               <button 
                 class="button-shared" 
@@ -1090,18 +1078,6 @@ class LeagueSchedule extends HTMLElement {
             <div class="paging-info">
               Showing ${startIndex + 1}-${endIndex} of ${totalMatches} matches
             </div>
-            <div class="paging-settings">
-              <label for="items-per-page-input">Items per page:</label>
-              <input 
-                type="number" 
-                id="items-per-page-input" 
-                min="10" 
-                max="1000" 
-                step="1" 
-                value="${this.itemsPerPage}"
-                title="Number of matches to show per page (10-1000)"
-              />
-            </div>
             <div class="paging-buttons">
               <button 
                 class="button-shared" 
@@ -1194,14 +1170,7 @@ class LeagueSchedule extends HTMLElement {
         }
       });
     }
-    
-    // Items per page input
-    const itemsPerPageInput = this.shadow.querySelector('#items-per-page-input');
-    if (itemsPerPageInput) {
-      itemsPerPageInput.addEventListener('change', this.handleItemsPerPageChange);
-      itemsPerPageInput.addEventListener('blur', this.handleItemsPerPageChange);
-    }
-    
+        
     // Pagination buttons
     const firstPageBtn = this.shadow.querySelector('#first-page');
     const prevPageBtn = this.shadow.querySelector('#prev-page');

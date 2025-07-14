@@ -1710,8 +1710,55 @@ class LeagueAdminElement extends HTMLElement {
   }
   
   _populateModalForm(modalBody, leagueData) {
-    // This is a simplified example; you'd build a form here
-    // ... existing code ...
+    const settings = (leagueData && leagueData.settings) || {};
+    const rinkPoints = settings.rinkPoints || {};
+    const name = leagueData ? leagueData.name : '';
+
+    let html = `
+      <div class="modal-tabs-container">
+        <div class="form-group-shared">
+          <label for="leagueName" class="form-label-shared">League Name</label>
+          <input type="text" id="leagueName" class="form-input-shared" value="${name}">
+        </div>
+    `;
+
+    // Generate tabs navigation
+    const tabsConfig = this._getModalTabsConfig();
+    html += '<div class="tab-navigation">';
+    tabsConfig.forEach(tab => {
+      html += `<button class="tab-button ${tab.active ? 'active' : ''}" data-tab="${tab.id}">${tab.label}</button>`;
+    });
+    html += '</div>';
+
+    // Generate tab contents wrapper
+    html += '<div class="tab-content-container">';
+    tabsConfig.forEach(tab => {
+      html += `<div id="${tab.id}-tab" class="tab-content ${tab.active ? 'active' : ''}">`;
+      html += tab.content(settings);
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '</div>'; // Close modal-tabs-container
+
+    modalBody.innerHTML = html;
+
+    // Setup tab switching
+    this._setupModalTabs(modalBody);
+
+    // Setup rink points toggle
+    const rinkEnabledCheckbox = modalBody.querySelector('#rinkPointsEnabled');
+    const rinkSettingsArea = modalBody.querySelector('#rinkPointsSettingsArea');
+    if (rinkEnabledCheckbox && rinkSettingsArea) {
+      rinkEnabledCheckbox.addEventListener('change', (e) => {
+        const isEnabled = e.target.checked;
+        rinkSettingsArea.style.display = isEnabled ? 'block' : 'none';
+        if (!isEnabled) {
+          rinkSettingsArea.classList.add('disabled');
+        } else {
+          rinkSettingsArea.classList.remove('disabled');
+        }
+      });
+    }
   }
 
   _handleSaveModal() {
@@ -1932,15 +1979,15 @@ class LeagueAdminElement extends HTMLElement {
         <legend>Match Points</legend>
         <div class="form-group-grid">
           <div class="form-group">
-            <label for="pointsForWin">for Win</label>
+            <label for="pointsForWin">Win</label>
             <input type="number" id="pointsForWin" value="${settings.pointsForWin !== undefined ? settings.pointsForWin : 3}" min="0">
           </div>
           <div class="form-group">
-            <label for="pointsForDraw">for Draw</label>
+            <label for="pointsForDraw">Draw</label>
             <input type="number" id="pointsForDraw" value="${settings.pointsForDraw !== undefined ? settings.pointsForDraw : 1}" min="0">
           </div>
           <div class="form-group">
-            <label for="pointsForLoss">for Loss</label>
+            <label for="pointsForLoss">Loss</label>
             <input type="number" id="pointsForLoss" value="${settings.pointsForLoss !== undefined ? settings.pointsForLoss : 0}" min="0">
           </div>
         </div>

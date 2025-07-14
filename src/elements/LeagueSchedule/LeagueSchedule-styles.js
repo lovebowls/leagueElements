@@ -1,10 +1,10 @@
-import { panelStyles, buttonStyles, dropdownStyles } from '../shared-styles.js';
+import { panelStyles, buttonStyles, dropdownStyles, pagingStyles } from '../shared-styles.js';
 
 const BASE_STYLES = `
   ${panelStyles}
   ${buttonStyles}
   ${dropdownStyles}
-  
+  ${pagingStyles}
   :host {
     display: block;
     font-family: var(--le-font-family-main, 'Open Sans', Helvetica, Arial, sans-serif);
@@ -181,42 +181,8 @@ const BASE_STYLES = `
     text-align: center;
   }
   
-   
-  .paging-controls {
-    /* Layout properties moved to mobile/desktop sections */
-    margin-top: var(--le-padding-s, 0.5rem);
-    padding: var(--le-padding-xs, 0.25rem) 0;
-    background-color: transparent;
-    border: none;
-    gap: var(--le-padding-s, 0.5rem);
-  }
-  
   .paging-info {
     color: var(--le-text-color-secondary, #666);
-  }
-  
-  .paging-settings {
-    /* Layout properties moved to mobile/desktop sections */
-    gap: var(--le-padding-xs, 0.25rem);
-  }
-  
-  .paging-settings label {
-    color: var(--le-text-color-secondary, #666);
-    white-space: nowrap;
-  }
-  
-  .paging-settings input[type="number"] {
-    width: 60px;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--le-border-color-medium, #ddd);
-    border-radius: var(--le-border-radius-small, 3px);
-    text-align: center;
-  }
-  
-  .paging-settings input[type="number"]:focus {
-    outline: none;
-    border-color: var(--le-border-color-focus, #007cba);
-    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.2);
   }
   
   .paging-buttons {
@@ -336,25 +302,6 @@ export const MOBILE_STYLES = `
   }
   
   .calendar-filter {
-    width: 100%;
-  }
-  
-  
-  .paging-controls {
-    display: flex;
-    flex-direction: column;
-    gap: var(--le-padding-s, 0.5rem);
-  }
-  
-  .paging-settings {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .paging-buttons {
-    display: flex;
-    justify-content: center;
     width: 100%;
   }
   
