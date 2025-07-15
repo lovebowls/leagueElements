@@ -514,7 +514,11 @@ const BASE_STYLES = `
 
   // Base HTML template (placeholders will be filled by render logic)
   export const DESKTOP_TEMPLATE = `
-    <div class="help-banner-shared"><a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a></div>
+    <div class="help-banner-shared">
+      <a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a>
+      <span class="separator">|</span>
+      <a href="mailto:admin@lovebowls.co.uk">Raise Issue</a>
+    </div>
     <div class="header">
       <div id="main-title">League Admin</div>
       <div class="header-actions">
@@ -612,7 +616,11 @@ const BASE_STYLES = `
     `;
 
   export const MOBILE_TEMPLATE = `
-    <div class="help-banner-shared"><a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a></div>
+    <div class="help-banner-shared">
+      <a href="https://lovebowls-leagues.netlify.app/#/" target="_blank" rel="noopener noreferrer">Help & Documentation</a>
+      <span class="separator">|</span>
+      <a href="mailto:admin@lovebowls.co.uk">Raise Issue</a>
+    </div>
     <div class="header">
       <div id="main-title">League Admin</div>
       <div class="header-actions">

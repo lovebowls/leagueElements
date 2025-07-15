@@ -155,6 +155,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     return this._leagueSettings?.pointsForDraw || 0;
   }
 
+  get pointsForMatchLoss() {
+    return this._leagueSettings?.pointsForLoss || 0;
+  }
+
   /**
    * @param {Array<string>} value
    */
@@ -384,9 +388,11 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
           return;
         }
         
-        // Calculate points (2 for win, 1 for draw, 0 for loss)
-        const homePoints = homeScore > awayScore ? 2 : (homeScore === awayScore ? 1 : 0);
-        const awayPoints = awayScore > homeScore ? 2 : (homeScore === awayScore ? 1 : 0);
+        // Calculate points based on league settings
+        const homePoints = homeScore > awayScore ? this.pointsForMatchWin : 
+                          (homeScore === awayScore ? this.pointsForMatchDraw : this.pointsForMatchLoss);
+        const awayPoints = awayScore > homeScore ? this.pointsForMatchWin : 
+                          (homeScore === awayScore ? this.pointsForMatchDraw : this.pointsForMatchLoss);
         
         match.result.homeScore = homeScore;
         match.result.awayScore = awayScore;
@@ -805,8 +811,10 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
 
     if (homeTotalShots > awayTotalShots) {
       homeMatchPoints = this.pointsForMatchWin;
+      awayMatchPoints = this.pointsForMatchLoss;
     } else if (awayTotalShots > homeTotalShots) {
       awayMatchPoints = this.pointsForMatchWin;
+      homeMatchPoints = this.pointsForMatchLoss;
     } else if (homeTotalShots > 0 || awayTotalShots > 0) { // Match draw, but only if played (not 0-0)
       homeMatchPoints = this.pointsForMatchDraw;
       awayMatchPoints = this.pointsForMatchDraw;

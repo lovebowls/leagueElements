@@ -396,12 +396,12 @@ class LeagueResetModal extends HTMLElement {
             aria-labelledby="reset-modal-title" 
             aria-modal="true"
             style="display: ${this._open ? 'flex' : 'none'};">
-          ${attentionBannerHTML} 
           <div class="modal-shared-header">
             <span id="reset-modal-title">Reset Schedule</span>
             <button class="close-button-shared" id="close-reset-modal" aria-label="Close dialog">&times;</button>          
           </div>
           <div class="modal-shared-body">
+            ${attentionBannerHTML}
             <div class="league-info">
               <p><strong>League:</strong> ${this._escapeHtml(this.leagueName)}</p>
               <p><strong>Teams:</strong> ${this.teamCount}</p>

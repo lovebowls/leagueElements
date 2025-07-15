@@ -32,11 +32,17 @@ export const BASE_STYLES = `
     color: var(--le-color-status-warning, #f39c12);
     font-weight: normal;
     font-size: var(--le-font-size-small, 0.8em);
-    margin: 0;
-    padding: var(--le-padding-xs, 0.25rem) var(--le-padding-m, 1rem);
-    line-height: 1.2;
+    margin: 0 0 var(--le-padding-m, 1rem) 0;
+    padding: var(--le-padding-s, 0.5rem);
+    line-height: 1.3;
     display: block;
-    width: 100%;
+    border-radius: var(--le-border-radius-standard, 4px);
+    background-color: rgba(243, 156, 18, 0.1);
+    border-left: 4px solid var(--le-color-status-warning, #f39c12);
+    box-sizing: border-box;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;  
   }
 
   .league-info {
@@ -95,6 +101,23 @@ export const BASE_STYLES = `
     min-width: 80px;
   }
 
+  /* Ensure consistent height for interval inputs */
+  .interval-inputs .form-input-shared,
+  .interval-inputs .form-select-shared {
+    height: auto;
+    min-height: var(--le-form-input-min-height, 2.5rem);
+    line-height: 1.2;
+    vertical-align: middle;
+  }
+
+  /* Specific adjustments for select dropdown text alignment */
+  .interval-inputs .form-select-shared {
+    display: flex;
+    align-items: center;
+    padding-top: calc(var(--le-padding-s, 0.75em) - 1px);
+    padding-bottom: calc(var(--le-padding-s, 0.75em) - 1px);
+  }
+
   .day-checkboxes {
     display: none;
     flex-wrap: wrap;
@@ -146,9 +169,38 @@ export const BASE_STYLES = `
   /* Mobile-specific adjustments */
   @media (max-width: 480px) {
     
+    /* Mobile warning text adjustments */
+    .header-warning {
+      font-size: var(--le-font-size-xs, 0.75em);
+      padding: var(--le-padding-xs, 0.25rem) 0 0 var(--le-padding-s, 0.5rem);
+      line-height: 1.4;
+      text-align: left;
+      margin-bottom: var(--le-padding-s, 0.75rem);
+    }
+    
     .interval-number {
       width: 100%;
       min-width: auto;
+    }
+
+    /* Enhanced mobile height consistency for interval inputs */
+    .interval-inputs .form-input-shared,
+    .interval-inputs .form-select-shared {
+      min-height: 44px; /* Match mobile touch target */
+      box-sizing: border-box;
+      padding: var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
+      border-width: 2px;
+      font-size: var(--le-font-size-medium, 1.0em);
+      line-height: 1.2;
+      vertical-align: middle;
+    }
+
+    /* Specific adjustments for select dropdown text alignment */
+    .interval-inputs .form-select-shared {
+      padding-top: calc(var(--le-padding-s, 0.75rem) - 1px);
+      padding-bottom: calc(var(--le-padding-s, 0.75rem) - 1px);
+      display: flex;
+      align-items: center;
     }
     
     .day-checkboxes {

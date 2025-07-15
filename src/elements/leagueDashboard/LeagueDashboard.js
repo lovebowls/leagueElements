@@ -389,7 +389,7 @@ class LeagueDashboard extends HTMLElement {
     // Points system
     const pointsForWin = settings.pointsForWin || 3;
     const pointsForDraw = settings.pointsForDraw || 1;
-    const pointsForLoss = settings.pointsForLoss || 0;
+
     
     // Match format
     const timesTeamsPlayOther = settings.timesTeamsPlayOther || 1;
@@ -418,7 +418,7 @@ class LeagueDashboard extends HTMLElement {
           <div class="info-cards">
             <div class="info-card">
               <div class="card-label">Points System</div>
-              <div class="card-value">Win: ${pointsForWin}, Draw: ${pointsForDraw}, Loss: ${pointsForLoss}</div>
+              <div class="card-value">Win: ${pointsForWin}, Draw: ${pointsForDraw}</div>
             </div>
             <div class="info-card">
               <div class="card-label">Match Format</div>

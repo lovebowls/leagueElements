@@ -68,11 +68,23 @@ export const getMobileStyles = (fontScale = 1.0) => `
   }
 
   /* Input fields on mobile */
-  .form-input-shared, .form-select-shared {
+  .form-input-shared, 
+  .form-select-shared,
+   {
     min-height: 44px; /* Standard mobile touch target */
-    padding: var(--le-padding-s, 0.75rem) var(--le-padding-m, 1rem);
+    padding: var(--le-padding-xs, 0.5rem) var(--le-padding-m, 1rem);
     font-size: var(--le-font-size-medium, 1.0em);
     border-width: 2px;
+    width: 100% !important; /* Force width consistency on mobile */
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Specific handling for date inputs on mobile */
+  .form-input-shared[type="date"] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: none;
   }
 
   .form-input-shared:focus, .form-select-shared:focus {
@@ -484,10 +496,10 @@ export const formStyles = `
   }
 
   .form-input-shared,
-  .form-textarea-shared,
   .form-select-shared {
     width: 100%;
-    padding: var(--le-padding-s, 0.75em); /* Increased padding */
+    height: auto;
+    padding: var(--le-padding-s, 0.75em);
     border: 1px solid var(--le-border-color-dark, #ccc);
     border-radius: var(--le-border-radius-standard, 4px);
     box-sizing: border-box;
@@ -496,8 +508,12 @@ export const formStyles = `
     background-color: var(--le-background-color-panel, #fff);
   }
 
+  /* Ensure date inputs have consistent styling across browsers */
+  .form-input-shared[type="date"] {
+    max-width: 100%;
+  }
+
   .form-input-shared:focus,
-  .form-textarea-shared:focus,
   .form-select-shared:focus {
     border-color: var(--le-border-color-accent, #2196f3);
     outline: none; /* Or a custom focus ring */
@@ -1104,6 +1120,10 @@ export const helpBannerStyles = `
     text-align: right;
     font-size: var(--le-font-size-xs, 0.75em);
     border-bottom: 1px solid var(--le-border-color-medium, #eee);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--le-padding-s, 0.5rem);
   }
 
   .help-banner-shared a {
@@ -1114,6 +1134,11 @@ export const helpBannerStyles = `
 
   .help-banner-shared a:hover {
     text-decoration: underline;
+  }
+
+  .help-banner-shared .separator {
+    color: var(--le-text-color-secondary, #666);
+    margin: 0 var(--le-padding-xs, 0.25rem);
   }
 `;
 
