@@ -1203,7 +1203,6 @@ const BASE_STYLES = `
                     <option value="">Export</option>
                     <option value="excel">Excel</option>
                     <option value="word">Word</option>
-                    <option value="pdf">PDF</option>
                   </select>
                 </div>
               </div>
@@ -1270,7 +1269,6 @@ const BASE_STYLES = `
                     <option value="">Export</option>
                     <option value="excel">Excel</option>
                     <option value="word">Word</option>
-                    <option value="pdf">PDF</option>
                   </select>
                 </div>
               </div>

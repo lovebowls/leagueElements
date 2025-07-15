@@ -18,7 +18,7 @@ import { getMobileStyles, getDesktopStyles } from '../shared-styles.js';
 import { Temporal, TemporalUtils } from '../../utils/temporalUtils.js'; // ADDED IMPORT
 import { League, Match } from '@lovebowls/leaguejs';
 import { FormUtils } from '../../utils/formUtils.js';
-import { exportTableToExcel, exportTableToWord, exportTableToPDF } from '../../utils/data.js';
+import { exportTableToExcel, exportTableToWord } from '../../utils/data.js';
 
 class LeagueElement extends HTMLElement {
 
@@ -2027,9 +2027,7 @@ class LeagueElement extends HTMLElement {
         case 'word':
           exportTableToWord(filteredTableData, this.tableFilter, leagueName, baseFilename);
           break;
-        case 'pdf':
-          exportTableToPDF(filteredTableData, this.tableFilter, leagueName, baseFilename);
-          break;
+
         default:
           console.warn('Unknown export type:', exportType);
           alert('Unknown export format. Please try again.');

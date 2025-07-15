@@ -11,7 +11,7 @@ class LeagueScheduleEvent extends CustomEvent {
 
 import { MOBILE_STYLES, DESKTOP_STYLES } from './LeagueSchedule-styles.js';
 import { TemporalUtils } from '../../utils/temporalUtils.js';
-import { exportMatchesToCSV, exportMatchesToExcel, exportMatchesToWord, exportMatchesToPDF, exportMatchesToJSON } from '../../utils/data.js';
+import { exportMatchesToCSV, exportMatchesToExcel, exportMatchesToWord, exportMatchesToJSON } from '../../utils/data.js';
 import { League } from '@lovebowls/leaguejs';
 import '../leagueCalendar/LeagueCalendar.js';
 
@@ -724,9 +724,7 @@ class LeagueSchedule extends HTMLElement {
         case 'word':
           exportMatchesToWord(filteredMatches, filename);
           break;
-        case 'pdf':
-          exportMatchesToPDF(filteredMatches, filename);
-          break;
+
         case 'json':
           exportMatchesToJSON(filteredMatches, filename);
           break;
@@ -824,7 +822,6 @@ class LeagueSchedule extends HTMLElement {
                 <option value="">Export</option>
                 <option value="excel">Excel</option>
                 <option value="word">Word</option>
-                <option value="pdf">PDF</option>
                 <option value="json">JSON</option>
                 <option value="csv">CSV</option>
               </select>
@@ -997,7 +994,6 @@ class LeagueSchedule extends HTMLElement {
                 <option value="">Export</option>
                 <option value="excel">Excel</option>
                 <option value="word">Word</option>
-                <option value="pdf">PDF</option>
                 <option value="json">JSON</option>
                 <option value="csv">CSV</option>
               </select>
