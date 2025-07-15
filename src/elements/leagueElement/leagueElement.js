@@ -144,12 +144,20 @@ class LeagueElement extends HTMLElement {
     const attentionPanel = this._canEdit ? 
       (this._isMobile ? 
         `<div class="panel">
-          <div class="panel-header panel-header-shared">Requiring Attention</div>
-          <league-matches-attention id="mobile-attention-matches" is-mobile="true"></league-matches-attention>
+          <div class="panel-header panel-header-shared">
+            <span>Requiring Attention</span>
+          </div>
+          <div class="panel-content">
+            <league-matches-attention id="mobile-attention-matches" is-mobile="true"></league-matches-attention>
+          </div>
         </div>` :
         `<div class="panel">
-          <div class="panel-header panel-header-shared">Requiring Attention</div>
-          <league-matches-attention id="desktop-attention-matches"></league-matches-attention>
+          <div class="panel-header panel-header-shared">
+            <span>Requiring Attention</span>
+          </div>
+          <div class="panel-content">
+            <league-matches-attention id="desktop-attention-matches"></league-matches-attention>
+          </div>
         </div>`
       ) : '';
 

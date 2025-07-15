@@ -8,6 +8,7 @@ const BASE_STYLES = `
       ${tabStyles}
       ${formStyles}
       ${helpBannerStyles}
+      
       :host {
         display: block;
         border: 1px solid var(--le-border-color-medium, #ccc); 
@@ -53,12 +54,15 @@ const BASE_STYLES = `
 
         --le-border-radius-standard: 4px;
         --le-border-radius-small: 3px;
+        --le-border-radius-mobile-panel: 12px;
 
         --le-spacing-unit: 0.25rem;
         --le-padding-xs: calc(1 * var(--le-spacing-unit)); /* 0.25rem */
         --le-padding-s: calc(2 * var(--le-spacing-unit));  /* 0.5rem */
         --le-padding-m: calc(4 * var(--le-spacing-unit)); /* 1rem */
         --le-padding-l: calc(6 * var(--le-spacing-unit));  /* 1.5rem */
+
+        --le-shadow-mobile-panel: 0 2px 8px rgba(0,0,0,0.06);
 
         /* Specifics */
         --le-table-header-background: var(--le-background-color-header);
@@ -754,11 +758,20 @@ const BASE_STYLES = `
 
       /* Rest of mobile styles remain unchanged */
       .panel { /* This applies to attention panels in mobile */
-        border: 1px solid var(--le-border-color-medium); 
-        border-radius: var(--le-border-radius-standard); 
+        border: none;
+        border-radius: var(--le-border-radius-mobile-panel, 12px); 
         background: var(--le-background-color-panel); 
-        padding: var(--le-padding-s); 
-        margin: 0;
+        box-shadow: var(--le-shadow-mobile-panel, 0 2px 8px rgba(0,0,0,0.06));
+        padding: 0; 
+        margin: 0 0 var(--le-padding-m) 0;
+        width: 100%;
+        box-sizing: border-box;
+        display: block;
+      }
+
+      
+      .panel-content {
+        padding: 0 var(--le-padding-s) var(--le-padding-s);
       }
       .title { /* Title within the left-panel (table/matrix/trends view) */
         font-size: var(--le-font-size-large); 
@@ -790,11 +803,7 @@ const BASE_STYLES = `
       td:nth-child(3) {
         font-weight: bold;
       }
-      .panel-header { /* Header within the right-side panels (Attention) */
-        font-size: var(--le-font-size-medium); 
-        margin-bottom: var(--le-padding-s); 
-        color: var(--le-text-color-primary); 
-      }
+
       .match-item { /* For items within Attention */
         padding: var(--le-padding-s) var(--le-padding-s); /* Increased padding */
       }
@@ -807,19 +816,18 @@ const BASE_STYLES = `
         display: inline-block;
         width: 8px; /* Increased size */
         height: 16px; /* Increased size */
-        margin: 0 2px 0 2px; /* Increased margin */
+        margin: 0 4px 0 0;
       }
 
       /* Mobile-specific position cell adjustments */
       td.position-cell {
-        width: 50px; /* Slightly wider on mobile for touch targets */
-        min-width: 50px; 
-        max-width: 50px; 
-        padding-right: 22px; 
+        width: 30px; /* Slightly wider on mobile for touch targets */
+        min-width: 30px; 
+        max-width: 30px; 
       }
       .position-cell .rank-up,
       .position-cell .rank-down {
-        right: 6px; 
+        right: 4px; 
         font-size: var(--le-font-size-xs);
       }
 
@@ -1012,6 +1020,7 @@ const BASE_STYLES = `
         flex-direction: column;
         gap: var(--le-padding-m); 
         min-width: 0;
+        margin-top: var(--le-padding-m);
       }
       /* When right panel is hidden, left panel should take full width */
       .dashboard.no-right-panel .left-panel {
@@ -1021,11 +1030,6 @@ const BASE_STYLES = `
         border: 1px solid var(--le-border-color-medium); 
         border-radius: var(--le-border-radius-standard); 
         background: var(--le-background-color-panel); 
-      }
-      .panel-header { /* Header within right-column panels */
-        font-size: var(--le-font-size-large); 
-        margin-bottom: var(--le-padding-s); 
-        color: var(--le-text-color-primary); 
       }
       .title { /* Main title in the left panel (Table/Matrix/Trends) */
         padding: var(--le-padding-xs); 

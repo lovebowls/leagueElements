@@ -12,7 +12,7 @@ const getFontSizeElementVariables = (isMobile = false) => `
   --le-font-size-label: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-input: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-font-size-table-header: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
-  --le-font-size-table-cell: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
+  --le-font-size-table-cell: 0.7em;
   --le-font-size-dropdown: var(--le-font-size-base-${isMobile ? 'mobile' : 'desktop'});
   --le-padding-xs: 0.25rem;
   --le-padding-s: 0.6rem;
@@ -236,6 +236,13 @@ export const dropdownStyles = `
 `;
 
 export const panelStyles = `
+  .panel {
+    margin-bottom: var(--le-padding-m, 1.25em);
+    border: 1px solid var(--le-border-color-light, #f0f0f0);
+    border-radius: var(--le-border-radius-standard, 4px);
+    background-color: var(--le-background-color-panel, #fff);
+  }
+
   .panel-header-shared {
     padding: var(--le-padding-s, 0.75em) var(--le-padding-m, 1.25em); /* Increased padding */
     border-bottom: 1px solid var(--le-border-color-medium, #eee);
@@ -246,6 +253,13 @@ export const panelStyles = `
     justify-content: space-between;
     align-items: center;
     font-size: var(--le-font-size-medium, 1.1em);
+  }
+
+  .panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--le-background-color-header, #f9f9f9);
   }
 
   .panel-content {

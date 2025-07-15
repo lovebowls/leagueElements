@@ -289,17 +289,8 @@ const BASE_STYLES = `
         flex-grow: 1; 
         padding: 0 0 0 var(--swal-padding-s);
       }
-      .panel { /* This class is used on #teams-panel and #matches-panel */
-        margin-bottom: var(--swal-padding-m);
-        border: 1px solid var(--swal-border-color-light);
-        border-radius: var(--swal-border-radius-standard);
-      }
-      .panel .panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: var(--swal-background-color-header); /* Ensure admin context bg */
-      }
+
+
 
       .teams-list, .matches-list { /* These are direct children of panel-content divs */
         list-style: none;
