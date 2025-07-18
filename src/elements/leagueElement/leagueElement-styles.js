@@ -1175,7 +1175,7 @@ const BASE_STYLES = `
   // Mobile layout template
   export const MOBILE_TEMPLATE = `
       <div class="help-banner-shared">
-        <a href="https://lovebowls-leagues.netlify.app/#/league-admin-element" target="_blank" rel="noopener noreferrer">Help & Documentation</a>
+        <a href="https://lovebowls-leagues.netlify.app/#/league-element" target="_blank" rel="noopener noreferrer">Help & Documentation</a>
         <span class="separator">|</span>
         <a href="mailto:admin@lovebowls.co.uk">Raise Issue</a>
       </div>
@@ -1241,7 +1241,7 @@ const BASE_STYLES = `
   // Desktop layout template
   export const DESKTOP_TEMPLATE = `
       <div class="help-banner-shared">
-        <a href="https://lovebowls-leagues.netlify.app/#/league-admin-element" target="_blank" rel="noopener noreferrer">Help & Documentation</a>
+        <a href="https://lovebowls-leagues.netlify.app/#/league-element" target="_blank" rel="noopener noreferrer">Help & Documentation</a>
         <span class="separator">|</span>
         <a href="mailto:admin@lovebowls.co.uk">Raise Issue</a>
       </div>
