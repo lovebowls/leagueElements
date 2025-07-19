@@ -1,6 +1,6 @@
 {
   "name": "@lovebowls/leagueelements",
-  "version": "0.1.66",
+  "version": "0.1.67",
   "description": "League Elements package for LoveBowls",
   "type": "module",
   "source": "src/index.ts",
