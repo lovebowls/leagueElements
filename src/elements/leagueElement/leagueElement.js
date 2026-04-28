@@ -2169,11 +2169,16 @@ class LeagueElement extends HTMLElement {
           // Skip if we're filtering for away matches only
           if (this.tableFilter === 'away') return;
           
+          const homeMatchPoints = typeof match.result.homePoints === 'number'
+            ? match.result.homePoints
+            : (homeScore > awayScore ? 3 : (homeScore === awayScore ? 1 : 0));
+
           played++;
           shotsFor += homeScore;
           shotsAgainst += awayScore;
-          if (homeScore > awayScore) { won++; points += 3; }
-          else if (homeScore === awayScore) { drawn++; points += 1; }
+          points += homeMatchPoints;
+          if (homeScore > awayScore) { won++; }
+          else if (homeScore === awayScore) { drawn++; }
           else { lost++; }
           matches.push(match);
           allMatchesForTooltip.push(match);
@@ -2183,11 +2188,16 @@ class LeagueElement extends HTMLElement {
           // Skip if we're filtering for home matches only
           if (this.tableFilter === 'home') return;
           
+          const awayMatchPoints = typeof match.result.awayPoints === 'number'
+            ? match.result.awayPoints
+            : (awayScore > homeScore ? 3 : (awayScore === homeScore ? 1 : 0));
+
           played++;
           shotsFor += awayScore;
           shotsAgainst += homeScore;
-          if (awayScore > homeScore) { won++; points += 3; }
-          else if (awayScore === homeScore) { drawn++; points += 1; }
+          points += awayMatchPoints;
+          if (awayScore > homeScore) { won++; }
+          else if (awayScore === homeScore) { drawn++; }
           else { lost++; }
           matches.push(match);
           allMatchesForTooltip.push(match);
@@ -2475,7 +2485,17 @@ class LeagueElement extends HTMLElement {
       matchData,
       teams,
       mode,
-      currentLeagueData: this._table
+      currentLeagueData: this._table,
+      leagueSettings: this.data?.settings || null,
+      rinkPointsEnabled: !!this.data?.settings?.rinkPoints?.enabled,
+      defaultRinks: this.data?.settings?.rinkPoints?.defaultRinks,
+      resultSummary: matchData?.result ? {
+        played: matchData.result.played,
+        homeScore: matchData.result.homeScore,
+        awayScore: matchData.result.awayScore,
+        rinkPointsUsed: matchData.result.rinkPointsUsed,
+        rinkResultsLength: Array.isArray(matchData.result.rinkResults) ? matchData.result.rinkResults.length : null
+      } : null
     });
     
     this.matchModalOpen = true;
@@ -2537,7 +2557,7 @@ class LeagueElement extends HTMLElement {
       }
       
       modal.match = this.matchModalData;
-      
+
       // FIXED: Use the correct team object format directly from matchModalTeams
       modal.teams = this.matchModalTeams;
       
@@ -2552,6 +2572,22 @@ class LeagueElement extends HTMLElement {
       modal.setAttribute('font-scale', String(this._fontScale));
       modal.mode = this.matchModalMode;
       modal.canEdit = this._canEdit;
+      modal.leagueSettings = this.data?.settings || {};
+      console.log('[LeagueElement] _renderMatchModal assigning modal props:', {
+        matchId: this.matchModalData?._id,
+        mode: this.matchModalMode,
+        teamsLength: Array.isArray(this.matchModalTeams) ? this.matchModalTeams.length : null,
+        leagueSettings: this.data?.settings || null,
+        rinkPointsEnabled: !!this.data?.settings?.rinkPoints?.enabled,
+        defaultRinks: this.data?.settings?.rinkPoints?.defaultRinks,
+        resultSummary: this.matchModalData?.result ? {
+          played: this.matchModalData.result.played,
+          homeScore: this.matchModalData.result.homeScore,
+          awayScore: this.matchModalData.result.awayScore,
+          rinkPointsUsed: this.matchModalData.result.rinkPointsUsed,
+          rinkResultsLength: Array.isArray(this.matchModalData.result.rinkResults) ? this.matchModalData.result.rinkResults.length : null
+        } : null
+      });
       // Pass attention reason if available in matchModalData
       if (this.matchModalData && this.matchModalData.attentionReason) {
         modal.attentionReason = this.matchModalData.attentionReason;

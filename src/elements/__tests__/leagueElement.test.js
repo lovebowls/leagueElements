@@ -559,5 +559,31 @@ describe('LeagueElement', () => {
       expect(teamA).toBeTruthy();
       expect(teamA.currentRank).toBeDefined();
     });
+
+    it('should use stored match points in table rankings when rink points are enabled', () => {
+      const matchesSubset = [
+        {
+          _id: 'rink-match-1',
+          date: '2023-01-01',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team B', name: 'Team Beta' },
+          result: {
+            homeScore: 8,
+            awayScore: 10,
+            homePoints: 2,
+            awayPoints: 9,
+            rinkPointsUsed: true
+          }
+        }
+      ];
+      const teamNames = ['Team A', 'Team B'];
+
+      const rankedTeams = element._calculateRanksFromMatches(matchesSubset, teamNames);
+      const teamA = rankedTeams.find(team => team.teamId === 'Team A');
+      const teamB = rankedTeams.find(team => team.teamId === 'Team B');
+
+      expect(teamA.points).toBe(2);
+      expect(teamB.points).toBe(9);
+    });
   });
 }); 

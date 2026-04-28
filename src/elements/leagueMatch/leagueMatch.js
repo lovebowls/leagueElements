@@ -37,11 +37,28 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
    */
   set match(value) {
     this._match = value;
+    console.log('[LeagueMatch] match setter:', {
+      matchId: value?._id,
+      played: value?.result?.played,
+      homeScore: value?.result?.homeScore,
+      awayScore: value?.result?.awayScore,
+      rinkPointsUsed: value?.result?.rinkPointsUsed,
+      rinkResultsLength: Array.isArray(value?.result?.rinkResults) ? value.result.rinkResults.length : null
+    });
     this._initializeRinkResults(); // Centralize rink results initialization
     this.render();
   }
 
   _initializeRinkResults() {
+    console.log('[LeagueMatch] _initializeRinkResults start:', {
+      rinkPointsEnabled: this.rinkPointsEnabled,
+      defaultRinks: this.defaultRinks,
+      hasMatch: !!this._match,
+      rinkResultsLength: Array.isArray(this._match?.result?.rinkResults) ? this._match.result.rinkResults.length : null,
+      rinkPointsUsed: this._match?.result?.rinkPointsUsed,
+      homeScore: this._match?.result?.homeScore,
+      awayScore: this._match?.result?.awayScore
+    });
     if (this.rinkPointsEnabled && this._match) {
       if (this._match.result?.rinkResults && this._match.result.rinkResults.length > 0) {
         // Use existing rink results from the match if they are valid for the current number of rinks
@@ -58,6 +75,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     } else {
       this._rinkResults = []; // Clear if rink points not enabled or no match
     }
+    console.log('[LeagueMatch] _initializeRinkResults end:', {
+      rinkPointsEnabled: this.rinkPointsEnabled,
+      defaultRinks: this.defaultRinks,
+      initializedRinkResultsLength: this._rinkResults.length,
+      initializedRinkResults: this._rinkResults
+    });
   }
 
   _generateDefaultRinkResults() {
@@ -106,6 +129,12 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     const oldSettingsString = JSON.stringify(this._leagueSettings);
     this._leagueSettings = value && typeof value === 'object' ? value : {};
     const newSettingsString = JSON.stringify(this._leagueSettings);
+    console.log('[LeagueMatch] leagueSettings setter:', {
+      oldSettings: JSON.parse(oldSettingsString || '{}'),
+      newSettings: this._leagueSettings,
+      rinkPointsEnabled: !!this._leagueSettings?.rinkPoints?.enabled,
+      defaultRinks: this._leagueSettings?.rinkPoints?.defaultRinks
+    });
 
     // Internal convenience properties for rink/match points have been removed.
     // The component will now use getters that read directly from _leagueSettings.
@@ -421,6 +450,23 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
 
   render() {
     const isMobileView = this._isMobile || false;
+    console.log('[LeagueMatch] render:', {
+      open: this._open,
+      mode: this._mode,
+      rinkPointsEnabled: this.rinkPointsEnabled,
+      defaultRinks: this.defaultRinks,
+      matchId: this._match?._id,
+      isPlayed: this._match?.result?.played,
+      rinkResultsLength: this._rinkResults.length,
+      leagueSettings: this._leagueSettings,
+      resultSummary: this._match?.result ? {
+        played: this._match.result.played,
+        homeScore: this._match.result.homeScore,
+        awayScore: this._match.result.awayScore,
+        rinkPointsUsed: this._match.result.rinkPointsUsed,
+        rinkResultsLength: Array.isArray(this._match.result.rinkResults) ? this._match.result.rinkResults.length : null
+      } : null
+    });
     
     // Determine if host itself should act as overlay or if it contains an overlay div.
     // For this example, host itself will be the overlay when open.
