@@ -43,27 +43,52 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
       homeScore: value?.result?.homeScore,
       awayScore: value?.result?.awayScore,
       rinkPointsUsed: value?.result?.rinkPointsUsed,
-      rinkResultsLength: Array.isArray(value?.result?.rinkResults) ? value.result.rinkResults.length : null
+      rinkResultsLength: Array.isArray(this._getSavedRinkScores(value?.result)) ? this._getSavedRinkScores(value?.result).length : null
     });
     this._initializeRinkResults(); // Centralize rink results initialization
     this.render();
   }
 
+  _getSavedRinkScores(result = this._match?.result) {
+    if (!result) {
+      return [];
+    }
+
+    if (Array.isArray(result.rinkScores) && result.rinkScores.length > 0) {
+      return result.rinkScores.map((rink, index) => ({
+        rinkNumber: rink.rinkNumber || index + 1,
+        homeShots: rink.homeShots ?? rink.homeScore ?? 0,
+        awayShots: rink.awayShots ?? rink.awayScore ?? 0
+      }));
+    }
+
+    if (Array.isArray(result.rinkResults) && result.rinkResults.length > 0) {
+      return result.rinkResults.map((rink, index) => ({
+        rinkNumber: rink.rinkNumber || index + 1,
+        homeShots: rink.homeShots ?? rink.homeScore ?? 0,
+        awayShots: rink.awayShots ?? rink.awayScore ?? 0
+      }));
+    }
+
+    return [];
+  }
+
   _initializeRinkResults() {
+    const savedRinkScores = this._getSavedRinkScores();
     console.log('[LeagueMatch] _initializeRinkResults start:', {
       rinkPointsEnabled: this.rinkPointsEnabled,
       defaultRinks: this.defaultRinks,
       hasMatch: !!this._match,
-      rinkResultsLength: Array.isArray(this._match?.result?.rinkResults) ? this._match.result.rinkResults.length : null,
+      rinkResultsLength: savedRinkScores.length,
       rinkPointsUsed: this._match?.result?.rinkPointsUsed,
       homeScore: this._match?.result?.homeScore,
       awayScore: this._match?.result?.awayScore
     });
     if (this.rinkPointsEnabled && this._match) {
-      if (this._match.result?.rinkResults && this._match.result.rinkResults.length > 0) {
+      if (savedRinkScores.length > 0) {
         // Use existing rink results from the match if they are valid for the current number of rinks
-        if (this._match.result.rinkResults.length === this.defaultRinks) {
-            this._rinkResults = JSON.parse(JSON.stringify(this._match.result.rinkResults));
+        if (savedRinkScores.length === this.defaultRinks) {
+            this._rinkResults = JSON.parse(JSON.stringify(savedRinkScores));
         } else {
             console.warn('[LeagueMatch] Mismatch between saved rinks and default rinks. Re-initializing.');
             this._rinkResults = this._generateDefaultRinkResults();
@@ -93,7 +118,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
     // If simple scores exist and we are initializing rinks for the first time for this match data,
     // attempt to distribute them. This is a basic distribution.
     if (this._match && this._match.result && (this._match.result.homeScore != null || this._match.result.awayScore != null) && 
-        (!this._match.result.rinkResults || this._match.result.rinkResults.length === 0)) {
+      this._getSavedRinkScores(this._match.result).length === 0) {
         
       const homeTotal = parseInt(this._match.result.homeScore, 10) || 0;
       const awayTotal = parseInt(this._match.result.awayScore, 10) || 0;
@@ -399,11 +424,17 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         match.result.awayPoints = awayPoints;
         
         // Add rink results
-        match.result.rinkResults = validRinkResults.map(rink => ({
+        const normalizedRinkScores = validRinkResults.map(rink => ({
           rinkNumber: rink.rinkNumber || 0,
           homeShots: parseInt(rink.homeShots, 10) || 0,
           awayShots: parseInt(rink.awayShots, 10) || 0
         }));
+        match.result.rinkScores = normalizedRinkScores.map(rink => ({
+          rinkNumber: rink.rinkNumber,
+          homeScore: rink.homeShots,
+          awayScore: rink.awayShots
+        }));
+        match.result.rinkResults = normalizedRinkScores;
         
       } else {
         // Process simple scoring (non-rink points)
@@ -464,7 +495,7 @@ class LeagueMatch extends HTMLElement { // Or extends LitElement
         homeScore: this._match.result.homeScore,
         awayScore: this._match.result.awayScore,
         rinkPointsUsed: this._match.result.rinkPointsUsed,
-        rinkResultsLength: Array.isArray(this._match.result.rinkResults) ? this._match.result.rinkResults.length : null
+        rinkResultsLength: this._getSavedRinkScores(this._match.result).length
       } : null
     });
     

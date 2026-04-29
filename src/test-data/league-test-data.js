@@ -77,6 +77,35 @@ function calculateSkillBasedResult(homeSkill, awaySkill) {
   return { homeScore, awayScore };
 }
 
+function distributeScoreAcrossRinks(totalScore, rinkCount) {
+  const scores = Array(rinkCount).fill(0);
+
+  for (let index = 0; index < totalScore; index++) {
+    scores[index % rinkCount]++;
+  }
+
+  return scores
+    .map(score => score + Math.floor(Math.random() * 3))
+    .map(score => Math.max(0, score));
+}
+
+function normaliseRinkScores(homeTotal, awayTotal, rinkCount) {
+  const homeScores = distributeScoreAcrossRinks(homeTotal, rinkCount);
+  const awayScores = distributeScoreAcrossRinks(awayTotal, rinkCount);
+
+  const currentHomeTotal = homeScores.reduce((sum, score) => sum + score, 0);
+  const currentAwayTotal = awayScores.reduce((sum, score) => sum + score, 0);
+
+  homeScores[0] += homeTotal - currentHomeTotal;
+  awayScores[0] += awayTotal - currentAwayTotal;
+
+  return homeScores.map((homeScore, index) => ({
+    rinkNumber: index + 1,
+    homeScore,
+    awayScore: awayScores[index]
+  }));
+}
+
 /**
  * Generate a test match object with skill-based results
  * @param {Team} homeTeam - The home team object
@@ -87,7 +116,7 @@ function calculateSkillBasedResult(homeSkill, awaySkill) {
  * @param {boolean} shouldHaveResult - Whether this match should have a result
  * @returns {Object} A test match object in the format expected by the system
  */
-function generateTestMatch(homeTeam, awayTeam, matchDate, homeSkill, awaySkill, shouldHaveResult = true) {
+function generateTestMatch(homeTeam, awayTeam, matchDate, homeSkill, awaySkill, shouldHaveResult = true, settings = {}) {
   const matchData = {
     _id: `match-${generateUniqueId()}`,
     homeTeam: {
@@ -106,6 +135,11 @@ function generateTestMatch(homeTeam, awayTeam, matchDate, homeSkill, awaySkill, 
   // Add result if this is a past match
   if (shouldHaveResult) {
     const result = calculateSkillBasedResult(homeSkill, awaySkill);
+    const rinkPointsEnabled = settings.rinkPoints?.enabled === true;
+    const defaultRinks = settings.rinkPoints?.defaultRinks || 4;
+    const rinkScores = rinkPointsEnabled
+      ? normaliseRinkScores(result.homeScore, result.awayScore, defaultRinks)
+      : undefined;
     
     matchData.result = {
       played: true,
@@ -113,7 +147,8 @@ function generateTestMatch(homeTeam, awayTeam, matchDate, homeSkill, awaySkill, 
       awayScore: result.awayScore,
       homePoints: result.homeScore > result.awayScore ? 2 : (result.homeScore === result.awayScore ? 1 : 0),
       awayPoints: result.awayScore > result.homeScore ? 2 : (result.homeScore === result.awayScore ? 1 : 0),
-      rinkPointsUsed: false
+      rinkPointsUsed: rinkPointsEnabled,
+      ...(rinkScores ? { rinkScores } : {})
     };
   } else {
     // Explicitly set result to null for future matches
@@ -144,7 +179,7 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
     relegationPositions: 1,
     timesTeamsPlayOther: 2, // Each team plays each other twice (home and away)
     rinkPoints: {
-      enabled: Math.random() > 0.5,
+      enabled: true,
       pointsPerRinkWin: 2,
       pointsPerRinkDraw: 1,
       defaultRinks: 4
@@ -307,7 +342,8 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
       matchDate,
       homeSkill,
       awaySkill,
-      true // isPastMatch
+      true, // isPastMatch
+      settings
     );
     
     scheduledMatches.push(matchData);
@@ -331,7 +367,8 @@ export function generateTestLeagueData(lovebowlsTeams = [], teamCount = 4, leagu
       matchDate,
       homeSkill,
       awaySkill,
-      false // isPastMatch
+      false, // isPastMatch
+      settings
     );
     
     scheduledMatches.push(matchData);

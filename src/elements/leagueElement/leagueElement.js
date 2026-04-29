@@ -774,6 +774,26 @@ class LeagueElement extends HTMLElement {
 
     const allTeamIdsInLeague = table.leagueData.map(t => t.teamId);
     let matchesSubset = this.data.matches.slice(0, this.data.matches.length);
+
+    if (this.tableFilter === 'overall') {
+      const supplementalStats = this._calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague);
+      const supplementalStatsByTeamId = new Map(
+        supplementalStats.map(team => [team.teamId, team])
+      );
+
+      return table.leagueData.map((team, index) => {
+        const supplementalTeam = supplementalStatsByTeamId.get(team.teamId);
+
+        return {
+          ...team,
+          teamDisplayName: this.getTeamDisplayName(team.teamId),
+          currentRank: index + 1,
+          rankMovement: supplementalTeam?.rankMovement,
+          matches: supplementalTeam?.matches || [],
+          allMatchesForTooltip: supplementalTeam?.allMatchesForTooltip || []
+        };
+      });
+    }
     
     // For home/away filters, we don't filter the matches themselves,
     // but rather calculate stats differently in _calculateRanksFromMatches

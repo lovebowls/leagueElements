@@ -7,6 +7,7 @@ Guidance for AI coding agents working in this repository.
 - Keep changes focused. Do not fix unrelated issues.
 - Follow existing hybrid conventions: TypeScript types live in `src/types/`, while most component implementations live in `src/elements/**/*.js`.
 - Prefer updating existing docs over duplicating guidance here.
+- This workspace can be paired with the sibling engine repo at `../leagueJS`. When a bug originates in shared league calculation or model behavior from `@lovebowls/leaguejs`, treat `../leagueJS` as the source of truth and make the primary fix there instead of only patching `node_modules`.
 
 ## Commands
 
@@ -59,3 +60,10 @@ Guidance for AI coding agents working in this repository.
 - Host-side config wrapper API: [README-API.md](README-API.md)
 - Temporal usage guide: [src/utils/README-Temporal.md](src/utils/README-Temporal.md)
 - Generated API docs: [docs/index.html](docs/index.html)
+
+## Multi-Repo Workflow
+
+- `leagueElements` consumes `@lovebowls/leaguejs`; `../leagueJS` is the engine source repo.
+- For cross-repo bugs, first identify whether the behavior is controlled in the consumer or the engine.
+- If the root cause is in `leagueJS`, patch that repo first, then only make local consumer-side updates that are required for temporary validation or integration.
+- Call out when a local `node_modules` patch is only a transient mirror of a real fix that belongs in `../leagueJS`.
