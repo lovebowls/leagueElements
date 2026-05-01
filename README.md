@@ -68,3 +68,31 @@ The package builds to both ESM and CommonJS formats:
 ## License
 
 MIT 
+
+
+## DEV GUIDE
+
+Set-Location "C:\lb\dev\leagueJS"
+npm whoami
+git status
+npm test
+npm run build
+npm version patch
+npm publish
+git push
+git push --tags
+
+npm view @lovebowls/leaguejs version
+
+Set-Location "C:\lb\dev\leagueElements"
+git status
+npm pkg set "dependencies.@lovebowls/leaguejs=^0.2.29"
+npm install
+npm test
+npm run build
+npm version patch
+npm publish
+git push
+git push --tags
+
+npm view @lovebowls/leagueelements version

@@ -28,7 +28,7 @@
     "build": "rollup -c rollup.browser.config.js && tsc --emitDeclarationOnly",
     "build:browser": "rollup -c rollup.browser.config.js",
     "dev:browser": "rollup -c rollup.browser.config.js -w",
-    "build:all": "npm run build && npm run build:browser",
+    "build:all": "npm run build",
     "copy:temporal": "node scripts/copy-temporal.js",
     "dev": "rollup -c -w",
     "prepublishOnly": "npm run build:all",
