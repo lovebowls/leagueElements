@@ -27,6 +27,7 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs --coverage",
     "build": "rollup -c rollup.browser.config.js && tsc --emitDeclarationOnly",
     "build:browser": "rollup -c rollup.browser.config.js",
+    "dev:browser": "rollup -c rollup.browser.config.js -w",
     "build:all": "npm run build && npm run build:browser",
     "copy:temporal": "node scripts/copy-temporal.js",
     "dev": "rollup -c -w",
