@@ -533,6 +533,54 @@ describe('LeagueElement', () => {
       // Last data point should be greater than 0 (Team A should have some points)
       expect(teamAPoints[teamAPoints.length - 1]).toBeGreaterThan(0);
     });
+
+    it('should include rink points in points over time data when rink scoring is enabled', () => {
+      element.data = new League({
+        name: 'Rink Points League',
+        matches: [
+          {
+            _id: 'rink-trend-match-1',
+            date: '2023-01-01',
+            homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+            awayTeam: { _id: 'Team B', name: 'Team Beta' },
+            result: {
+              played: true,
+              homeScore: 8,
+              awayScore: 10,
+              homePoints: 0,
+              awayPoints: 3,
+              rinkPointsUsed: true,
+              rinkScores: [
+                { rinkNumber: 1, homeScore: 3, awayScore: 1 },
+                { rinkNumber: 2, homeScore: 1, awayScore: 4 },
+                { rinkNumber: 3, homeScore: 2, awayScore: 2 },
+                { rinkNumber: 4, homeScore: 2, awayScore: 3 }
+              ]
+            }
+          }
+        ],
+        teams: [
+          { _id: 'Team A', name: 'Team Alpha' },
+          { _id: 'Team B', name: 'Team Beta' }
+        ],
+        settings: {
+          pointsForWin: 3,
+          pointsForDraw: 1,
+          pointsForLoss: 0,
+          rinkPoints: {
+            enabled: true,
+            pointsPerRinkWin: 2,
+            pointsPerRinkDraw: 1,
+            defaultRinks: 4
+          }
+        }
+      });
+
+      element._preparePointsOverTimeData();
+
+      expect(element.pointsOverTimeChartData.teamSeries['Team A']).toEqual([3]);
+      expect(element.pointsOverTimeChartData.teamSeries['Team B']).toEqual([8]);
+    });
     
     it('should handle missing data gracefully', () => {
       element.data = null;
@@ -584,6 +632,58 @@ describe('LeagueElement', () => {
 
       expect(teamA.points).toBe(2);
       expect(teamB.points).toBe(9);
+    });
+
+    it('should recalculate filtered table points from rink scores when stored match points are legacy values', () => {
+      element.data = new League({
+        name: 'Rink Points League',
+        matches: [],
+        teams: [
+          { _id: 'Team A', name: 'Team Alpha' },
+          { _id: 'Team B', name: 'Team Beta' }
+        ],
+        settings: {
+          pointsForWin: 3,
+          pointsForDraw: 1,
+          pointsForLoss: 0,
+          rinkPoints: {
+            enabled: true,
+            pointsPerRinkWin: 2,
+            pointsPerRinkDraw: 1,
+            defaultRinks: 4
+          }
+        }
+      });
+
+      const matchesSubset = [
+        {
+          _id: 'rink-match-legacy-points',
+          date: '2023-01-01',
+          homeTeam: { _id: 'Team A', name: 'Team Alpha' },
+          awayTeam: { _id: 'Team B', name: 'Team Beta' },
+          result: {
+            homeScore: 8,
+            awayScore: 10,
+            homePoints: 0,
+            awayPoints: 3,
+            rinkPointsUsed: true,
+            rinkScores: [
+              { rinkNumber: 1, homeScore: 3, awayScore: 1 },
+              { rinkNumber: 2, homeScore: 1, awayScore: 4 },
+              { rinkNumber: 3, homeScore: 2, awayScore: 2 },
+              { rinkNumber: 4, homeScore: 2, awayScore: 3 }
+            ]
+          }
+        }
+      ];
+      const teamNames = ['Team A', 'Team B'];
+
+      const rankedTeams = element._calculateRanksFromMatches(matchesSubset, teamNames);
+      const teamA = rankedTeams.find(team => team.teamId === 'Team A');
+      const teamB = rankedTeams.find(team => team.teamId === 'Team B');
+
+      expect(teamA.points).toBe(3);
+      expect(teamB.points).toBe(8);
     });
   });
 }); 

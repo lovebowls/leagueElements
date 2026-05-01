@@ -772,6 +772,24 @@ class LeagueElement extends HTMLElement {
       return [];
     }
 
+    console.log('[LeagueElement] _getFilteredLeagueData start:', {
+      tableFilter: this.tableFilter,
+      rinkPointsEnabled: !!this.data?.settings?.rinkPoints?.enabled,
+      defaultRinks: this.data?.settings?.rinkPoints?.defaultRinks,
+      matchCount: this.data.matches.length,
+      sampleMatches: this.data.matches.slice(0, 3).map(match => ({
+        id: match._id,
+        homeTeam: match.homeTeam?._id,
+        awayTeam: match.awayTeam?._id,
+        played: match.result?.played,
+        homeScore: match.result?.homeScore,
+        awayScore: match.result?.awayScore,
+        homePoints: match.result?.homePoints,
+        awayPoints: match.result?.awayPoints,
+        rinkPointsUsed: match.result?.rinkPointsUsed
+      }))
+    });
+
     const allTeamIdsInLeague = table.leagueData.map(t => t.teamId);
     let matchesSubset = this.data.matches.slice(0, this.data.matches.length);
 
@@ -800,6 +818,20 @@ class LeagueElement extends HTMLElement {
     // The filtering logic is handled there by checking home/away context
     
     const stats = this._calculateRanksFromMatches(matchesSubset, allTeamIdsInLeague);
+
+    console.log('[LeagueElement] _getFilteredLeagueData computed stats:', {
+      tableFilter: this.tableFilter,
+      stats: stats.map(team => ({
+        teamId: team.teamId,
+        teamName: team.teamDisplayName,
+        points: team.points,
+        played: team.played,
+        won: team.won,
+        drawn: team.drawn,
+        lost: team.lost,
+        shotDifference: team.shotDifference
+      }))
+    });
     
     // Apply form-based sorting if form filter is selected
     if (this.tableFilter === 'form') {
@@ -1118,17 +1150,8 @@ class LeagueElement extends HTMLElement {
         if (matchTimestamp === dateTimestamp) {
           const homeTeamId = match.homeTeam._id;
           const awayTeamId = match.awayTeam._id;
-          const homeScore = match.result.homeScore;
-          const awayScore = match.result.awayScore;
-
-          if (homeScore > awayScore) {
-            currentTeamPoints[homeTeamId] += 3;
-          } else if (awayScore > homeScore) {
-            currentTeamPoints[awayTeamId] += 3;
-          } else { // Draw
-            currentTeamPoints[homeTeamId] += 1;
-            currentTeamPoints[awayTeamId] += 1;
-          }
+          currentTeamPoints[homeTeamId] += this._calculateMatchPointsForTeam(match, 'home');
+          currentTeamPoints[awayTeamId] += this._calculateMatchPointsForTeam(match, 'away');
         }
       });
 
@@ -2013,6 +2036,14 @@ class LeagueElement extends HTMLElement {
     if (filterSelect) {
       filterSelect.value = this.tableFilter; // Ensure dropdown reflects current state
       filterSelect.onchange = (event) => {
+        console.log('[LeagueElement] table-filter-select changed:', {
+          previousFilter: this.tableFilter,
+          nextFilter: event.target.value,
+          leagueName: this.data?.name,
+          matchCount: Array.isArray(this.data?.matches) ? this.data.matches.length : null,
+          rinkPointsEnabled: !!this.data?.settings?.rinkPoints?.enabled,
+          rinkPointsSettings: this.data?.settings?.rinkPoints || null
+        });
         this.tableFilter = event.target.value;
         this.render(); // Re-render with the new filter
       };
@@ -2189,14 +2220,23 @@ class LeagueElement extends HTMLElement {
           // Skip if we're filtering for away matches only
           if (this.tableFilter === 'away') return;
           
-          const homeMatchPoints = typeof match.result.homePoints === 'number'
-            ? match.result.homePoints
-            : (homeScore > awayScore ? 3 : (homeScore === awayScore ? 1 : 0));
+          const homeMatchPoints = this._calculateMatchPointsForTeam(match, 'home');
 
           played++;
           shotsFor += homeScore;
           shotsAgainst += awayScore;
           points += homeMatchPoints;
+          console.debug('[LeagueElement] _calculateRanksFromMatches home tally:', {
+            tableFilter: this.tableFilter,
+            teamId,
+            matchId: match._id,
+            homeScore,
+            awayScore,
+            storedHomePoints: match.result.homePoints,
+            appliedPoints: homeMatchPoints,
+            rinkPointsUsed: match.result.rinkPointsUsed,
+            hasRinkScores: Array.isArray(match.result.rinkScores)
+          });
           if (homeScore > awayScore) { won++; }
           else if (homeScore === awayScore) { drawn++; }
           else { lost++; }
@@ -2208,14 +2248,23 @@ class LeagueElement extends HTMLElement {
           // Skip if we're filtering for home matches only
           if (this.tableFilter === 'home') return;
           
-          const awayMatchPoints = typeof match.result.awayPoints === 'number'
-            ? match.result.awayPoints
-            : (awayScore > homeScore ? 3 : (awayScore === homeScore ? 1 : 0));
+          const awayMatchPoints = this._calculateMatchPointsForTeam(match, 'away');
 
           played++;
           shotsFor += awayScore;
           shotsAgainst += homeScore;
           points += awayMatchPoints;
+          console.debug('[LeagueElement] _calculateRanksFromMatches away tally:', {
+            tableFilter: this.tableFilter,
+            teamId,
+            matchId: match._id,
+            homeScore,
+            awayScore,
+            storedAwayPoints: match.result.awayPoints,
+            appliedPoints: awayMatchPoints,
+            rinkPointsUsed: match.result.rinkPointsUsed,
+            hasRinkScores: Array.isArray(match.result.rinkScores)
+          });
           if (awayScore > homeScore) { won++; }
           else if (awayScore === homeScore) { drawn++; }
           else { lost++; }
@@ -2267,6 +2316,17 @@ class LeagueElement extends HTMLElement {
         allMatchesForTooltip
       };
     });
+
+    console.log('[LeagueElement] _calculateRanksFromMatches team totals before sort:', stats.map(team => ({
+      tableFilter: this.tableFilter,
+      teamId: team.teamId,
+      teamName: team.teamDisplayName,
+      points: team.points,
+      played: team.played,
+      won: team.won,
+      drawn: team.drawn,
+      lost: team.lost
+    })));
 
     // Sort teams based on points, shotDifference, shotsFor (standard league sorting)
     stats.sort((a, b) => {
@@ -2418,24 +2478,52 @@ class LeagueElement extends HTMLElement {
         if (homeTeamId === teamId) {
           // Skip if we're filtering for away matches only
           if (this.tableFilter === 'away') return;
+
+          const homeMatchPoints = this._calculateMatchPointsForTeam(match, 'home');
           
           played++;
           shotsFor += homeScore;
           shotsAgainst += awayScore;
-          if (homeScore > awayScore) { won++; points += 3; }
-          else if (homeScore === awayScore) { drawn++; points += 1; }
+          points += homeMatchPoints;
+          console.debug('[LeagueElement] _calculateStatsFromMatches home tally:', {
+            tableFilter: this.tableFilter,
+            teamId,
+            matchId: match._id,
+            homeScore,
+            awayScore,
+            storedHomePoints: match.result.homePoints,
+            appliedPoints: homeMatchPoints,
+            rinkPointsUsed: match.result.rinkPointsUsed,
+            hasRinkScores: Array.isArray(match.result.rinkScores)
+          });
+          if (homeScore > awayScore) { won++; }
+          else if (homeScore === awayScore) { drawn++; }
           else { lost++; }
           formMatches.push(match);
           allMatchesForTooltip.push(match);
         } else if (awayTeamId === teamId) {
           // Skip if we're filtering for home matches only
           if (this.tableFilter === 'home') return;
+
+          const awayMatchPoints = this._calculateMatchPointsForTeam(match, 'away');
           
           played++;
           shotsFor += awayScore;
           shotsAgainst += homeScore;
-          if (awayScore > homeScore) { won++; points += 3; }
-          else if (awayScore === homeScore) { drawn++; points += 1; }
+          points += awayMatchPoints;
+          console.debug('[LeagueElement] _calculateStatsFromMatches away tally:', {
+            tableFilter: this.tableFilter,
+            teamId,
+            matchId: match._id,
+            homeScore,
+            awayScore,
+            storedAwayPoints: match.result.awayPoints,
+            appliedPoints: awayMatchPoints,
+            rinkPointsUsed: match.result.rinkPointsUsed,
+            hasRinkScores: Array.isArray(match.result.rinkScores)
+          });
+          if (awayScore > homeScore) { won++; }
+          else if (awayScore === homeScore) { drawn++; }
           else { lost++; }
           formMatches.push(match);
           allMatchesForTooltip.push(match);
@@ -2743,6 +2831,72 @@ class LeagueElement extends HTMLElement {
     
     // Last resort: just use first 3 characters
     return teamName.substring(0, 3).toUpperCase();
+  }
+
+  _getBaseMatchPointsForTeam(teamRole, homeScore, awayScore) {
+    const pointsForWin = this.data?.settings?.pointsForWin ?? 3;
+    const pointsForDraw = this.data?.settings?.pointsForDraw ?? 1;
+    const pointsForLoss = this.data?.settings?.pointsForLoss ?? 0;
+    const teamWon = teamRole === 'home' ? homeScore > awayScore : awayScore > homeScore;
+    const isDraw = homeScore === awayScore;
+
+    if (teamWon) return pointsForWin;
+    if (isDraw) return pointsForDraw;
+    return pointsForLoss;
+  }
+
+  _getRinkResultsFromMatch(match) {
+    if (!match?.result?.rinkScores || !Array.isArray(match.result.rinkScores)) {
+      return null;
+    }
+
+    if (typeof match.getRinkResults === 'function') {
+      return match.getRinkResults();
+    }
+
+    const rinkResults = {
+      homeWins: 0,
+      awayWins: 0,
+      draws: 0,
+      total: match.result.rinkScores.length
+    };
+
+    match.result.rinkScores.forEach(rink => {
+      if (rink.homeScore > rink.awayScore) {
+        rinkResults.homeWins++;
+      } else if (rink.awayScore > rink.homeScore) {
+        rinkResults.awayWins++;
+      } else {
+        rinkResults.draws++;
+      }
+    });
+
+    return rinkResults;
+  }
+
+  _calculateMatchPointsForTeam(match, teamRole) {
+    const homeScore = match.result.homeScore;
+    const awayScore = match.result.awayScore;
+    const storedPoints = match.result?.[teamRole === 'home' ? 'homePoints' : 'awayPoints'];
+    const basePoints = this._getBaseMatchPointsForTeam(teamRole, homeScore, awayScore);
+    const rinkPointsEnabled = this.data?.settings?.rinkPoints?.enabled === true;
+
+    if (!rinkPointsEnabled) {
+      return typeof storedPoints === 'number' ? storedPoints : basePoints;
+    }
+
+    const rinkResults = this._getRinkResultsFromMatch(match);
+    if (!rinkResults) {
+      return typeof storedPoints === 'number' ? storedPoints : basePoints;
+    }
+
+    const pointsPerRinkWin = this.data?.settings?.rinkPoints?.pointsPerRinkWin ?? 2;
+    const pointsPerRinkDraw = this.data?.settings?.rinkPoints?.pointsPerRinkDraw ?? 1;
+    const rinkPoints = teamRole === 'home'
+      ? (rinkResults.homeWins * pointsPerRinkWin) + (rinkResults.draws * pointsPerRinkDraw)
+      : (rinkResults.awayWins * pointsPerRinkWin) + (rinkResults.draws * pointsPerRinkDraw);
+
+    return basePoints + rinkPoints;
   }
 
   get _table() {
